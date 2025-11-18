@@ -1,0 +1,356 @@
+openapi: 3.0.3
+info:
+  title: 히어로 이미지 관리 API
+  description: |
+    최범희 PD 통합 브랜드 허브의 히어로 섹션 이미지를 관리하기 위한 REST API입니다.
+
+    **주요 기능**:
+    - 현재 활성화된 히어로 이미지 조회 (공개)
+    - 모든 히어로 이미지 목록 조회 (관리자 전용)
+    - 새 히어로 이미지 업로드 및 활성화 (관리자 전용)
+    - 히어로 이미지 삭제 (관리자 전용)
+
+    **인증**: `/admin` 경로의 엔드포인트는 세션 기반 인증이 필요합니다.
+
+  version: 1.0.0
+  contact:
+    name: Choi PD Ecosystem Development Team
+    email: admin@choipd.com
+
+servers:
+  - url: http://localhost:3000/api
+    description: 로컬 개발 서버
+  - url: https://choipd.com/api
+    description: 프로덕션 서버
+
+tags:
+  - name: Public
+    description: 공개 엔드포인트 (인증 불필요)
+  - name: Admin
+    description: 관리자 전용 엔드포인트 (인증 필요)
+
+paths:
+  /hero-image/active:
+    get:
+      tags:
+        - Public
+      summary: 현재 활성화된 히어로 이미지 조회
+      description: |
+        홈페이지 렌더링 시 사용되는 현재 활성 히어로 이미지를 반환합니다.
+        활성 이미지가 없으면 `null`을 반환합니다.
+      operationId: getActiveHeroImage
+      responses:
+        '200':
+          description: 성공적으로 활성 이미지를 조회했습니다.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/HeroImage'
+                  - type: 'null'
+              examples:
+                activeImageExists:
+                  summary: 활성 이미지가 존재하는 경우
+                  value:
+                    id: 1
+                    filename: hero-1731898000000.jpg
+                    url: /uploads/hero/hero-1731898000000.jpg
+                    altText: 최범희 PD의 교육, 미디어, 작품 활동을 상징하는 이미지
+                    fileSize: 1048576
+                    width: 1920
+                    height: 1080
+                    uploadedAt: 1731898000
+                    isActive: true
+                noActiveImage:
+                  summary: 활성 이미지가 없는 경우
+                  value: null
+        '500':
+          description: 서버 내부 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hero-image:
+    get:
+      tags:
+        - Admin
+      summary: 모든 히어로 이미지 목록 조회 (관리자 전용)
+      description: |
+        업로드된 모든 히어로 이미지를 최신순으로 반환합니다.
+        관리자 페이지에서 이미지 관리 시 사용됩니다.
+      operationId: getAllHeroImages
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: 성공적으로 이미지 목록을 조회했습니다.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HeroImage'
+              examples:
+                multipleImages:
+                  summary: 여러 이미지가 존재하는 경우
+                  value:
+                    - id: 3
+                      filename: hero-1731900000000.jpg
+                      url: /uploads/hero/hero-1731900000000.jpg
+                      altText: 최범희 PD 신규 캠페인 이미지
+                      fileSize: 1500000
+                      width: 1920
+                      height: 1080
+                      uploadedAt: 1731900000
+                      isActive: true
+                    - id: 2
+                      filename: hero-1731899000000.png
+                      url: /uploads/hero/hero-1731899000000.png
+                      altText: 최범희 PD 이전 히어로 이미지
+                      fileSize: 800000
+                      width: 1920
+                      height: 1080
+                      uploadedAt: 1731899000
+                      isActive: false
+        '401':
+          description: 인증되지 않은 사용자
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 서버 내부 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Admin
+      summary: 새 히어로 이미지 업로드 및 활성화 (관리자 전용)
+      description: |
+        새로운 히어로 이미지를 업로드하고 자동으로 활성화합니다.
+        기존 활성 이미지는 자동으로 비활성화됩니다.
+
+        **검증 규칙**:
+        - 파일 타입: JPG, PNG, WebP만 허용
+        - 파일 크기: 최대 2MB
+        - Alt 텍스트: 10~200자
+      operationId: uploadHeroImage
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - heroImage
+                - altText
+              properties:
+                heroImage:
+                  type: string
+                  format: binary
+                  description: 업로드할 이미지 파일 (JPG, PNG, WebP)
+                altText:
+                  type: string
+                  minLength: 10
+                  maxLength: 200
+                  description: 접근성을 위한 대체 텍스트
+                  example: 최범희 PD의 교육, 미디어, 작품 활동을 상징하는 이미지
+      responses:
+        '201':
+          description: 이미지가 성공적으로 업로드되고 활성화되었습니다.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/HeroImage'
+              example:
+                success: true
+                data:
+                  id: 4
+                  filename: hero-1731901000000.jpg
+                  url: /uploads/hero/hero-1731901000000.jpg
+                  altText: 최범희 PD의 교육, 미디어, 작품 활동을 상징하는 이미지
+                  fileSize: 1200000
+                  width: 1920
+                  height: 1080
+                  uploadedAt: 1731901000
+                  isActive: true
+        '400':
+          description: 유효하지 않은 요청 (파일 타입, 크기, alt 텍스트 오류)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidFileType:
+                  summary: 지원되지 않는 파일 형식
+                  value:
+                    error: 지원되지 않는 파일 형식입니다. JPG, PNG, WebP만 가능합니다.
+                fileTooLarge:
+                  summary: 파일 크기 초과
+                  value:
+                    error: 파일 크기가 2MB를 초과합니다.
+                invalidAltText:
+                  summary: Alt 텍스트 길이 오류
+                  value:
+                    error: 대체 텍스트는 10자 이상 200자 이하여야 합니다.
+        '401':
+          description: 인증되지 않은 사용자
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 서버 내부 오류 (파일 저장 실패, DB 오류 등)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hero-image/{id}:
+    delete:
+      tags:
+        - Admin
+      summary: 히어로 이미지 삭제 (관리자 전용)
+      description: |
+        지정된 ID의 히어로 이미지를 삭제합니다.
+        데이터베이스 레코드와 파일 시스템의 파일이 모두 제거됩니다.
+
+        **제약사항**: 현재 활성화된 이미지는 삭제할 수 없습니다.
+      operationId: deleteHeroImage
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 삭제할 히어로 이미지의 ID
+          schema:
+            type: integer
+            example: 2
+      responses:
+        '200':
+          description: 이미지가 성공적으로 삭제되었습니다.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 이미지가 성공적으로 삭제되었습니다.
+        '400':
+          description: 활성 이미지 삭제 시도
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 활성 이미지는 삭제할 수 없습니다.
+        '401':
+          description: 인증되지 않은 사용자
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 이미지를 찾을 수 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: 이미지를 찾을 수 없습니다.
+        '500':
+          description: 서버 내부 오류 (파일 삭제 실패, DB 오류 등)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: session
+      description: |
+        세션 기반 인증. 관리자 로그인 후 자동으로 설정되는 쿠키입니다.
+        `/admin` 경로의 모든 엔드포인트는 유효한 세션이 필요합니다.
+
+  schemas:
+    HeroImage:
+      type: object
+      required:
+        - id
+        - filename
+        - url
+        - altText
+        - fileSize
+        - uploadedAt
+        - isActive
+      properties:
+        id:
+          type: integer
+          description: 고유 식별자
+          example: 1
+        filename:
+          type: string
+          description: 저장된 파일명 (타임스탬프 기반)
+          example: hero-1731898000000.jpg
+        url:
+          type: string
+          description: 이미지 URL 경로
+          example: /uploads/hero/hero-1731898000000.jpg
+        altText:
+          type: string
+          description: 접근성을 위한 대체 텍스트
+          minLength: 10
+          maxLength: 200
+          example: 최범희 PD의 교육, 미디어, 작품 활동을 상징하는 이미지
+        fileSize:
+          type: integer
+          description: 파일 크기 (bytes)
+          example: 1048576
+        width:
+          type: integer
+          nullable: true
+          description: 이미지 너비 (pixels)
+          example: 1920
+        height:
+          type: integer
+          nullable: true
+          description: 이미지 높이 (pixels)
+          example: 1080
+        uploadedAt:
+          type: integer
+          description: 업로드 타임스탬프 (Unix timestamp)
+          example: 1731898000
+        isActive:
+          type: boolean
+          description: 현재 활성화된 이미지 여부
+          example: true
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: 에러 메시지
+          example: 파일 크기가 2MB를 초과합니다.
