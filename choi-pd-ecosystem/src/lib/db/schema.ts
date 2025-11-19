@@ -1,0 +1,170 @@
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sql } from 'drizzle-orm';
+
+// Courses Table (교육 과정)
+export const courses = sqliteTable('courses', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  type: text('type', { enum: ['online', 'offline', 'b2b'] }).notNull(),
+  price: integer('price'), // nullable (무료 과정 가능)
+  thumbnailUrl: text('thumbnail_url'),
+  externalLink: text('external_link'), // VOD 플랫폼 링크
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  published: integer('published', { mode: 'boolean' }).default(true)
+});
+
+// Posts Table (공지사항/소식)
+export const posts = sqliteTable('posts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  category: text('category', { enum: ['notice', 'review', 'media'] }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  published: integer('published', { mode: 'boolean' }).default(true)
+});
+
+// Works Table (갤러리 & 언론 보도)
+export const works = sqliteTable('works', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  title: text('title').notNull(),
+  description: text('description'),
+  imageUrl: text('image_url').notNull(),
+  category: text('category', { enum: ['gallery', 'press'] }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
+});
+
+// Inquiries Table (문의 사항)
+export const inquiries = sqliteTable('inquiries', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'),
+  message: text('message').notNull(),
+  type: text('type', { enum: ['b2b', 'contact'] }).notNull(),
+  status: text('status', { enum: ['pending', 'contacted', 'closed'] }).default('pending'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
+});
+
+// Leads Table (뉴스레터 구독)
+export const leads = sqliteTable('leads', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull().unique(),
+  subscribedAt: integer('subscribed_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
+});
+
+// Settings Table (사이트 설정)
+export const settings = sqliteTable('settings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  key: text('key').notNull().unique(),
+  value: text('value').notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
+});
+
+// Admin Users Table (관리자 계정)
+export const adminUsers = sqliteTable('admin_users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  username: text('username').notNull().unique(),
+  password: text('password').notNull(), // hashed password
+  role: text('role', { enum: ['admin', 'superadmin'] }).notNull().default('admin'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
+});
+
+// SNS Accounts Table (SNS 계정 관리)
+export const snsAccounts = sqliteTable('sns_accounts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  platform: text('platform', { enum: ['facebook', 'instagram', 'twitter', 'linkedin'] }).notNull(),
+  accountName: text('account_name').notNull(),
+  accountId: text('account_id'), // 플랫폼별 계정 ID
+  accessToken: text('access_token').notNull(),
+  refreshToken: text('refresh_token'),
+  tokenExpiresAt: integer('token_expires_at', { mode: 'timestamp' }),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
+  lastSyncedAt: integer('last_synced_at', { mode: 'timestamp' }),
+  metadata: text('metadata'), // JSON 형태로 추가 정보 저장
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
+});
+
+// SNS Scheduled Posts Table (예약된 SNS 포스팅)
+export const snsScheduledPosts = sqliteTable('sns_scheduled_posts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  contentType: text('content_type', { enum: ['posts', 'courses', 'works'] }).notNull(),
+  contentId: integer('content_id').notNull(),
+  platform: text('platform', { enum: ['facebook', 'instagram', 'twitter', 'linkedin'] }).notNull(),
+  accountId: integer('account_id').notNull().references(() => snsAccounts.id, { onDelete: 'cascade' }),
+  message: text('message').notNull(),
+  imageUrl: text('image_url'), // 포스팅에 첨부할 이미지
+  link: text('link'), // 포스팅에 첨부할 링크
+  scheduledAt: integer('scheduled_at', { mode: 'timestamp' }).notNull(),
+  status: text('status', { enum: ['pending', 'publishing', 'published', 'failed', 'cancelled'] }).default('pending'),
+  publishedAt: integer('published_at', { mode: 'timestamp' }),
+  externalPostId: text('external_post_id'), // SNS 플랫폼에서 반환된 포스트 ID
+  error: text('error'), // 에러 메시지 (실패 시)
+  retryCount: integer('retry_count').default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
+});
+
+// SNS Post History Table (SNS 포스팅 이력)
+export const snsPostHistory = sqliteTable('sns_post_history', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  scheduledPostId: integer('scheduled_post_id').notNull().references(() => snsScheduledPosts.id, { onDelete: 'cascade' }),
+  platform: text('platform', { enum: ['facebook', 'instagram', 'twitter', 'linkedin'] }).notNull(),
+  externalPostId: text('external_post_id'),
+  action: text('action', { enum: ['created', 'updated', 'deleted', 'failed'] }).notNull(),
+  status: text('status').notNull(),
+  response: text('response'), // API 응답 (JSON 형태)
+  error: text('error'),
+  metadata: text('metadata'), // 추가 정보 (JSON 형태)
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
+});
+
+// Hero Images Table (히어로 섹션 이미지)
+export const heroImages = sqliteTable('hero_images', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  filename: text('filename').notNull(),
+  url: text('url').notNull(),
+  altText: text('alt_text').notNull(),
+  fileSize: integer('file_size').notNull(),
+  width: integer('width'),
+  height: integer('height'),
+  uploadStatus: text('upload_status', { enum: ['pending', 'completed', 'failed'] }).default('pending').notNull(),
+  uploadedAt: integer('uploaded_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  isActive: integer('is_active', { mode: 'boolean' }).default(false).notNull()
+});
+
+// TypeScript Types
+export type Course = typeof courses.$inferSelect;
+export type NewCourse = typeof courses.$inferInsert;
+
+export type Post = typeof posts.$inferSelect;
+export type NewPost = typeof posts.$inferInsert;
+
+export type Work = typeof works.$inferSelect;
+export type NewWork = typeof works.$inferInsert;
+
+export type Inquiry = typeof inquiries.$inferSelect;
+export type NewInquiry = typeof inquiries.$inferInsert;
+
+export type Lead = typeof leads.$inferSelect;
+export type NewLead = typeof leads.$inferInsert;
+
+export type Setting = typeof settings.$inferSelect;
+export type NewSetting = typeof settings.$inferInsert;
+
+export type AdminUser = typeof adminUsers.$inferSelect;
+export type NewAdminUser = typeof adminUsers.$inferInsert;
+
+export type SnsAccount = typeof snsAccounts.$inferSelect;
+export type NewSnsAccount = typeof snsAccounts.$inferInsert;
+
+export type SnsScheduledPost = typeof snsScheduledPosts.$inferSelect;
+export type NewSnsScheduledPost = typeof snsScheduledPosts.$inferInsert;
+
+export type SnsPostHistory = typeof snsPostHistory.$inferSelect;
+export type NewSnsPostHistory = typeof snsPostHistory.$inferInsert;
+
+export type HeroImage = typeof heroImages.$inferSelect;
+export type NewHeroImage = typeof heroImages.$inferInsert;

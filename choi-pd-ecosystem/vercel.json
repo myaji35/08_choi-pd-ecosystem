@@ -1,0 +1,13 @@
+{
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_DEV_MODE": "true"
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/sns",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
