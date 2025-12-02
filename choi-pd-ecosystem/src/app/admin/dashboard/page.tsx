@@ -216,15 +216,9 @@ export default function AdminDistributorDashboard() {
                 </a>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/resources/upload">
+                <a href="/admin/resources/new">
                   <Download className="mr-2 h-4 w-4" />
-                  새 자료 업로드
-                </a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/resources/categories">
-                  <FileText className="mr-2 h-4 w-4" />
-                  카테고리 관리
+                  새 자료 추가
                 </a>
               </Button>
             </CardContent>
