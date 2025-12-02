@@ -183,6 +183,52 @@ export const distributorResources = sqliteTable('distributor_resources', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
 });
 
+// Subscription Plans (구독 플랜 정의)
+export const subscriptionPlans = sqliteTable('subscription_plans', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(), // Basic, Premium, Enterprise
+  displayName: text('display_name').notNull(),
+  description: text('description'),
+  price: integer('price').notNull(), // 월 가격 (원)
+  features: text('features'), // JSON 배열
+  maxDistributors: integer('max_distributors'), // null = unlimited
+  maxResources: integer('max_resources'), // null = unlimited
+  isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
+});
+
+// Payments (결제 내역)
+export const payments = sqliteTable('payments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  distributorId: integer('distributor_id').notNull().references(() => distributors.id, { onDelete: 'cascade' }),
+  planId: integer('plan_id').notNull().references(() => subscriptionPlans.id),
+  amount: integer('amount').notNull(),
+  currency: text('currency').default('KRW').notNull(),
+  status: text('status', { enum: ['pending', 'completed', 'failed', 'refunded'] }).default('pending').notNull(),
+  paymentMethod: text('payment_method', { enum: ['card', 'bank_transfer', 'toss', 'stripe'] }),
+  transactionId: text('transaction_id'), // 결제 게이트웨이 트랜잭션 ID
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  metadata: text('metadata'), // JSON
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
+});
+
+// Invoices (영수증)
+export const invoices = sqliteTable('invoices', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  paymentId: integer('payment_id').notNull().references(() => payments.id, { onDelete: 'cascade' }),
+  distributorId: integer('distributor_id').notNull().references(() => distributors.id),
+  invoiceNumber: text('invoice_number').notNull().unique(),
+  amount: integer('amount').notNull(),
+  taxAmount: integer('tax_amount').default(0),
+  totalAmount: integer('total_amount').notNull(),
+  dueDate: integer('due_date', { mode: 'timestamp' }),
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  status: text('status', { enum: ['draft', 'sent', 'paid', 'overdue', 'cancelled'] }).default('draft').notNull(),
+  pdfUrl: text('pdf_url'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
+});
+
 // TypeScript Types
 export type Course = typeof courses.$inferSelect;
 export type NewCourse = typeof courses.$inferInsert;
@@ -225,3 +271,12 @@ export type NewDistributorActivityLog = typeof distributorActivityLog.$inferInse
 
 export type DistributorResource = typeof distributorResources.$inferSelect;
 export type NewDistributorResource = typeof distributorResources.$inferInsert;
+
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type NewSubscriptionPlan = typeof subscriptionPlans.$inferInsert;
+
+export type Payment = typeof payments.$inferSelect;
+export type NewPayment = typeof payments.$inferInsert;
+
+export type Invoice = typeof invoices.$inferSelect;
+export type NewInvoice = typeof invoices.$inferInsert;

@@ -22,6 +22,13 @@
       "when": 1764657302155,
       "tag": "0002_keen_puff_adder",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1764660848524,
+      "tag": "0003_tired_jane_foster",
+      "breakpoints": true
     }
   ]
 }
