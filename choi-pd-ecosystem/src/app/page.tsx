@@ -57,7 +57,7 @@ export default function ImPDHomePage() {
 
             {/* Demo Link */}
             <div className="mt-8 text-sm text-gray-600">
-              <span>최PD 브랜드 데모를 보시겠어요? </span>
+              <span>imPD 브랜드 데모를 보시겠어요? </span>
               <a
                 href="http://chopd.localhost:3011"
                 className="text-blue-600 hover:text-blue-700 underline font-medium"

@@ -111,7 +111,7 @@ function ProductionLogin() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-200 via-purple-100 to-indigo-100 p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-purple-900">최PD 관리자</h1>
+          <h1 className="text-3xl font-bold text-purple-900">imPD 관리자</h1>
           <p className="mt-2 text-purple-700">대시보드 접속을 위해 로그인하세요</p>
         </div>
         <SignIn
