@@ -15,6 +15,13 @@
       "when": 1763433642222,
       "tag": "0001_nappy_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1764657302155,
+      "tag": "0002_keen_puff_adder",
+      "breakpoints": true
     }
   ]
 }

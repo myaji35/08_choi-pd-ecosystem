@@ -135,6 +135,54 @@ export const heroImages = sqliteTable('hero_images', {
   isActive: integer('is_active', { mode: 'boolean' }).default(false).notNull()
 });
 
+// Distributors/Resellers Table (분양 수요자 관리)
+export const distributors = sqliteTable('distributors', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(), // 수요자 이름/기업명
+  email: text('email').notNull().unique(),
+  phone: text('phone'),
+  businessType: text('business_type', { enum: ['individual', 'company', 'organization'] }).notNull(),
+  region: text('region'), // 지역
+  status: text('status', { enum: ['pending', 'approved', 'active', 'suspended', 'rejected'] }).default('pending').notNull(),
+  subscriptionPlan: text('subscription_plan', { enum: ['basic', 'premium', 'enterprise'] }),
+  subscriptionStartDate: integer('subscription_start_date', { mode: 'timestamp' }),
+  subscriptionEndDate: integer('subscription_end_date', { mode: 'timestamp' }),
+  contractDocument: text('contract_document'), // 계약서 파일 경로
+  notes: text('notes'), // 관리자 메모
+  totalRevenue: integer('total_revenue').default(0), // 총 매출액 (원)
+  lastActivityAt: integer('last_activity_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
+});
+
+// Distributor Activity Log (분양자 활동 로그)
+export const distributorActivityLog = sqliteTable('distributor_activity_log', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  distributorId: integer('distributor_id').notNull().references(() => distributors.id, { onDelete: 'cascade' }),
+  activityType: text('activity_type', { enum: ['login', 'content_access', 'download', 'payment', 'support_request'] }).notNull(),
+  description: text('description').notNull(),
+  metadata: text('metadata'), // JSON 형태로 추가 정보 저장
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
+});
+
+// Distributor Resources (분양자용 리소스)
+export const distributorResources = sqliteTable('distributor_resources', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  title: text('title').notNull(),
+  description: text('description'),
+  fileUrl: text('file_url').notNull(),
+  fileType: text('file_type', { enum: ['pdf', 'video', 'image', 'document', 'template'] }).notNull(),
+  fileSize: integer('file_size'), // bytes
+  category: text('category', { enum: ['marketing', 'training', 'contract', 'promotional', 'technical'] }).notNull(),
+  requiredPlan: text('required_plan', { enum: ['basic', 'premium', 'enterprise', 'all'] }).default('all').notNull(),
+  downloadCount: integer('download_count').default(0),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
+});
+
 // TypeScript Types
 export type Course = typeof courses.$inferSelect;
 export type NewCourse = typeof courses.$inferInsert;
@@ -168,3 +216,12 @@ export type NewSnsPostHistory = typeof snsPostHistory.$inferInsert;
 
 export type HeroImage = typeof heroImages.$inferSelect;
 export type NewHeroImage = typeof heroImages.$inferInsert;
+
+export type Distributor = typeof distributors.$inferSelect;
+export type NewDistributor = typeof distributors.$inferInsert;
+
+export type DistributorActivityLog = typeof distributorActivityLog.$inferSelect;
+export type NewDistributorActivityLog = typeof distributorActivityLog.$inferInsert;
+
+export type DistributorResource = typeof distributorResources.$inferSelect;
+export type NewDistributorResource = typeof distributorResources.$inferInsert;
