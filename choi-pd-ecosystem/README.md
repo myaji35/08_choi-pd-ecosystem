@@ -84,18 +84,37 @@ npm run db:seed
 npm run dev
 ```
 
-브라우저에서 [http://localhost:3000](http://localhost:3000) 을 열어 확인하세요.
+브라우저에서 [http://localhost:3011](http://localhost:3011) 을 열어 확인하세요.
+
+## 🌐 배포 정보
+
+### 프로덕션 서버
+- **서버 IP**: 58.255.113.125
+- **접속 URL**: http://58.255.113.125
+- **도메인 (예정)**: https://impd.co.kr
+- **포트**: 3011 (Nginx 리버스 프록시)
+
+### 주요 페이지 접속
+- **홈페이지**: http://58.255.113.125
+- **관리자 패널**: http://58.255.113.125/admin
+- **PD 대시보드**: http://58.255.113.125/pd
+- **Health Check**: http://58.255.113.125/api/health
+
+### 배포 관련 문서
+- [배포 가이드](../DEPLOYMENT.md) - 상세 배포 절차
+- [배포 URL](../DEPLOYMENT_URLS.md) - 전체 URL 목록
+- [포트 할당](../PORT_ALLOCATION.md) - 포트 관리 문서
 
 ## 📝 사용 가능한 스크립트
 
 ```bash
-# 개발 서버 실행
+# 개발 서버 실행 (포트 3011)
 npm run dev
 
 # 프로덕션 빌드
 npm run build
 
-# 프로덕션 서버 실행
+# 프로덕션 서버 실행 (포트 3011)
 npm start
 
 # 린트 검사
@@ -112,6 +131,15 @@ npm run db:generate
 
 # 시드 데이터 실행
 npm run db:seed
+
+# 테스트 실행
+npm test                  # 단위 테스트
+npm run test:watch        # 단위 테스트 (워치 모드)
+npm run test:coverage     # 커버리지 리포트
+npm run test:e2e          # E2E 테스트
+npm run test:e2e:ui       # E2E 테스트 (UI 모드)
+npm run test:e2e:debug    # E2E 테스트 (디버그 모드)
+npm run test:lighthouse   # Lighthouse 성능 테스트
 ```
 
 ## 🗄️ 데이터베이스 스키마
@@ -143,22 +171,56 @@ npm run db:seed
 - **로그인 페이지**: `/admin/sign-in`
 - **가입 페이지**: `/admin/sign-up`
 
-## 📊 Week 1 완료 상태
+## 🧪 테스트
 
-✅ **완료된 작업**
-- [x] Next.js 프로젝트 초기화
-- [x] TypeScript 및 Tailwind CSS 설정
-- [x] Drizzle ORM 데이터베이스 설정
-- [x] Clerk 인증 통합
-- [x] Zustand 상태 관리
-- [x] 기본 프로젝트 구조
-- [x] 샘플 데이터 시딩
+### 테스트 프레임워크
+- **Jest**: 단위 테스트 및 통합 테스트
+- **Playwright**: E2E 테스트
+- **@axe-core/playwright**: 접근성 테스트 (WCAG 2.1 AA)
+- **Lighthouse**: 성능 테스트
 
-🔄 **다음 단계 (Week 2)**
-- [ ] shadcn/ui 컴포넌트 설치
-- [ ] Header/Footer 레이아웃
-- [ ] Home 페이지 구현
-- [ ] Education 페이지 시작
+### 테스트 구조
+```
+choi-pd-ecosystem/
+├── e2e/                              # E2E 테스트
+│   ├── homepage.spec.ts              # 홈페이지 테스트
+│   ├── accessibility.spec.ts         # 접근성 테스트
+│   ├── admin-hero-images.spec.ts     # Admin Hero 이미지
+│   ├── admin-distributors.spec.ts    # 분양자 관리
+│   └── pd-dashboard.spec.ts          # PD 대시보드
+├── src/app/api/__tests__/            # API 통합 테스트
+│   ├── distributors.test.ts          # 분양자 API
+│   ├── auth.test.ts                  # 인증 API
+│   └── newsletter.test.ts            # 뉴스레터 API
+└── src/lib/**/__tests__/             # 단위 테스트
+    ├── validation.test.ts            # 검증 로직
+    └── imageProcessing.test.ts       # 이미지 처리
+```
+
+### 테스트 커버리지
+- 단위 테스트: ~75% 커버리지
+- E2E 테스트: 5개 스펙 파일, 30+ 시나리오
+- 접근성 테스트: WCAG 2.1 AA 준수
+
+자세한 내용은 `EPIC_14_COMPLETE.md`를 참조하세요.
+
+## 📊 개발 상태
+
+✅ **완료된 Epic**
+- [x] Epic 1: 핵심 인증 및 사용자 관리 시스템
+- [x] Epic 2: 분양 플랫폼 관리 시스템 (부분 완료)
+- [x] Epic 3: 분양자 리소스 관리 시스템 (부분 완료)
+- [x] Epic 4: 활동 로그 및 분석 대시보드 (부분 완료)
+- [x] Epic 5: PD 개인 브랜드 관리 시스템 (부분 완료)
+- [x] Epic 7-10: 문의/알림/SNS 시스템 (부분 완료)
+- [x] Epic 14: 테스트 및 품질 보증 ✅
+
+🔄 **진행 중**
+- [ ] Epic 6: 콘텐츠 관리 시스템 (CMS)
+- [ ] Epic 9: 결제 및 구독 관리
+- [ ] Epic 11: SEO 및 퍼포먼스 최적화
+
+자세한 로드맵은 `EPIC_ROADMAP.md`를 참조하세요.
 
 ## 📚 참고 문서
 

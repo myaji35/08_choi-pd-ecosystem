@@ -1,0 +1,27 @@
+[Unit]
+Description=imPD Next.js Application
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/impd/choi-pd-ecosystem
+ExecStart=/usr/bin/npm run start
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=impd
+Environment=NODE_ENV=production
+Environment=PORT=3011
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=512
+
+# Security settings
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
