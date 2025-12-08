@@ -18,10 +18,10 @@ function generateCssVariables(branding: any): string {
 // Get organization branding
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const orgId = parseInt(params.id);
+    const { id } = await params;    const orgId = parseInt(id);
 
     const [branding] = await db.select()
       .from(organizationBranding)
@@ -54,10 +54,10 @@ export async function GET(
 // Update organization branding
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const orgId = parseInt(params.id);
+    const { id } = await params;    const orgId = parseInt(id);
     const body = await request.json();
 
     const {

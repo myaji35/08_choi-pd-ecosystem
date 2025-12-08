@@ -6,10 +6,10 @@ import { eq, and, desc } from 'drizzle-orm';
 // Add member to organization
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const orgId = parseInt(params.id);
+    const { id } = await params;    const orgId = parseInt(id);
     const body = await request.json();
 
     const {
@@ -84,10 +84,10 @@ export async function POST(
 // Get organization members
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const orgId = parseInt(params.id);
+    const { id } = await params;    const orgId = parseInt(id);
     const searchParams = request.nextUrl.searchParams;
     const role = searchParams.get('role') || undefined;
     const status = searchParams.get('status') || undefined;

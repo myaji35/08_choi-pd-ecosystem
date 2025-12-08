@@ -7,10 +7,10 @@ import { executeWorkflow } from '@/lib/workflows';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const workflowId = parseInt(params.id);
+    const { id } = await params;    const workflowId = parseInt(id);
     const body = await request.json();
     const { triggerData, executedBy } = body;
 

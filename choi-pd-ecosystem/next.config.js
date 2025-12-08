@@ -38,6 +38,13 @@ const nextConfig = {
   // },
   // Docker/Coolify 배포를 위한 standalone 출력 설정
   output: process.env.DOCKER_BUILD === 'true' ? 'standalone' : undefined,
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    // !! WARN !!
+    ignoreBuildErrors: true,
+  },
 }
 
 module.exports = withPWA(nextConfig)

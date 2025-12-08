@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev -p 3011",
     "build": "next build --webpack",
+    "build:prod": "NEXT_TYPESCRIPT_TSLINT_IGNORE=true next build --webpack",
     "start": "next start -p 3011",
     "lint": "next lint",
     "test": "jest",

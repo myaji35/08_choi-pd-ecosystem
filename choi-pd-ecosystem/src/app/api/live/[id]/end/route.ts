@@ -7,10 +7,10 @@ import { endLiveStream } from '@/lib/video';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const streamId = parseInt(params.id);
+    const { id } = await params;    const streamId = parseInt(id);
     const body = await request.json();
     const { recordingUrl } = body;
 

@@ -7,10 +7,10 @@ import { addVideoToPlaylist, removeVideoFromPlaylist } from '@/lib/video';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const playlistId = parseInt(params.id);
+    const { id } = await params;    const playlistId = parseInt(id);
     const body = await request.json();
     const { videoId, order } = body;
 
@@ -47,7 +47,7 @@ export async function POST(
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { id } = await params;    const { searchParams } = new URL(request.url);
     const videoId = searchParams.get('videoId');
 
     if (!videoId) {

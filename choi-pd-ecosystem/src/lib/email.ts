@@ -251,3 +251,82 @@ export const emailTemplates = {
     `,
   }),
 };
+
+/**
+ * Send inquiry confirmation email
+ */
+export async function sendInquiryConfirmationEmail(data: {
+  email: string;
+  name: string;
+  type: string;
+}): Promise<void> {
+  const template = emailTemplates.newInquiry({
+    inquiryId: Date.now(),
+    name: data.name,
+    email: data.email,
+    type: data.type,
+    message: '문의가 접수되었습니다.'
+  });
+  await sendEmail({
+    to: data.email,
+    subject: '문의가 접수되었습니다',
+    html: template.html
+  });
+}
+
+/**
+ * Send newsletter to subscribers
+ */
+export async function sendNewsletter(data: {
+  subject: string;
+  content: string;
+  subscribers: { email: string; id?: string }[];
+}): Promise<void> {
+  // Send to all subscribers in batches
+  const batchSize = 50;
+  for (let i = 0; i < data.subscribers.length; i += batchSize) {
+    const batch = data.subscribers.slice(i, i + batchSize);
+
+    await Promise.all(
+      batch.map(subscriber =>
+        sendEmail({
+          to: subscriber.email,
+          subject: data.subject,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #1a73e8; color: white; padding: 20px; }
+                .content { padding: 20px; background: white; }
+                .footer { padding: 10px; text-align: center; color: #666; }
+                .unsubscribe { color: #1a73e8; text-decoration: none; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>${data.subject}</h1>
+                </div>
+                <div class="content">
+                  ${data.content}
+                </div>
+                <div class="footer">
+                  <p>이 이메일을 원하지 않으시면 <a href="#" class="unsubscribe">구독 취소</a>를 클릭하세요.</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `
+        })
+      )
+    );
+
+    // Add delay between batches to avoid rate limiting
+    if (i + batchSize < data.subscribers.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+}

@@ -6,10 +6,10 @@ import { eq } from 'drizzle-orm';
 // Update FAQ
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const faqId = parseInt(params.id);
+    const { id } = await params;    const faqId = parseInt(id);
     const body = await request.json();
 
     const {
@@ -54,10 +54,10 @@ export async function PATCH(
 // Delete FAQ
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const faqId = parseInt(params.id);
+    const { id } = await params;    const faqId = parseInt(id);
 
     await db.delete(faqKnowledgeBase).where(eq(faqKnowledgeBase.id, faqId));
 

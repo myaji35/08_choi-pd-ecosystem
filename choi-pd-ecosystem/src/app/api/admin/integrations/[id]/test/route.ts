@@ -7,16 +7,16 @@ import { testIntegrationConnection } from '@/lib/workflows';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const integrationId = parseInt(params.id);
+    const { id } = await params;    const integrationId = parseInt(id);
 
     const result = await testIntegrationConnection(integrationId);
 
     return NextResponse.json({
       success: true,
-      ...result
+      connected: result
     });
   } catch (error) {
     console.error('Error testing integration:', error);

@@ -40,7 +40,11 @@ const fontOptions = [
   { value: 'open-sans', label: 'Open Sans' },
 ];
 
-const presetColors = {
+const presetColors: Record<string, {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+}> = {
   basic: {
     primaryColor: '#10b981',
     secondaryColor: '#059669',
@@ -56,7 +60,7 @@ const presetColors = {
     secondaryColor: '#7c3aed',
     accentColor: '#a78bfa',
   },
-};
+};;
 
 export default function ThemeSettingsPage() {
   const router = useRouter();

@@ -6,10 +6,11 @@ import { eq } from 'drizzle-orm';
 // Update A/B test
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const testId = parseInt(params.id);
+    const { id } = await params;
+    const testId = parseInt(id);
     const body = await request.json();
 
     const { status, results, winner } = body;
@@ -61,10 +62,11 @@ export async function PATCH(
 // Get single A/B test
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const testId = parseInt(params.id);
+    const { id } = await params;
+    const testId = parseInt(id);
 
     const [test] = await db.select()
       .from(abTests)

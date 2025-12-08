@@ -6,10 +6,10 @@ import { eq } from 'drizzle-orm';
 // Get organization by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const orgId = parseInt(params.id);
+    const { id } = await params;    const orgId = parseInt(id);
 
     const [organization] = await db.select()
       .from(organizations)
@@ -42,10 +42,10 @@ export async function GET(
 // Update organization
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const orgId = parseInt(params.id);
+    const { id } = await params;    const orgId = parseInt(id);
     const body = await request.json();
 
     const {
@@ -113,10 +113,10 @@ export async function PATCH(
 // Delete organization
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const orgId = parseInt(params.id);
+    const { id } = await params;    const orgId = parseInt(id);
 
     await db.delete(organizations).where(eq(organizations.id, orgId));
 

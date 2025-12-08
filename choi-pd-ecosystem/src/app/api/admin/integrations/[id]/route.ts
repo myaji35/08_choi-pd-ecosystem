@@ -10,10 +10,10 @@ import { updateIntegration } from '@/lib/workflows';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const integrationId = parseInt(params.id);
+    const { id } = await params;    const integrationId = parseInt(id);
 
     const [integration] = await db
       .select()
@@ -49,10 +49,10 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const integrationId = parseInt(params.id);
+    const { id } = await params;    const integrationId = parseInt(id);
     const body = await request.json();
 
     // Use utility function to handle credential encryption
@@ -80,10 +80,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const integrationId = parseInt(params.id);
+    const { id } = await params;    const integrationId = parseInt(id);
 
     await db.delete(integrations).where(eq(integrations.id, integrationId));
 

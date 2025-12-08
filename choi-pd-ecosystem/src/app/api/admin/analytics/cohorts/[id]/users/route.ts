@@ -6,10 +6,10 @@ import { eq } from 'drizzle-orm';
 // Add user to cohort
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const cohortId = parseInt(params.id);
+    const { id } = await params;    const cohortId = parseInt(id);
     const body = await request.json();
 
     const { userId, userEmail, metadata } = body;
@@ -48,10 +48,10 @@ export async function POST(
 // Get cohort users
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const cohortId = parseInt(params.id);
+    const { id } = await params;    const cohortId = parseInt(id);
 
     const users = await db.select()
       .from(cohortUsers)

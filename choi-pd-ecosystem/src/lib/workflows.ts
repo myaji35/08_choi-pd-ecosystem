@@ -627,10 +627,41 @@ function decryptData(encryptedData: string): string {
   return decrypted;
 }
 
+/**
+ * Update an integration
+ */
+export async function updateIntegration(
+  id: number,
+  data: Partial<NewIntegration>
+): Promise<any> {
+  try {
+    const [updated] = await db
+      .update(integrations)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(integrations.id, id))
+      .returning();
+
+    return updated;
+  } catch (error) {
+    console.error('Error updating integration:', error);
+    throw error;
+  }
+}
+
+/**
+ * Test integration connection
+ */
+export async function testIntegrationConnection(id: number): Promise<boolean> {
+  // Alias for existing testIntegration function
+  return testIntegration(id);
+}
+
 export default {
   executeWorkflow,
   addIntegration,
+  updateIntegration,
   testIntegration,
+  testIntegrationConnection,
   createWebhook,
   triggerWebhook,
   verifyWebhookSignature,

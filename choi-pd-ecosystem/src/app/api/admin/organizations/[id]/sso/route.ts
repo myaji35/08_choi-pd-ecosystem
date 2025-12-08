@@ -6,10 +6,10 @@ import { eq } from 'drizzle-orm';
 // Get SSO configuration
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const orgId = parseInt(params.id);
+    const { id } = await params;    const orgId = parseInt(id);
 
     const [ssoConfig] = await db.select()
       .from(ssoConfigurations)
@@ -45,10 +45,10 @@ export async function GET(
 // Create or update SSO configuration
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const orgId = parseInt(params.id);
+    const { id } = await params;    const orgId = parseInt(id);
     const body = await request.json();
 
     const {

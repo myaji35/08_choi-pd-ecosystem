@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       .set({
         successCount,
         failureCount,
-        status: failureCount === 0 ? 'completed' : 'completed_with_errors',
+        status: failureCount === 0 ? 'completed' : 'failed',
         errors: errors.length > 0 ? JSON.stringify(errors) : null,
         results: JSON.stringify(results),
         completedAt: new Date()

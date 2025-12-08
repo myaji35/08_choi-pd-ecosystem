@@ -6,10 +6,10 @@ import { eq, desc } from 'drizzle-orm';
 // Create team
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const orgId = parseInt(params.id);
+    const { id } = await params;    const orgId = parseInt(id);
     const body = await request.json();
 
     const {
@@ -53,10 +53,10 @@ export async function POST(
 // Get organization teams
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const orgId = parseInt(params.id);
+    const { id } = await params;    const orgId = parseInt(id);
 
     const orgTeams = await db.select()
       .from(teams)

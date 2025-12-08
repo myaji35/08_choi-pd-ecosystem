@@ -6,10 +6,10 @@ import { eq } from 'drizzle-orm';
 // GET /api/admin/posts/[id] - Get single post
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const postId = parseInt(params.id, 10);
+    const { id } = await params;    const postId = parseInt(id, 10);
 
     if (isNaN(postId)) {
       return NextResponse.json(
@@ -47,10 +47,10 @@ export async function GET(
 // PUT /api/admin/posts/[id] - Update post
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const postId = parseInt(params.id, 10);
+    const { id } = await params;    const postId = parseInt(id, 10);
 
     if (isNaN(postId)) {
       return NextResponse.json(
@@ -112,10 +112,10 @@ export async function PUT(
 // DELETE /api/admin/posts/[id] - Delete post
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const postId = parseInt(params.id, 10);
+    const { id } = await params;    const postId = parseInt(id, 10);
 
     if (isNaN(postId)) {
       return NextResponse.json(

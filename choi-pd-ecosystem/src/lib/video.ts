@@ -762,5 +762,29 @@ export default {
   getVideoComments,
   createPlaylist,
   addVideoToPlaylist,
-  getPlaylistVideos
+  getPlaylistVideos,
+  removeVideoFromPlaylist
 };
+
+/**
+ * Remove video from playlist
+ */
+export async function removeVideoFromPlaylist(
+  playlistId: number,
+  videoId: number
+): Promise<boolean> {
+  try {
+    await db
+      .delete(videoPlaylistItems)
+      .where(
+        and(
+          eq(videoPlaylistItems.playlistId, playlistId),
+          eq(videoPlaylistItems.videoId, videoId)
+        )
+      );
+    return true;
+  } catch (error) {
+    console.error('Error removing video from playlist:', error);
+    return false;
+  }
+}

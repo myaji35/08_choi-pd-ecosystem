@@ -7,10 +7,10 @@ import { updateWatchProgress } from '@/lib/video';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const videoId = parseInt(params.id);
+    const { id } = await params;    const videoId = parseInt(id);
     const body = await request.json();
     const {
       userId,

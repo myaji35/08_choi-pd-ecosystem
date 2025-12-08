@@ -9,10 +9,10 @@ import { eq } from 'drizzle-orm';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const webhookId = parseInt(params.id);
+    const { id } = await params;    const webhookId = parseInt(id);
 
     const [webhook] = await db
       .select()
@@ -48,10 +48,10 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const webhookId = parseInt(params.id);
+    const { id } = await params;    const webhookId = parseInt(id);
     const body = await request.json();
 
     const updateData: any = {
@@ -62,7 +62,7 @@ export async function PATCH(
     if (body.url !== undefined) {
       // Validate URL
       try {
-        new URL(body.url);
+    const { id } = await params;        new URL(body.url);
         updateData.url = body.url;
       } catch {
         return NextResponse.json(
@@ -120,10 +120,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const webhookId = parseInt(params.id);
+    const { id } = await params;    const webhookId = parseInt(id);
 
     await db.delete(webhooks).where(eq(webhooks.id, webhookId));
 

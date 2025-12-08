@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { integrations } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { addIntegration, updateIntegration } from '@/lib/workflows';
 
 /**
@@ -15,21 +15,25 @@ export async function GET(request: NextRequest) {
     const provider = searchParams.get('provider');
     const isEnabled = searchParams.get('isEnabled');
 
-    let query = db.select().from(integrations);
+    const conditions = [];
 
     if (type) {
-      query = query.where(eq(integrations.type, type as any));
+      conditions.push(eq(integrations.type, type as any));
     }
 
     if (provider) {
-      query = query.where(eq(integrations.provider, provider));
+      conditions.push(eq(integrations.provider, provider));
     }
 
     if (isEnabled !== null) {
-      query = query.where(eq(integrations.isEnabled, isEnabled === 'true'));
+      conditions.push(eq(integrations.isEnabled, isEnabled === 'true'));
     }
 
-    const allIntegrations = await query.orderBy(desc(integrations.createdAt));
+    const allIntegrations = await db
+      .select()
+      .from(integrations)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(integrations.createdAt));
 
     // Don't expose credentials in list view
     const sanitized = allIntegrations.map(int => ({
@@ -63,7 +67,6 @@ export async function POST(request: NextRequest) {
       provider,
       credentials,
       config,
-      scopes,
       createdBy
     } = body;
 
@@ -89,7 +92,6 @@ export async function POST(request: NextRequest) {
       provider,
       credentials,
       config,
-      scopes,
       createdBy
     });
 

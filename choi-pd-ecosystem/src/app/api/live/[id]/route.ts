@@ -9,10 +9,10 @@ import { eq } from 'drizzle-orm';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const streamId = parseInt(params.id);
+    const { id } = await params;    const streamId = parseInt(id);
 
     const [stream] = await db
       .select()
@@ -45,10 +45,10 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const streamId = parseInt(params.id);
+    const { id } = await params;    const streamId = parseInt(id);
     const body = await request.json();
 
     const updateData: any = {
@@ -102,10 +102,10 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const streamId = parseInt(params.id);
+    const { id } = await params;    const streamId = parseInt(id);
 
     await db.delete(liveStreams).where(eq(liveStreams.id, streamId));
 
