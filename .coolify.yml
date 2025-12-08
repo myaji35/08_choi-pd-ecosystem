@@ -1,0 +1,122 @@
+# Coolify Configuration File
+# This file helps Coolify understand how to build and deploy your application
+
+name: imPD Platform
+type: node
+
+# Build Configuration
+build:
+  # Base directory where package.json is located
+  base_directory: choi-pd-ecosystem
+
+  # Docker build arguments
+  build_args:
+    DOCKER_BUILD: "true"
+
+  # Build command
+  build_command: |
+    npm ci
+    npm run build
+
+  # Node.js version
+  node_version: 20
+
+# Runtime Configuration
+runtime:
+  # Start command
+  start_command: npm start
+
+  # Port configuration
+  port: 3011
+
+  # Health check
+  health_check:
+    path: /api/health
+    interval: 30
+    timeout: 10
+    retries: 3
+
+# Environment Variables (can be overridden in Coolify UI)
+environment:
+  NODE_ENV: production
+  PORT: 3011
+  NEXT_TELEMETRY_DISABLED: 1
+
+# Resources
+resources:
+  # CPU limit (cores)
+  cpu: 2
+
+  # Memory limit (MB)
+  memory: 2048
+
+  # Storage
+  storage:
+    - source: ./data
+      target: /app/data
+      type: volume
+    - source: ./public/uploads
+      target: /app/public/uploads
+      type: volume
+
+# Networking
+networking:
+  # Public domain(s)
+  domains:
+    - impd.co.kr
+    - www.impd.co.kr
+
+  # SSL configuration
+  ssl:
+    enabled: true
+    provider: letsencrypt
+    email: admin@impd.co.kr
+
+# Deployment
+deployment:
+  # Auto-deploy on push to these branches
+  auto_deploy_branches:
+    - main
+    - production
+
+  # Enable PR previews
+  pr_previews: true
+
+  # PR preview configuration
+  pr_preview:
+    prefix: pr
+    delete_on_close: true
+
+  # Rollback configuration
+  rollback:
+    enabled: true
+    keep_deployments: 5
+
+# Notifications (optional)
+notifications:
+  # Discord webhook (optional)
+  discord:
+    webhook_url: ${DISCORD_WEBHOOK_URL}
+    events:
+      - deploy_success
+      - deploy_failure
+
+  # Email notifications (optional)
+  email:
+    to: admin@impd.co.kr
+    events:
+      - deploy_failure
+
+# Advanced Configuration
+advanced:
+  # Zero-downtime deployment
+  zero_downtime: true
+
+  # Grace period for shutdown (seconds)
+  grace_period: 30
+
+  # Custom dockerfile (if not using default)
+  dockerfile: ./choi-pd-ecosystem/Dockerfile
+
+  # Docker compose override (optional)
+  docker_compose: ./docker-compose.yml

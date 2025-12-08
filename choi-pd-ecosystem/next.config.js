@@ -1,5 +1,19 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
+const withPWA = require('@ducanh2912/next-pwa').default({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+  register: true,
+  skipWaiting: true,
+  sw: 'sw.js',
+  cacheOnNavigation: true,
+  cacheStartUrl: true,
+  dynamicStartUrl: true,
+  reloadOnOnline: true,
+  workboxOptions: {
+    disableDevLogs: true,
+  },
+});
 
 const nextConfig = {
   images: {
@@ -21,6 +35,8 @@ const nextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // Docker/Coolify 배포를 위한 standalone 출력 설정
+  output: process.env.DOCKER_BUILD === 'true' ? 'standalone' : undefined,
 }
 
-module.exports = nextConfig
+module.exports = withPWA(nextConfig)

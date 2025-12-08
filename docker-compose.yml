@@ -1,0 +1,84 @@
+# Docker Compose for imPD Platform
+# Coolify 또는 독립 Docker 환경에서 사용 가능
+
+version: '3.8'
+
+services:
+  nextjs:
+    container_name: impd-nextjs
+    build:
+      context: ./choi-pd-ecosystem
+      dockerfile: Dockerfile
+    ports:
+      - "3011:3011"
+    environment:
+      - NODE_ENV=production
+      - PORT=3011
+      - DATABASE_URL=file:./data/database.db
+      - NEXT_PUBLIC_APP_URL=http://58.255.113.125
+    volumes:
+      - ./choi-pd-ecosystem/data:/app/data
+      - ./choi-pd-ecosystem/public/uploads:/app/public/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3011/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - impd-network
+    labels:
+      # Coolify Labels
+      - coolify.managed=true
+      - coolify.applicationId=impd
+      - coolify.type=application
+      - coolify.name=imPD Platform
+      # Traefik Labels (Coolify가 자동으로 사용)
+      - traefik.enable=true
+      - traefik.http.routers.impd.rule=Host(`impd.co.kr`) || Host(`www.impd.co.kr`)
+      - traefik.http.services.impd.loadbalancer.server.port=3011
+      - traefik.http.routers.impd.tls=true
+      - traefik.http.routers.impd.tls.certresolver=letsencrypt
+
+  # 선택사항: Redis 캐시 (향후 확장용)
+  redis:
+    image: redis:7-alpine
+    container_name: impd-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - impd-network
+    profiles:
+      - with-redis
+
+  # 선택사항: PostgreSQL (SQLite에서 마이그레이션 시)
+  postgres:
+    image: postgres:15-alpine
+    container_name: impd-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=impd
+      - POSTGRES_USER=impd
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - impd-network
+    profiles:
+      - with-postgres
+
+networks:
+  impd-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
