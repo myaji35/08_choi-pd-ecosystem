@@ -29,6 +29,41 @@
       "when": 1764660848524,
       "tag": "0003_tired_jane_foster",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1764737400964,
+      "tag": "0004_fixed_the_hunter",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1764737735997,
+      "tag": "0005_fearless_green_goblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1764738453858,
+      "tag": "0006_productive_captain_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1764740253796,
+      "tag": "0007_gorgeous_tarot",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1764740859968,
+      "tag": "0008_neat_blizzard",
+      "breakpoints": true
     }
   ]
 }

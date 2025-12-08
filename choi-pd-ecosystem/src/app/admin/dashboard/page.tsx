@@ -15,7 +15,9 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  UserPlus
+  UserPlus,
+  CreditCard,
+  Receipt
 } from 'lucide-react';
 
 const IS_DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
@@ -252,6 +254,39 @@ export default function AdminDistributorDashboard() {
                 <a href="/admin/reports">
                   <Download className="mr-2 h-4 w-4" />
                   리포트 다운로드
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* 결제 & 구독 관리 */}
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-indigo-600" />
+                결제 & 구독
+              </CardTitle>
+              <CardDescription>
+                결제, 영수증, 구독 플랜 관리
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <a href="/admin/subscription-plans">
+                  <FileText className="mr-2 h-4 w-4" />
+                  구독 플랜
+                </a>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <a href="/admin/payments">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  결제 내역
+                </a>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <a href="/admin/invoices">
+                  <Receipt className="mr-2 h-4 w-4" />
+                  영수증 관리
                 </a>
               </Button>
             </CardContent>

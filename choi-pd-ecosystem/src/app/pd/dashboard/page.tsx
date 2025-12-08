@@ -201,7 +201,10 @@ export default function PDDashboard() {
                 <a href="/pd/dashboard/profile">프로필 설정</a>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/dashboard/social">소셜 미디어</a>
+                <a href="/pd/sns-accounts">SNS 계정 관리</a>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <a href="/pd/scheduled-posts">예약 포스트</a>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
                 <a href="/pd/dashboard/hero-images">Hero 이미지</a>
@@ -210,7 +213,16 @@ export default function PDDashboard() {
                 <a href="/pd/dashboard/kanban">칸반 보드</a>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/dashboard/newsletter">뉴스레터 구독자</a>
+                <a href="/pd/newsletter">뉴스레터 구독자</a>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <a href="/pd/inquiries">문의 관리</a>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <a href="/pd/notifications">알림 테스트</a>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <a href="/admin/dashboard">분양 관리 대시보드</a>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
                 <a href="/">홈페이지 보기</a>

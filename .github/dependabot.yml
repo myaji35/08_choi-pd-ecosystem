@@ -1,0 +1,47 @@
+version: 2
+updates:
+  # npm 의존성 자동 업데이트
+  - package-ecosystem: "npm"
+    directory: "/choi-pd-ecosystem"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    reviewers:
+      - "myaji35"
+    assignees:
+      - "myaji35"
+    allow:
+      - dependency-type: "production"
+      - dependency-type: "development"
+    ignore:
+      # 메이저 버전 업데이트는 수동으로 관리
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions 의존성 자동 업데이트
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    reviewers:
+      - "myaji35"

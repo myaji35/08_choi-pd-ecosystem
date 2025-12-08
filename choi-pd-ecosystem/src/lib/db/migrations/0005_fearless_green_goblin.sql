@@ -1,0 +1,195 @@
+CREATE TABLE `organization_branding` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`organization_id` integer NOT NULL,
+	`logo_url` text,
+	`favicon_url` text,
+	`primary_color` text DEFAULT '#3b82f6',
+	`secondary_color` text DEFAULT '#8b5cf6',
+	`accent_color` text DEFAULT '#10b981',
+	`font_family` text DEFAULT 'Inter',
+	`custom_css` text,
+	`custom_domain` text,
+	`ssl_certificate_status` text,
+	`email_template_header` text,
+	`email_template_footer` text,
+	`footer_text` text,
+	`login_page_message` text,
+	`dashboard_welcome_message` text,
+	`metadata` text,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `organization_branding_organization_id_unique` ON `organization_branding` (`organization_id`);--> statement-breakpoint
+CREATE TABLE `organization_members` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`organization_id` integer NOT NULL,
+	`user_id` text NOT NULL,
+	`user_email` text NOT NULL,
+	`user_name` text,
+	`role` text DEFAULT 'member' NOT NULL,
+	`team_id` integer,
+	`job_title` text,
+	`department` text,
+	`permissions` text,
+	`invited_by` text,
+	`invited_at` integer,
+	`joined_at` integer,
+	`status` text DEFAULT 'invited' NOT NULL,
+	`last_active_at` integer,
+	`metadata` text,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`team_id`) REFERENCES `teams`(`id`) ON UPDATE no action ON DELETE set null
+);
+--> statement-breakpoint
+CREATE TABLE `organizations` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`name` text NOT NULL,
+	`display_name` text NOT NULL,
+	`slug` text NOT NULL,
+	`type` text NOT NULL,
+	`industry` text,
+	`size` text,
+	`contact_email` text NOT NULL,
+	`contact_phone` text,
+	`billing_email` text,
+	`address` text,
+	`website` text,
+	`tax_id` text,
+	`subscription_plan` text DEFAULT 'enterprise' NOT NULL,
+	`subscription_status` text DEFAULT 'trial' NOT NULL,
+	`subscription_start_date` integer,
+	`subscription_end_date` integer,
+	`trial_ends_at` integer,
+	`max_users` integer DEFAULT 10,
+	`max_storage` integer DEFAULT 10737418240,
+	`used_storage` integer DEFAULT 0,
+	`settings` text,
+	`metadata` text,
+	`is_active` integer DEFAULT true NOT NULL,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `organizations_slug_unique` ON `organizations` (`slug`);--> statement-breakpoint
+CREATE TABLE `sla_metrics` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`organization_id` integer NOT NULL,
+	`metric_type` text NOT NULL,
+	`target_value` integer NOT NULL,
+	`actual_value` integer NOT NULL,
+	`unit` text NOT NULL,
+	`period` text NOT NULL,
+	`period_start` integer NOT NULL,
+	`period_end` integer NOT NULL,
+	`is_violation` integer DEFAULT false NOT NULL,
+	`violation_details` text,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `sso_configurations` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`organization_id` integer NOT NULL,
+	`provider` text NOT NULL,
+	`provider_name` text,
+	`is_enabled` integer DEFAULT false NOT NULL,
+	`saml_entity_id` text,
+	`saml_sso_url` text,
+	`saml_x509_certificate` text,
+	`saml_sign_requests` integer DEFAULT false,
+	`oauth_client_id` text,
+	`oauth_client_secret` text,
+	`oauth_authorization_url` text,
+	`oauth_token_url` text,
+	`oauth_user_info_url` text,
+	`oauth_scopes` text,
+	`ldap_server_url` text,
+	`ldap_bind_dn` text,
+	`ldap_bind_password` text,
+	`ldap_base_dn` text,
+	`ldap_user_filter` text,
+	`attribute_mapping` text,
+	`default_role` text DEFAULT 'member',
+	`auto_provision` integer DEFAULT true,
+	`metadata` text,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `sso_configurations_organization_id_unique` ON `sso_configurations` (`organization_id`);--> statement-breakpoint
+CREATE TABLE `support_ticket_comments` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`ticket_id` integer NOT NULL,
+	`author_id` text NOT NULL,
+	`author_email` text NOT NULL,
+	`author_name` text,
+	`author_type` text NOT NULL,
+	`comment` text NOT NULL,
+	`is_internal` integer DEFAULT false,
+	`attachments` text,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`ticket_id`) REFERENCES `support_tickets`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `support_tickets` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`organization_id` integer NOT NULL,
+	`created_by` text NOT NULL,
+	`created_by_email` text NOT NULL,
+	`created_by_name` text,
+	`subject` text NOT NULL,
+	`description` text NOT NULL,
+	`category` text NOT NULL,
+	`priority` text DEFAULT 'medium' NOT NULL,
+	`status` text DEFAULT 'open' NOT NULL,
+	`assigned_to` text,
+	`assigned_at` integer,
+	`resolved_at` integer,
+	`closed_at` integer,
+	`resolution` text,
+	`attachments` text,
+	`tags` text,
+	`metadata` text,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `teams` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`organization_id` integer NOT NULL,
+	`name` text NOT NULL,
+	`description` text,
+	`parent_team_id` integer,
+	`team_lead` text,
+	`color` text DEFAULT '#3b82f6',
+	`icon` text DEFAULT 'users',
+	`is_active` integer DEFAULT true NOT NULL,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`parent_team_id`) REFERENCES `teams`(`id`) ON UPDATE no action ON DELETE set null
+);
+--> statement-breakpoint
+CREATE TABLE `user_bulk_import_logs` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`organization_id` integer NOT NULL,
+	`imported_by` text NOT NULL,
+	`file_name` text NOT NULL,
+	`file_url` text,
+	`total_rows` integer NOT NULL,
+	`success_count` integer DEFAULT 0 NOT NULL,
+	`failure_count` integer DEFAULT 0 NOT NULL,
+	`status` text DEFAULT 'pending' NOT NULL,
+	`errors` text,
+	`results` text,
+	`started_at` integer,
+	`completed_at` integer,
+	`created_at` integer DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	FOREIGN KEY (`organization_id`) REFERENCES `organizations`(`id`) ON UPDATE no action ON DELETE cascade
+);

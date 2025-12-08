@@ -1,9 +1,73 @@
 {
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "public": true,
+  "github": {
+    "enabled": true,
+    "autoAlias": true
+  },
+  "env": {
+    "NEXT_PUBLIC_APP_URL": "@app_url",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "@clerk_publishable_key",
+    "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/admin/sign-in",
+    "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/admin/sign-up",
+    "NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL": "/admin/dashboard",
+    "NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL": "/admin/dashboard",
+    "NEXT_PUBLIC_DEV_MODE": "false"
+  },
   "build": {
     "env": {
-      "NEXT_PUBLIC_DEV_MODE": "true"
+      "DATABASE_URL": "@database_url",
+      "CLERK_SECRET_KEY": "@clerk_secret_key",
+      "ENCRYPTION_KEY": "@encryption_key",
+      "NODE_ENV": "production",
+      "NEXT_TELEMETRY_DISABLED": "1"
     }
   },
+  "functions": {
+    "src/app/api/[...path].ts": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/uploads/:path*",
+      "destination": "/api/uploads/:path*"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/admin",
+      "destination": "/admin/dashboard",
+      "permanent": false
+    },
+    {
+      "source": "/pd",
+      "destination": "/pd/dashboard",
+      "permanent": false
+    }
+  ],
+  "regions": ["icn1"],
   "crons": [
     {
       "path": "/api/cron/sns",
