@@ -162,7 +162,7 @@ jobs:
           echo "PREVIEW_URL=$(cat deployment-url.txt)" >> $GITHUB_ENV
 
       - name: Comment PR with preview URL
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.issues.createComment({
@@ -206,7 +206,7 @@ jobs:
           echo "PRODUCTION_URL=$(cat deployment-url.txt)" >> $GITHUB_ENV
 
       - name: Create deployment record
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             await github.rest.repos.createDeployment({
