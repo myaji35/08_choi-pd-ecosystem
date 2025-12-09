@@ -89,7 +89,7 @@
     "lighthouse": "^13.0.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.17",
-    "tsx": "^4.20.6",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"
   }
