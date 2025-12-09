@@ -1,8 +1,10 @@
-export default {
+import { defineConfig } from 'drizzle-kit';
+
+export default defineConfig({
   schema: './src/lib/db/schema.ts',
   out: './src/lib/db/migrations',
-  driver: 'libsql',
+  dialect: 'turso',
   dbCredentials: {
     url: process.env.DATABASE_URL || 'file:./data/database.db',
   },
-};
+});

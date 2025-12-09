@@ -1,55 +1,87 @@
 # Multi-stage Dockerfile for Next.js production deployment
 # Optimized for Coolify and general Docker environments
+# Version: 2.0 - Stability Enhanced
 
-# Stage 1: Dependencies
+# =============================================================================
+# Stage 1: Dependencies - 의존성 설치
+# =============================================================================
 FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat curl
+
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-# Install production dependencies
-RUN npm ci --only=production
 
-# Stage 2: Builder
+# Install all dependencies (dev + prod) for build stage
+RUN npm ci --legacy-peer-deps && npm cache clean --force
+
+# =============================================================================
+# Stage 2: Builder - 애플리케이션 빌드
+# =============================================================================
 FROM node:20-alpine AS builder
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat curl
+
 WORKDIR /app
 
-# Copy package files and install all dependencies
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
 COPY package*.json ./
-RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build the Next.js application
-ENV NEXT_TELEMETRY_DISABLED 1
+# Build arguments for environment configuration
+ARG DOCKER_BUILD=true
+ARG NODE_ENV=production
+
+# Set build-time environment variables
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV DOCKER_BUILD=true
+ENV NODE_ENV=production
+
+# Build the Next.js application with standalone output
 RUN npm run build
 
-# Stage 3: Runner
+# Verify build output exists
+RUN test -d .next/standalone || (echo "ERROR: standalone output not found" && exit 1)
+RUN test -d .next/static || (echo "ERROR: static files not found" && exit 1)
+
+# =============================================================================
+# Stage 3: Runner - 프로덕션 실행 환경
+# =============================================================================
 FROM node:20-alpine AS runner
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    curl \
+    dumb-init \
+    && rm -rf /var/cache/apk/*
+
 WORKDIR /app
 
-# Security: Run as non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+# Security: Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001 -G nodejs
 
 # Set production environment
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV PORT 3011
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3011
+ENV HOSTNAME="0.0.0.0"
 
 # Copy necessary files from builder
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy database directory structure (will be mounted as volume)
-RUN mkdir -p data && chown -R nextjs:nodejs data
+# Create persistent data directories
+RUN mkdir -p data public/uploads logs && \
+    chown -R nextjs:nodejs data public/uploads logs
 
-# Copy uploads directory structure (will be mounted as volume)
-RUN mkdir -p public/uploads && chown -R nextjs:nodejs public/uploads
+# Set proper permissions
+RUN chmod -R 755 /app && \
+    chmod -R 770 data public/uploads logs
 
 # Switch to non-root user
 USER nextjs
@@ -57,9 +89,12 @@ USER nextjs
 # Expose port
 EXPOSE 3011
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3011/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+# Health check - 안정적인 헬스체크 설정
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+  CMD curl -f http://localhost:3011/api/health || exit 1
+
+# Use dumb-init for proper signal handling (graceful shutdown)
+ENTRYPOINT ["dumb-init", "--"]
 
 # Start the application
 CMD ["node", "server.js"]

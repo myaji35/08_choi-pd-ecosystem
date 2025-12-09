@@ -80,7 +80,7 @@
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.21",
     "axe-core": "^4.11.0",
-    "drizzle-kit": "^0.18.1",
+    "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.1",
     "happy-dom": "^20.0.11",

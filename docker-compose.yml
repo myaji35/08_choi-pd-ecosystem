@@ -1,5 +1,6 @@
 # Docker Compose for imPD Platform
 # Coolify 또는 독립 Docker 환경에서 사용 가능
+# Version: 2.0 - Stability Enhanced for Coolify
 
 version: '3.8'
 
@@ -9,23 +10,46 @@ services:
     build:
       context: ./choi-pd-ecosystem
       dockerfile: Dockerfile
+      args:
+        - DOCKER_BUILD=true
+        - NODE_ENV=production
     ports:
       - "3011:3011"
     environment:
       - NODE_ENV=production
       - PORT=3011
+      - HOSTNAME=0.0.0.0
       - DATABASE_URL=file:./data/database.db
-      - NEXT_PUBLIC_APP_URL=http://58.255.113.125
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://58.255.113.125}
+      - NEXT_PUBLIC_DEV_MODE=false
+      - NEXT_TELEMETRY_DISABLED=1
     volumes:
-      - ./choi-pd-ecosystem/data:/app/data
-      - ./choi-pd-ecosystem/public/uploads:/app/public/uploads
+      - impd-data:/app/data
+      - impd-uploads:/app/public/uploads
+      - impd-logs:/app/logs
     restart: unless-stopped
+    # 리소스 제한 (메모리 누수 방지)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    # 안정적인 헬스체크 설정
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3011/api/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 40s
+      retries: 5
+      start_period: 60s
+    # 로깅 설정 (디스크 공간 보호)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
     networks:
       - impd-network
     labels:
@@ -40,6 +64,9 @@ services:
       - traefik.http.services.impd.loadbalancer.server.port=3011
       - traefik.http.routers.impd.tls=true
       - traefik.http.routers.impd.tls.certresolver=letsencrypt
+      # 헬스체크 기반 라우팅
+      - traefik.http.services.impd.loadbalancer.healthcheck.path=/api/health
+      - traefik.http.services.impd.loadbalancer.healthcheck.interval=10s
 
   # 선택사항: Redis 캐시 (향후 확장용)
   redis:
@@ -50,6 +77,11 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - impd-network
     profiles:
@@ -68,6 +100,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U impd"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - impd-network
     profiles:
@@ -78,6 +115,13 @@ networks:
     driver: bridge
 
 volumes:
+  # Named volumes for data persistence
+  impd-data:
+    driver: local
+  impd-uploads:
+    driver: local
+  impd-logs:
+    driver: local
   redis-data:
     driver: local
   postgres-data:

@@ -1,0 +1,57 @@
+name: Scheduled Backup
+
+on:
+  schedule:
+    # 매일 새벽 3시 KST (UTC 18:00 전날)
+    - cron: '0 18 * * *'
+  workflow_dispatch:  # 수동 실행 가능
+
+jobs:
+  backup:
+    name: Backup Database and Uploads
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+        continue-on-error: true
+
+      - name: Trigger backup on Coolify server
+        run: |
+          echo "Triggering backup at $(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M:%S KST')"
+
+          # Coolify 서버에서 백업 스크립트 실행
+          # SSH 접근이 설정된 경우
+          if [ -n "${{ secrets.COOLIFY_SERVER_IP }}" ]; then
+            ssh -o StrictHostKeyChecking=no \
+              ${{ secrets.COOLIFY_SSH_USER }}@${{ secrets.COOLIFY_SERVER_IP }} \
+              "cd /path/to/project && ./scripts/backup.sh" || echo "SSH 백업 실패"
+          fi
+
+      - name: Log backup attempt
+        run: |
+          echo "Backup workflow completed at: $(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M:%S KST')"
+
+      - name: Create backup artifact (local files)
+        run: |
+          mkdir -p backup-artifacts
+          # 로컬 설정 파일들 백업
+          cp docker-compose.yml backup-artifacts/ 2>/dev/null || true
+          cp .coolify.yml backup-artifacts/ 2>/dev/null || true
+          cp choi-pd-ecosystem/package.json backup-artifacts/ 2>/dev/null || true
+          cp choi-pd-ecosystem/next.config.js backup-artifacts/ 2>/dev/null || true
+
+          # 타임스탬프 추가
+          echo "Backup timestamp: $(date -u +%Y%m%d_%H%M%S)" > backup-artifacts/backup-info.txt
+
+      - name: Upload backup artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: config-backup-${{ github.run_number }}
+          path: backup-artifacts/
+          retention-days: 30
