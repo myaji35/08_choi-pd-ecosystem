@@ -1,20 +1,20 @@
 /**
- * pt0 t¤ ÜÜ ¤l½¸
- * 0 ˆ´\ tøÀ pt0 ½…
+ * ë°ì´í„°ë² ì´ìŠ¤ ì‹œë“œ ìŠ¤í¬ë¦½íŠ¸
+ * ê¸°ë³¸ íˆì–´ë¡œ ì´ë¯¸ì§€ ë°ì´í„° ì¶”ê°€
  */
 
 import { db } from './index';
 import { heroImages } from './schema';
 
 async function seedHeroImages() {
-  console.log('<1 Seeding hero images...');
+  console.log('Seeding hero images...');
 
-  // 0ø ˆ´\ tøÀ pt0 (fallback tøÀ)
+  // ê¸°ë³¸ íˆì–´ë¡œ ì´ë¯¸ì§€ ë°ì´í„° (fallback ì´ë¯¸ì§€)
   const defaultHeroImage = {
     filename: 'hero-default.jpg',
     url: '/uploads/hero/hero-default.jpg',
-    altText: '\”l PDX P!, ø´, ‘ˆ \ÙD ÁÕX” tøÀ',
-    fileSize: 1048576, // 1MB (Ü)
+    altText: 'ìµœë²”í¬ PDì˜ êµìœ¡, ë¯¸ë””ì–´, ì‘í’ˆ í™œë™ì„ ì†Œê°œí•˜ëŠ” ì´ë¯¸ì§€',
+    fileSize: 1048576, // 1MB (ì˜ˆì‹œ)
     width: 1920,
     height: 1080,
     uploadStatus: 'completed' as const,
@@ -23,18 +23,18 @@ async function seedHeroImages() {
 
   try {
     const result = await db.insert(heroImages).values(defaultHeroImage).returning();
-    console.log(' Hero image seeded:', result[0]);
+    console.log('Hero image seeded:', result[0]);
   } catch (error) {
-    console.error('L Error seeding hero images:', error);
+    console.error('Error seeding hero images:', error);
   }
 }
 
 async function main() {
-  console.log('=€ Starting database seeding...\n');
+  console.log('Starting database seeding...\n');
 
   await seedHeroImages();
 
-  console.log('\n( Database seeding completed!');
+  console.log('\nDatabase seeding completed!');
   process.exit(0);
 }
 
