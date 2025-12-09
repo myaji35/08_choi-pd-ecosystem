@@ -1,0 +1,201 @@
+name: Scheduled GCP Deployment
+
+on:
+  schedule:
+    # 한국시간 자정 (UTC 15:00 = KST 00:00)
+    - cron: '0 15 * * *'
+
+  # 수동 실행도 가능하도록 설정
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  NODE_VERSION: '18'
+  GCP_HOST: '34.64.191.91'
+  GCP_PORT: '8000'
+  DEPLOY_PATH: '~/choi-pd-ecosystem'
+
+jobs:
+  deploy:
+    name: Deploy to GCP Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📅 Deployment Info
+        run: |
+          echo "🚀 자동 배포 시작"
+          echo "배포 시간 (KST): $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M:%S')"
+          echo "배포 대상: ${{ env.GCP_HOST }}:${{ env.GCP_PORT }}"
+
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: choi-pd-ecosystem
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: './choi-pd-ecosystem/package-lock.json'
+
+      - name: 📦 Install dependencies
+        working-directory: ./choi-pd-ecosystem
+        run: npm ci
+
+      - name: 🏗️ Build application
+        working-directory: ./choi-pd-ecosystem
+        run: |
+          echo "Building for production..."
+          npm run build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_DEV_MODE: false
+          NEXT_PUBLIC_APP_URL: http://${{ env.GCP_HOST }}:${{ env.GCP_PORT }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_PUBLISHABLE_KEY }}
+          DATABASE_URL: file:./data/database.db
+
+      - name: 📁 Prepare deployment files
+        working-directory: ./choi-pd-ecosystem
+        run: |
+          # .env.production 파일 생성
+          cat > .env.production << EOF
+          NODE_ENV=production
+          PORT=${{ env.GCP_PORT }}
+          DATABASE_URL=file:./data/database.db
+          NEXT_PUBLIC_APP_URL=http://${{ env.GCP_HOST }}:${{ env.GCP_PORT }}
+          NEXT_PUBLIC_DEV_MODE=false
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
+          ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
+          EOF
+
+          # 압축 파일 생성
+          tar -czf deploy.tar.gz \
+            .next \
+            public \
+            package.json \
+            package-lock.json \
+            next.config.js \
+            src/lib \
+            src/styles \
+            src/components \
+            .env.production \
+            data \
+            ecosystem.config.js
+
+          echo "✅ 배포 파일 준비 완료 ($(du -h deploy.tar.gz | cut -f1))"
+
+      - name: 🔑 Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.GCP_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 📤 Transfer files to GCP
+        working-directory: ./choi-pd-ecosystem
+        run: |
+          echo "파일 전송 중..."
+          scp -i ~/.ssh/id_rsa deploy.tar.gz ${{ secrets.GCP_USER }}@${{ env.GCP_HOST }}:~/
+          echo "✅ 파일 전송 완료"
+
+      - name: 🚀 Deploy on GCP server
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_USER }}@${{ env.GCP_HOST }} << 'ENDSSH'
+            set -e
+
+            echo "🔧 서버 배포 시작..."
+
+            # 배포 디렉토리 생성
+            mkdir -p ~/choi-pd-ecosystem
+            cd ~/choi-pd-ecosystem
+
+            # 기존 파일 백업
+            if [ -d ".next" ]; then
+              echo "📦 기존 버전 백업 중..."
+              mv .next .next.backup-$(date +%Y%m%d%H%M%S)
+            fi
+
+            # 압축 해제
+            echo "📂 파일 압축 해제 중..."
+            tar -xzf ~/deploy.tar.gz
+
+            # 종속성 설치
+            echo "📚 종속성 설치 중..."
+            npm ci --production
+
+            # PM2로 서비스 재시작
+            echo "♻️ 서비스 재시작 중..."
+            if pm2 list | grep -q "impd-ecosystem"; then
+              pm2 restart impd-ecosystem
+            else
+              pm2 start ecosystem.config.js
+              pm2 save
+              pm2 startup || true
+            fi
+
+            # 정리
+            rm ~/deploy.tar.gz
+
+            # 상태 확인
+            pm2 status impd-ecosystem
+
+            echo "✅ 배포 완료!"
+            echo "🌐 URL: http://${{ env.GCP_HOST }}:${{ env.GCP_PORT }}"
+          ENDSSH
+
+      - name: ✅ Health check
+        run: |
+          echo "헬스 체크 중..."
+          sleep 10
+
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://${{ env.GCP_HOST }}:${{ env.GCP_PORT }}/api/health || echo "000")
+
+          if [ "$response" = "200" ]; then
+            echo "✅ 서버가 정상적으로 실행 중입니다!"
+          else
+            echo "⚠️ 서버 응답 코드: $response"
+            echo "로그를 확인해주세요."
+          fi
+
+      - name: 📧 Deployment notification
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ job.status }}' === 'success' ? '✅ 성공' : '❌ 실패';
+            const kstTime = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+
+            const message = `
+            ## 🚀 자동 배포 결과: ${status}
+
+            - **배포 시간 (KST)**: ${kstTime}
+            - **서버**: ${{ env.GCP_HOST }}:${{ env.GCP_PORT }}
+            - **브랜치**: ${{ github.ref }}
+            - **커밋**: ${{ github.sha }}
+            `;
+
+            // Issue 코멘트로 알림 (선택사항)
+            // github.rest.issues.createComment({
+            //   issue_number: 1,  // 알림을 받을 이슈 번호
+            //   owner: context.repo.owner,
+            //   repo: context.repo.repo,
+            //   body: message
+            // });
+
+            console.log(message);
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/id_rsa
+          rm -rf ./choi-pd-ecosystem/deploy.tar.gz

@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
-import { MobileMenu } from '@/components/layout/MobileMenu';
+import { NotionHeader } from '@/components/layout/NotionHeader';
+import { NotionSidebar } from '@/components/layout/NotionSidebar';
 import { Toaster } from 'sonner';
 import './globals.css';
 
@@ -71,10 +70,23 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="ko">
         <body className={inter.className}>
-          <Header />
-          <MobileMenu />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
+          <div className="flex h-screen bg-white">
+            {/* Notion Sidebar */}
+            <NotionSidebar />
+
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Notion Header */}
+              <NotionHeader />
+
+              {/* Page Content */}
+              <main className="flex-1 overflow-y-auto mt-12 bg-white">
+                <div className="notion-page">
+                  {children}
+                </div>
+              </main>
+            </div>
+          </div>
           <Toaster />
         </body>
       </html>

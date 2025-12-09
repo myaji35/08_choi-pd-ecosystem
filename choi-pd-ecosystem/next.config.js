@@ -45,6 +45,41 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  // 404 에러 해결을 위한 리다이렉트 설정
+  async redirects() {
+    return [
+      {
+        source: '/education',
+        destination: '/chopd/education',
+        permanent: true,
+      },
+      {
+        source: '/media',
+        destination: '/chopd/media',
+        permanent: true,
+      },
+      {
+        source: '/works',
+        destination: '/chopd/works',
+        permanent: true,
+      },
+      {
+        source: '/community',
+        destination: '/chopd/community',
+        permanent: true,
+      },
+      {
+        source: '/works/book',
+        destination: '/chopd/works',
+        permanent: true,
+      },
+      {
+        source: '/media/greeting',
+        destination: '/chopd/media/greeting',
+        permanent: true,
+      },
+    ];
+  },
 }
 
 module.exports = withPWA(nextConfig)

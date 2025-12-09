@@ -49,3 +49,4 @@ gcs-key.json
 *.tmp
 *.temp
 .cache/
+choi-pd-ecosystem/deploy.tar.gz
