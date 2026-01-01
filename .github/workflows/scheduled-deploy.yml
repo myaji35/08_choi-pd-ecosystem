@@ -36,7 +36,7 @@ jobs:
           echo "배포 대상: ${{ env.GCP_HOST }}:${{ env.GCP_PORT }}"
 
       - name: 📥 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: choi-pd-ecosystem
 
