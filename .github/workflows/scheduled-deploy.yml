@@ -19,7 +19,7 @@ on:
 
 env:
   NODE_VERSION: '18'
-  GCP_HOST: '34.64.191.91'
+  GCP_HOST: ${{ secrets.GCP_HOST }}
   GCP_PORT: '8000'
   DEPLOY_PATH: '~/choi-pd-ecosystem'
 
