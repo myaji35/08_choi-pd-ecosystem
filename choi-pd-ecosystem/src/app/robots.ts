@@ -21,6 +21,11 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: ['/admin/*', '/pd/*', '/api/*'],
       },
+      {
+        userAgent: 'Yeti', // 네이버 검색봇
+        allow: '/',
+        disallow: ['/admin/*', '/pd/*', '/api/*'],
+      },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
   };

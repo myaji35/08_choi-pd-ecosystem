@@ -17,12 +17,14 @@ interface SocialMediaFormProps {
     linkedin: string;
     twitter: string;
     blog: string;
+    naver_blog: string;
     facebook_password?: string;
     instagram_password?: string;
     youtube_password?: string;
     linkedin_password?: string;
     twitter_password?: string;
     blog_password?: string;
+    naver_blog_password?: string;
   };
 }
 
@@ -116,6 +118,14 @@ export function SocialMediaForm({ initialData }: SocialMediaFormProps) {
       placeholder: 'https://your-blog.com',
       description: '개인 블로그 또는 웹사이트 주소',
       color: 'text-emerald-600'
+    },
+    {
+      key: 'naver_blog',
+      label: '네이버 블로그',
+      icon: Globe,
+      placeholder: 'https://blog.naver.com/your-id',
+      description: '네이버 블로그 주소 (네이버 인물정보 연동)',
+      color: 'text-green-600'
     },
   ];
 

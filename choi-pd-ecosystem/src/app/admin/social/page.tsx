@@ -14,12 +14,14 @@ export default async function AdminSocialPage() {
         'social_linkedin',
         'social_twitter',
         'social_blog',
+        'social_naver_blog',
         'social_facebook_password',
         'social_instagram_password',
         'social_youtube_password',
         'social_linkedin_password',
         'social_twitter_password',
         'social_blog_password',
+        'social_naver_blog_password',
       ])
   });
 
@@ -30,6 +32,7 @@ export default async function AdminSocialPage() {
     linkedin: socialSettings.find(s => s.key === 'social_linkedin')?.value || '',
     twitter: socialSettings.find(s => s.key === 'social_twitter')?.value || '',
     blog: socialSettings.find(s => s.key === 'social_blog')?.value || '',
+    naver_blog: socialSettings.find(s => s.key === 'social_naver_blog')?.value || '',
     facebook_password: socialSettings.find(s => s.key === 'social_facebook_password')?.value
       ? decrypt(socialSettings.find(s => s.key === 'social_facebook_password')!.value) : '',
     instagram_password: socialSettings.find(s => s.key === 'social_instagram_password')?.value
@@ -42,6 +45,8 @@ export default async function AdminSocialPage() {
       ? decrypt(socialSettings.find(s => s.key === 'social_twitter_password')!.value) : '',
     blog_password: socialSettings.find(s => s.key === 'social_blog_password')?.value
       ? decrypt(socialSettings.find(s => s.key === 'social_blog_password')!.value) : '',
+    naver_blog_password: socialSettings.find(s => s.key === 'social_naver_blog_password')?.value
+      ? decrypt(socialSettings.find(s => s.key === 'social_naver_blog_password')!.value) : '',
   };
 
   return (

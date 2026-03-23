@@ -10,6 +10,11 @@ export const defaultSEO = {
   twitterHandle: '@impd_korea',
 };
 
+// 소셜 URL 목록에서 유효한 것만 필터
+export function filterValidUrls(urls: (string | undefined | null)[]): string[] {
+  return urls.filter((url): url is string => !!url && url.startsWith('http'));
+}
+
 // 페이지별 메타데이터 생성 함수
 interface PageMetadata {
   title: string;
@@ -71,7 +76,28 @@ export function generateMetadata({
 }
 
 // 구조화된 데이터 (JSON-LD) 생성
-export function generateOrganizationSchema() {
+// 소셜 링크 인터페이스 (DB settings에서 로드)
+export interface SocialLinks {
+  facebook?: string;
+  instagram?: string;
+  youtube?: string;
+  linkedin?: string;
+  twitter?: string;
+  blog?: string;
+  naverBlog?: string;
+}
+
+export function generateOrganizationSchema(socialLinks?: SocialLinks) {
+  const sameAs = filterValidUrls([
+    socialLinks?.facebook,
+    socialLinks?.instagram,
+    socialLinks?.youtube,
+    socialLinks?.linkedin,
+    socialLinks?.twitter,
+    socialLinks?.blog,
+    socialLinks?.naverBlog,
+  ]);
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -84,11 +110,7 @@ export function generateOrganizationSchema() {
       name: '최범희',
       jobTitle: 'PD, 스마트폰 창업 교육 전문가',
     },
-    sameAs: [
-      'https://www.facebook.com/impd.korea',
-      'https://www.instagram.com/impd.korea',
-      'https://www.youtube.com/c/impd',
-    ],
+    sameAs,
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'Customer Service',
@@ -97,25 +119,80 @@ export function generateOrganizationSchema() {
   };
 }
 
-export function generatePersonSchema() {
+/**
+ * 네이버 인물정보 + Google Knowledge Panel 최적화 Person Schema
+ * - 네이버 검색에서 인물정보 카드에 표시되려면 schema.org/Person 규격이 필수
+ * - sameAs에 공식 SNS URL을 넣으면 네이버/구글이 동일인물 인식
+ */
+export function generatePersonSchema(socialLinks?: SocialLinks) {
+  const sameAs = filterValidUrls([
+    socialLinks?.facebook,
+    socialLinks?.instagram,
+    socialLinks?.youtube,
+    socialLinks?.linkedin,
+    socialLinks?.twitter,
+    socialLinks?.blog,
+    socialLinks?.naverBlog,
+  ]);
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Person',
+    '@id': `${defaultSEO.siteUrl}/#person`,
     name: '최범희',
-    alternateName: '최PD',
-    description: '스마트폰 창업 교육 전문가, 한국환경저널 발행인, 모바일 스케치 작가',
+    alternateName: ['최PD', 'Choi Beom-hee', 'Beomhee Choi'],
+    description: '스마트폰 창업 교육 전문가, 한국환경저널 발행인, 모바일 스케치 작가. 5060 베이비부머 세대를 위한 디지털 마케팅·스마트폰 활용 창업 교육을 전문으로 합니다.',
     url: defaultSEO.siteUrl,
-    image: `${defaultSEO.siteUrl}/images/profile.jpg`,
-    jobTitle: 'PD, 교육 전문가, 발행인',
+    image: {
+      '@type': 'ImageObject',
+      url: `${defaultSEO.siteUrl}/images/profile.jpg`,
+      width: 400,
+      height: 400,
+    },
+    jobTitle: ['스마트폰 창업 전략가', '한국환경저널 발행인', '모바일 스케치 작가'],
+    nationality: {
+      '@type': 'Country',
+      name: '대한민국',
+    },
+    knowsAbout: [
+      '스마트폰 창업',
+      '디지털 마케팅',
+      '베이비부머 창업 교육',
+      '환경 저널리즘',
+      '모바일 스케치',
+      'SNS 마케팅',
+      '1인 창업',
+      '시니어 교육',
+    ],
+    knowsLanguage: ['ko', 'en'],
     worksFor: {
       '@type': 'Organization',
       name: defaultSEO.siteName,
+      url: defaultSEO.siteUrl,
     },
-    sameAs: [
-      'https://www.facebook.com/impd.korea',
-      'https://www.instagram.com/impd.korea',
-      'https://www.youtube.com/c/impd',
-    ],
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': defaultSEO.siteUrl,
+    },
+    sameAs,
+  };
+}
+
+/**
+ * 네이버 인물정보용 WebSite schema (사이트 검색 지원)
+ */
+export function generateWebSiteSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${defaultSEO.siteUrl}/#website`,
+    name: defaultSEO.siteName,
+    url: defaultSEO.siteUrl,
+    description: defaultSEO.description,
+    publisher: {
+      '@id': `${defaultSEO.siteUrl}/#person`,
+    },
+    inLanguage: 'ko-KR',
   };
 }
 

@@ -12,12 +12,14 @@ const socialSchema = z.object({
   linkedin: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
   twitter: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
   blog: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
+  naver_blog: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
   facebook_password: z.string().optional(),
   instagram_password: z.string().optional(),
   youtube_password: z.string().optional(),
   linkedin_password: z.string().optional(),
   twitter_password: z.string().optional(),
   blog_password: z.string().optional(),
+  naver_blog_password: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -33,6 +35,7 @@ export async function POST(request: NextRequest) {
       { key: 'social_linkedin', value: validatedData.linkedin },
       { key: 'social_twitter', value: validatedData.twitter },
       { key: 'social_blog', value: validatedData.blog },
+      { key: 'social_naver_blog', value: validatedData.naver_blog },
     ];
 
     // 비밀번호가 제공된 경우 암호화하여 저장
@@ -53,6 +56,9 @@ export async function POST(request: NextRequest) {
     }
     if (validatedData.blog_password) {
       settingsToUpdate.push({ key: 'social_blog_password', value: encrypt(validatedData.blog_password) });
+    }
+    if (validatedData.naver_blog_password) {
+      settingsToUpdate.push({ key: 'social_naver_blog_password', value: encrypt(validatedData.naver_blog_password) });
     }
 
     for (const setting of settingsToUpdate) {

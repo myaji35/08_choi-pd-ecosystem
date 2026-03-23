@@ -1,7 +1,33 @@
 import Link from 'next/link';
-import { Mail, Phone, Facebook, Instagram, Youtube } from 'lucide-react';
+import { Mail, Phone, Facebook, Instagram, Youtube, Linkedin, Globe } from 'lucide-react';
+import { getSocialLinks } from '@/lib/db/queries/socialLinks';
+import type { SocialLinks } from '@/lib/seo';
 
-export function Footer() {
+function buildSocialIcons(links: SocialLinks) {
+  const items: { icon: typeof Facebook; href: string; label: string }[] = [];
+
+  if (links.facebook) items.push({ icon: Facebook, href: links.facebook, label: 'Facebook' });
+  if (links.instagram) items.push({ icon: Instagram, href: links.instagram, label: 'Instagram' });
+  if (links.youtube) items.push({ icon: Youtube, href: links.youtube, label: 'YouTube' });
+  if (links.linkedin) items.push({ icon: Linkedin, href: links.linkedin, label: 'LinkedIn' });
+  if (links.naverBlog) items.push({ icon: Globe, href: links.naverBlog, label: '네이버 블로그' });
+  if (links.blog) items.push({ icon: Globe, href: links.blog, label: '블로그' });
+
+  // 아무것도 등록되지 않은 경우 기본 플레이스홀더
+  if (items.length === 0) {
+    items.push(
+      { icon: Facebook, href: '#', label: 'Facebook' },
+      { icon: Instagram, href: '#', label: 'Instagram' },
+      { icon: Youtube, href: '#', label: 'YouTube' },
+    );
+  }
+
+  return items;
+}
+
+export async function Footer() {
+  const socialLinks = await getSocialLinks();
+  const socialIcons = buildSocialIcons(socialLinks);
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
@@ -17,12 +43,6 @@ export function Footer() {
       { href: '/community', label: '공지사항' },
     ],
   };
-
-  const socialLinks = [
-    { icon: Facebook, href: '#', label: 'Facebook' },
-    { icon: Instagram, href: '#', label: 'Instagram' },
-    { icon: Youtube, href: '#', label: 'YouTube' },
-  ];
 
   return (
     <footer className="border-t bg-muted/40">
@@ -82,16 +102,18 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Social Media */}
+          {/* Social Media - DB에서 동적 로딩 */}
           <div>
             <h3 className="mb-4 text-sm font-semibold">소셜 미디어</h3>
-            <div className="flex gap-4">
-              {socialLinks.map((social) => (
+            <div className="flex flex-wrap gap-4">
+              {socialIcons.map((social) => (
                 <Link
                   key={social.label}
                   href={social.href}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                   aria-label={social.label}
+                  target={social.href.startsWith('http') ? '_blank' : undefined}
+                  rel={social.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                 >
                   <social.icon className="h-5 w-5" />
                 </Link>

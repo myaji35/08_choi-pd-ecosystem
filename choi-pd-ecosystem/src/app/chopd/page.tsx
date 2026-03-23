@@ -4,6 +4,9 @@ import { eq, desc } from 'drizzle-orm';
 import { HeroSection } from '@/components/home/HeroSection';
 import { ServiceHubSection } from '@/components/home/ServiceHubSection';
 import { LatestCoursesSection } from '@/components/home/LatestCoursesSection';
+import { StructuredData } from '@/components/seo/StructuredData';
+import { getSocialLinks } from '@/lib/db/queries/socialLinks';
+import { generatePersonSchema, generateOrganizationSchema } from '@/lib/seo';
 import { stat } from 'fs/promises';
 import { join } from 'path';
 
@@ -36,8 +39,14 @@ export default async function HomePage() {
     ? JSON.parse(heroImagesSettings.value)
     : ['https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=1920&h=1080&fit=crop&q=80'];
 
+  // 백그라운드: 소셜 링크 가져와서 구조화 데이터에 자동 반영
+  const socialLinks = await getSocialLinks();
+
   return (
     <>
+      {/* 네이버 인물정보 + Google Knowledge Panel용 구조화 데이터 */}
+      <StructuredData data={generatePersonSchema(socialLinks)} />
+      <StructuredData data={generateOrganizationSchema(socialLinks)} />
       <HeroSection
         profileImageTimestamp={profileImageTimestamp}
         heroImages={heroImages}

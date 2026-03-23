@@ -3,7 +3,10 @@ import { Inter } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
 import { NotionHeader } from '@/components/layout/NotionHeader';
 import { NotionSidebar } from '@/components/layout/NotionSidebar';
+import { StructuredData } from '@/components/seo/StructuredData';
 import { Toaster } from 'sonner';
+import { getSocialLinks } from '@/lib/db/queries/socialLinks';
+import { generatePersonSchema, generateWebSiteSchema } from '@/lib/seo';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -55,20 +58,32 @@ export const metadata: Metadata = {
   },
   verification: {
     google: 'google-site-verification-code', // Google Search Console에서 발급받은 코드로 교체
-    // other: {
-    //   'naver-site-verification': 'naver-code',
-    // },
+    other: {
+      'naver-site-verification': process.env.NAVER_SITE_VERIFICATION || '',
+    },
   },
 };
 
-export default function RootLayout({
+export const revalidate = 3600; // 1시간마다 소셜 링크 갱신
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // 백그라운드: DB에서 소셜 링크를 가져와 SEO 구조화 데이터에 자동 반영
+  const socialLinks = await getSocialLinks();
+  const personSchema = generatePersonSchema(socialLinks);
+  const webSiteSchema = generateWebSiteSchema();
+
   return (
     <ClerkProvider>
       <html lang="ko">
+        <head>
+          {/* 네이버 인물정보 + Google Knowledge Panel용 구조화 데이터 */}
+          <StructuredData data={personSchema} />
+          <StructuredData data={webSiteSchema} />
+        </head>
         <body className={inter.className}>
           <div className="flex h-screen bg-white">
             {/* Notion Sidebar */}
