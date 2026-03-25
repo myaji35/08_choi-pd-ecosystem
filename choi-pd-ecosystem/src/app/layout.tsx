@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { ClerkProvider } from '@clerk/nextjs';
 import { NotionHeader } from '@/components/layout/NotionHeader';
 import { NotionSidebar } from '@/components/layout/NotionSidebar';
 import { StructuredData } from '@/components/seo/StructuredData';
@@ -77,8 +76,7 @@ export default async function RootLayout({
   const webSiteSchema = generateWebSiteSchema();
 
   return (
-    <ClerkProvider>
-      <html lang="ko">
+      <html lang="ko" suppressHydrationWarning>
         <head>
           {/* 네이버 인물정보 + Google Knowledge Panel용 구조화 데이터 */}
           <StructuredData data={personSchema} />
@@ -105,6 +103,5 @@ export default async function RootLayout({
           <Toaster />
         </body>
       </html>
-    </ClerkProvider>
   );
 }

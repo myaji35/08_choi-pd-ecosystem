@@ -26,7 +26,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@clerk/nextjs": "^6.34.5",
     "@google-cloud/storage": "^7.17.3",
     "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^5.2.2",
