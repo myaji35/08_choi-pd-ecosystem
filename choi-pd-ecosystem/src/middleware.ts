@@ -13,7 +13,7 @@ export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get('host') || '';
 
-  // Handle subdomain routing for chopd
+  // Handle subdomain routing for chopd (레거시 지원)
   if (hostname.startsWith('chopd.')) {
     if (!pathname.startsWith('/chopd') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
       const url = request.nextUrl.clone();
@@ -22,12 +22,21 @@ export default function middleware(request: NextRequest) {
     }
   }
 
-  // Allow login page and auth API routes
+  // /p/chopd → /chopd rewrite (최PD 전용 페이지)
+  if (pathname.startsWith('/p/chopd')) {
+    const subPath = pathname.replace('/p/chopd', '') || '';
+    const url = request.nextUrl.clone();
+    url.pathname = `/chopd${subPath}`;
+    return NextResponse.rewrite(url);
+  }
+
+  // Allow public routes
   if (
     pathname === '/login' ||
     pathname === '/admin/login' ||
     pathname === '/pd/login' ||
-    pathname.startsWith('/api/auth/')
+    pathname.startsWith('/api/auth/') ||
+    pathname.startsWith('/p/')
   ) {
     return NextResponse.next();
   }
@@ -47,6 +56,15 @@ export default function middleware(request: NextRequest) {
 
     if (!sessionCookie) {
       return NextResponse.redirect(new URL('/login?callbackUrl=/pd/dashboard', request.url));
+    }
+  }
+
+  // Check for protected dashboard routes (회원 대시보드)
+  if (pathname.startsWith('/dashboard')) {
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+
+    if (!sessionCookie) {
+      return NextResponse.redirect(new URL('/login?callbackUrl=/dashboard', request.url));
     }
   }
 

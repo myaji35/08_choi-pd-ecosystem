@@ -8,8 +8,8 @@ imPD를 "유통 플랫폼 분양" 모델에서 **개인비즈니스 페이지 Sa
 
 ### 핵심 도메인 구조
 - `impd.townin.net` → 플랫폼 랜딩 (로그인 전 홍보) + 관리자/회원 대시보드
-- `{slug}.impd.townin.net` → 회원별 공개 비즈니스 페이지
-- `chopd.impd.townin.net` → 최PD 본인의 비즈니스 페이지 (쇼케이스 데모)
+- `impd.townin.net/p/{slug}` → 회원별 공개 비즈니스 페이지 (서브 경로 방식)
+- `impd.townin.net/p/chopd` → 최PD 본인의 비즈니스 페이지 (쇼케이스 데모, `/chopd`로 rewrite)
 
 ## 2. 사용자 흐름
 
