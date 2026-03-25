@@ -79,16 +79,65 @@ TowninGraph 회원가입
 | Premium | 프로필 + 5개 | 테마 커스텀 + 커스텀 도메인 |
 | Enterprise | 전체 | 커스텀 도메인 + 분석 + API |
 
-## 5. TowninGraph OAuth 연동
+## 5. 인증 시스템 (Clerk 제거 → OAuth 통합)
 
-### imPD 측 구현
-TowninGraph에 OAuth 2.0 Provider가 구현 완료된 상태.
+### Clerk 완전 제거
+- `@clerk/nextjs` 패키지 제거
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` 환경변수 제거
+- `src/middleware.ts`에서 Clerk 관련 코드 제거
+- `src/app/layout.tsx`의 `<ClerkProvider>` 제거
+- dev-auth 쿠키 방식도 제거
+
+### 통합 인증 체계
+| 사용자 | OAuth Provider | 로그인 방식 |
+|--------|---------------|------------|
+| **관리자** | Google Workspace | Google OAuth (조직 계정) |
+| **회원** | TowninGraph | TowninGraph OAuth |
+
+### 관리자 인증: Google Workspace OAuth
+```
+관리자 → "Google로 로그인" 클릭
+  → Google OAuth 인증 (accounts.google.com)
+  → 콜백으로 리다이렉트
+  → email이 허용 목록(@gagahoho.com 등)에 있는지 확인
+  → 관리자 세션 생성 (role: admin)
+```
 
 **imPD에서 구현할 항목**:
-- OAuth 클라이언트 등록 (client_id, client_secret 발급받기)
+- Google Cloud Console에서 OAuth 클라이언트 등록
+- `/api/auth/google` → Google authorize URL로 리다이렉트
+- `/api/auth/google/callback` → code → token 교환 → userinfo → 관리자 확인 → 세션 생성
+- 허용 도메인/이메일 목록으로 관리자 자격 검증
+
+**환경변수**:
+```env
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=https://impd.townin.net/api/auth/google/callback
+ADMIN_ALLOWED_EMAILS=admin@gagahoho.com  # 쉼표 구분 또는 도메인 패턴
+```
+
+### 회원 인증: TowninGraph OAuth
+```
+회원 → "TowninGraph로 로그인" 클릭
+  → TowninGraph OAuth 인증
+  → 콜백으로 리다이렉트
+  → 첫 로그인: 승인 신청 폼
+  → 기존 회원: 대시보드 진입
+```
+
+**imPD에서 구현할 항목**:
+- TowninGraph에 OAuth 클라이언트 등록 (client_id, client_secret 발급)
 - `/api/auth/towningraph` → TowninGraph authorize URL로 리다이렉트
-- `/api/auth/towningraph/callback` → code → token 교환 → userinfo 조회 → 세션 생성
-- 기존 Clerk 인증과 공존 (관리자는 Clerk, 회원은 TowninGraph)
+- `/api/auth/towningraph/callback` → code → token 교환 → userinfo → 세션 생성
+
+**환경변수**:
+```env
+TOWNINGRAPH_CLIENT_ID=
+TOWNINGRAPH_CLIENT_SECRET=
+TOWNINGRAPH_OAUTH_URL=https://towningraph.townin.net/oauth
+TOWNINGRAPH_REDIRECT_URI=https://impd.townin.net/api/auth/towningraph/callback
+```
 
 ### TowninGraph 엔드포인트 (구현 완료)
 ```
@@ -98,24 +147,37 @@ GET  /api/oauth/userinfo      → 사용자 정보 {id, email, name, profile_ima
 POST /oauth/revoke            → 토큰 무효화
 ```
 
-### OAuth scope
-- `profile` (기본): id, name, profile_image
-- `email`: email, created_at
-
-### 세션 관리 상세
+### 통합 세션 관리
 - **저장 위치**: httpOnly 쿠키 (`impd_session`)
-- **JWT payload**: `{ memberId, towningraphUserId, email, slug, status, iat, exp }`
-- **만료**: access_token 1시간, 쿠키 24시간 (자동 갱신)
-- **갱신 전략**: TowninGraph refresh_token으로 access_token 갱신 → JWT 재발급
-- **로그아웃**: imPD 쿠키 삭제 + TowninGraph revoke 호출
+- **JWT payload**: `{ userId, email, role, slug?, provider, iat, exp }`
+  - `role`: `admin` | `member`
+  - `provider`: `google` | `towningraph`
+  - `slug`: 회원만 해당 (승인 후)
+- **만료**: 쿠키 24시간 (자동 갱신)
+- **로그아웃**: imPD 쿠키 삭제 + 해당 provider revoke 호출
 
-### 인증 체계 공존
-| 경로 | 인증 방식 | 비고 |
-|------|----------|------|
-| `/admin/*` | Clerk | 플랫폼 관리자 전용 |
-| `/dashboard/*` | TowninGraph JWT 쿠키 | 회원 대시보드 |
-| `/pd/*` | Clerk / dev-auth | 기존 유지 (Phase 5에서 `/dashboard`로 통합) |
+### 로그인 페이지 (`/login`)
+```
+┌──────────────────────────────────┐
+│        imPD 로그인               │
+│                                  │
+│  [🔵 TowninGraph로 로그인]       │  ← 회원용
+│                                  │
+│  ─── 또는 ───                    │
+│                                  │
+│  [⚪ Google로 로그인 (관리자)]    │  ← 관리자용
+│                                  │
+└──────────────────────────────────┘
+```
+
+### 미들웨어 인증 처리
+| 경로 | 인증 | 조건 |
+|------|------|------|
+| `/admin/*` | JWT 쿠키 검증 | `role === 'admin'` 필수 |
+| `/dashboard/*` | JWT 쿠키 검증 | `role === 'member'` + `status === 'approved'` |
+| `/pd/*` | JWT 쿠키 검증 | `role === 'admin'` (Phase 5에서 `/dashboard`로 통합) |
 | `/member/*` | 없음 (공개) | 서브도메인 rewrite |
+| `/login` | 없음 (공개) | 이미 로그인 시 대시보드로 리다이렉트 |
 
 ## 6. DB 스키마
 
@@ -370,11 +432,13 @@ if (pathname.startsWith('/dashboard')) {
 
 ## 8. 구현 순서
 
-### Phase 1: 기반 (DB + 인증)
-1. members 테이블 + 모듈 테이블 스키마 추가
-2. TowninGraph OAuth 클라이언트 구현
-3. 승인 신청 + 관리자 승인 플로우
-4. 서브도메인 미들웨어
+### Phase 1: 기반 (인증 전환 + DB)
+1. Clerk 완전 제거 (@clerk/nextjs, ClerkProvider, middleware, 환경변수)
+2. 통합 로그인 페이지 (`/login`) + Google OAuth (관리자)
+3. TowninGraph OAuth (회원) + 통합 JWT 세션 관리
+4. members 테이블 + 모듈 테이블 스키마 추가 (distributors 마이그레이션)
+5. 승인 신청 + 관리자 승인 플로우 (`/admin/members`)
+6. 서브도메인 미들웨어 (slug 추출 + 인증 분기)
 
 ### Phase 2: 회원 공개 페이지
 5. 프로필 모듈 (필수)
