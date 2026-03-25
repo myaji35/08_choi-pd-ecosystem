@@ -6,7 +6,7 @@
  * For development, logs emails to console.
  */
 
-const IS_DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+const IS_DEV_MODE = process.env.NODE_ENV === 'development';
 
 interface EmailOptions {
   to: string;
