@@ -3,15 +3,13 @@
 import Link from 'next/link';
 import { Menu, Search, Settings, ChevronRight, User } from 'lucide-react';
 import { useUIStore } from '@/lib/stores/uiStore';
-import { useUser } from '@clerk/nextjs';
+import { useSession } from '@/hooks/use-session';
 import { useEffect, useState } from 'react';
-
-const IS_DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
 
 export function NotionHeader() {
   const { toggleMobileMenu } = useUIStore();
-  const { user } = useUser();
-  const [userName, setUserName] = useState('최범희');
+  const { user } = useSession();
+  const userName = user?.name || '최범희';
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -21,22 +19,6 @@ export function NotionHeader() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    if (IS_DEV_MODE) {
-      const devAuth = document.cookie.includes('dev-auth=true');
-      if (devAuth) {
-        setUserName('관리자');
-      } else {
-        setUserName('최범희');
-      }
-    } else if (user) {
-      const displayName = user.firstName || user.username || user.primaryEmailAddress?.emailAddress || '사용자';
-      setUserName(displayName);
-    } else {
-      setUserName('최범희');
-    }
-  }, [user]);
 
   const menuItems = [
     { href: '/', label: '홈' },

@@ -1,48 +1,29 @@
 /**
  * Authentication Utilities
- * Role-based access control and authentication helpers for Clerk integration
+ * Role-based access control and authentication helpers for JWT session
  */
 
-import { currentUser } from '@clerk/nextjs/server';
+import { getSession } from '@/lib/auth/session';
 
-export type UserRole = 'admin' | 'pd' | 'distributor';
+export type UserRole = 'admin' | 'member';
 
 export interface UserMetadata {
   role: UserRole;
-  distributorId?: number;
+  slug?: string;
 }
 
 /**
- * Get current user's role from Clerk metadata
- * In production, roles are stored in Clerk's publicMetadata
+ * Get current user's role from JWT session
  */
 export async function getCurrentUserRole(): Promise<UserRole | null> {
   try {
-    const user = await currentUser();
+    const session = await getSession();
 
-    if (!user) {
+    if (!session) {
       return null;
     }
 
-    // Check Clerk public metadata for role
-    const metadata = user.publicMetadata as UserMetadata;
-
-    if (metadata?.role) {
-      return metadata.role;
-    }
-
-    // Default role based on email (fallback for development)
-    const email = user.emailAddresses[0]?.emailAddress;
-
-    if (email?.includes('admin')) {
-      return 'admin';
-    }
-
-    if (email?.includes('pd')) {
-      return 'pd';
-    }
-
-    return 'distributor';
+    return session.role || null;
   } catch (error) {
     console.error('Failed to get user role:', error);
     return null;
@@ -72,10 +53,8 @@ export function getDashboardUrl(role: UserRole): string {
   switch (role) {
     case 'admin':
       return '/admin/dashboard';
-    case 'pd':
+    case 'member':
       return '/pd/dashboard';
-    case 'distributor':
-      return '/distributor/dashboard';
     default:
       return '/';
   }
@@ -85,15 +64,7 @@ export function getDashboardUrl(role: UserRole): string {
  * Get sign-in URL based on intended destination
  */
 export function getSignInUrl(intendedPath: string): string {
-  if (intendedPath.startsWith('/admin')) {
-    return '/admin/sign-in';
-  }
-
-  if (intendedPath.startsWith('/pd')) {
-    return '/pd/sign-in';
-  }
-
-  return '/sign-in';
+  return `/login?callbackUrl=${encodeURIComponent(intendedPath)}`;
 }
 
 /**
@@ -111,34 +82,28 @@ export async function canAccessRoute(path: string): Promise<boolean> {
     return true;
   }
 
-  // PD can only access /pd routes
-  if (role === 'pd') {
-    return path.startsWith('/pd');
-  }
-
-  // Distributor can only access /distributor routes
-  if (role === 'distributor') {
-    return path.startsWith('/distributor');
+  // Member can access /pd and /member routes
+  if (role === 'member') {
+    return path.startsWith('/pd') || path.startsWith('/member');
   }
 
   return false;
 }
 
 /**
- * Get user's distributor ID from Clerk metadata
+ * Get user's slug from JWT session (for member public pages)
  */
-export async function getDistributorId(): Promise<number | null> {
+export async function getUserSlug(): Promise<string | null> {
   try {
-    const user = await currentUser();
+    const session = await getSession();
 
-    if (!user) {
+    if (!session) {
       return null;
     }
 
-    const metadata = user.publicMetadata as UserMetadata;
-    return metadata?.distributorId || null;
+    return session.slug || null;
   } catch (error) {
-    console.error('Failed to get distributor ID:', error);
+    console.error('Failed to get user slug:', error);
     return null;
   }
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useClerk } from '@clerk/nextjs';
+import { useSession } from '@/hooks/use-session';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,8 +20,6 @@ import {
   Receipt
 } from 'lucide-react';
 
-const IS_DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
-
 interface DistributorStats {
   totalDistributors: number;
   activeDistributors: number;
@@ -32,8 +30,7 @@ interface DistributorStats {
 
 export default function AdminDistributorDashboard() {
   const router = useRouter();
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const { user, logout } = useSession();
   const [stats, setStats] = useState<DistributorStats>({
     totalDistributors: 0,
     activeDistributors: 0,
@@ -44,14 +41,7 @@ export default function AdminDistributorDashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   const handleLogout = async () => {
-    if (IS_DEV_MODE) {
-      document.cookie = 'dev-auth=; path=/; max-age=0';
-      router.push('/admin/login');
-      router.refresh();
-    } else {
-      await signOut();
-      router.push('/');
-    }
+    await logout();
   };
 
   useEffect(() => {
@@ -83,13 +73,9 @@ export default function AdminDistributorDashboard() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold">imPD 분양 관리 대시보드</h1>
-            {IS_DEV_MODE ? (
-              <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                개발 모드
-              </Badge>
-            ) : user ? (
+            {user ? (
               <div className="flex items-center gap-2 text-sm text-blue-600">
-                <span>{user.primaryEmailAddress?.emailAddress || user.username}</span>
+                <span>{user.email || user.name}</span>
               </div>
             ) : null}
           </div>

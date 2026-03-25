@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, User } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   NavigationMenu,
@@ -11,33 +11,12 @@ import {
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import { useUIStore } from '@/lib/stores/uiStore';
-import { useUser } from '@clerk/nextjs';
-import { useEffect, useState } from 'react';
-
-const IS_DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+import { useSession } from '@/hooks/use-session';
 
 export function Header() {
   const { toggleMobileMenu } = useUIStore();
-  const { user } = useUser();
-  const [userName, setUserName] = useState('최범희');
-
-  useEffect(() => {
-    if (IS_DEV_MODE) {
-      // 개발 모드에서는 쿠키 확인
-      const devAuth = document.cookie.includes('dev-auth=true');
-      if (devAuth) {
-        setUserName('관리자');
-      } else {
-        setUserName('최범희');
-      }
-    } else if (user) {
-      // 프로덕션 모드에서는 Clerk 사용자 정보 사용
-      const displayName = user.firstName || user.username || user.primaryEmailAddress?.emailAddress || '사용자';
-      setUserName(displayName);
-    } else {
-      setUserName('최범희');
-    }
-  }, [user]);
+  const { user } = useSession();
+  const userName = user?.name || '최범희';
 
   const menuItems = [
     { href: '/', label: '홈' },

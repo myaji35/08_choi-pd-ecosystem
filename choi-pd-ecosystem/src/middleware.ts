@@ -1,19 +1,20 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+// 미들웨어(Edge Runtime)에서는 직접 상수 정의 (constants.ts와 동일 값)
+const SESSION_COOKIE_NAME = 'impd_session';
 
-const IS_DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
-const isAdminRoute = createRouteMatcher(['/admin(.*)']);
-const isPDRoute = createRouteMatcher(['/pd(.*)']);
-
-// Dev mode middleware - simple cookie check + subdomain routing
-function devModeMiddleware(request: NextRequest) {
+/**
+ * JWT 세션 기반 미들웨어
+ * - 보호된 라우트(/admin/*, /pd/*)에 대해 세션 쿠키 존재 여부 확인
+ * - 서브도메인 라우팅 (chopd.*, member slug)
+ * - JWT 검증은 API 레벨에서 수행 (Edge에서는 쿠키 존재만 체크)
+ */
+export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get('host') || '';
 
   // Handle subdomain routing for chopd
   if (hostname.startsWith('chopd.')) {
-    // Rewrite to /chopd prefix
     if (!pathname.startsWith('/chopd') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
       const url = request.nextUrl.clone();
       url.pathname = `/chopd${pathname}`;
@@ -21,52 +22,36 @@ function devModeMiddleware(request: NextRequest) {
     }
   }
 
-  // Allow login pages
-  if (pathname === '/admin/login' || pathname === '/pd/login') {
+  // Allow login page and auth API routes
+  if (
+    pathname === '/login' ||
+    pathname === '/admin/login' ||
+    pathname === '/pd/login' ||
+    pathname.startsWith('/api/auth/')
+  ) {
     return NextResponse.next();
   }
 
-  // Check for admin routes
+  // Check for protected admin routes
   if (pathname.startsWith('/admin')) {
-    const devAuth = request.cookies.get('dev-auth')?.value;
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
-    if (!devAuth) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
+    if (!sessionCookie) {
+      return NextResponse.redirect(new URL('/login?callbackUrl=/admin/dashboard', request.url));
     }
   }
 
-  // Check for PD routes
+  // Check for protected PD routes
   if (pathname.startsWith('/pd')) {
-    const devAuth = request.cookies.get('dev-auth')?.value;
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
-    if (!devAuth) {
-      return NextResponse.redirect(new URL('/pd/login', request.url));
+    if (!sessionCookie) {
+      return NextResponse.redirect(new URL('/login?callbackUrl=/pd/dashboard', request.url));
     }
   }
 
   return NextResponse.next();
 }
-
-// Production mode - use Clerk + subdomain routing
-const clerkAuth = clerkMiddleware(async (auth, req) => {
-  const hostname = req.headers.get('host') || '';
-
-  // Handle subdomain routing for chopd
-  if (hostname.startsWith('chopd.')) {
-    const { pathname } = req.nextUrl;
-    if (!pathname.startsWith('/chopd') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
-      const url = req.nextUrl.clone();
-      url.pathname = `/chopd${pathname}`;
-      return NextResponse.rewrite(url);
-    }
-  }
-
-  if (isAdminRoute(req) || isPDRoute(req)) {
-    await auth.protect();
-  }
-});
-
-export default IS_DEV_MODE ? devModeMiddleware : clerkAuth;
 
 export const config = {
   matcher: [

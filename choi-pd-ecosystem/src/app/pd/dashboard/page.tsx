@@ -2,19 +2,16 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useClerk } from '@clerk/nextjs';
+import { useSession } from '@/hooks/use-session';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Image as ImageIcon, LogOut, User as UserIcon } from 'lucide-react';
 import Image from 'next/image';
 import { ImageCropModal } from '@/components/admin/ImageCropModal';
 
-const IS_DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
-
 export default function PDDashboard() {
   const router = useRouter();
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const { user, logout } = useSession();
   const [profileImage, setProfileImage] = useState('/images/profile.jpg');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
@@ -25,14 +22,7 @@ export default function PDDashboard() {
   const [tempImageSrc, setTempImageSrc] = useState('');
 
   const handleLogout = async () => {
-    if (IS_DEV_MODE) {
-      document.cookie = 'dev-auth=; path=/; max-age=0';
-      router.push('/pd/login');
-      router.refresh();
-    } else {
-      await signOut();
-      router.push('/');
-    }
+    await logout();
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,17 +90,10 @@ export default function PDDashboard() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold">PD 관리자 대시보드</h1>
-            {IS_DEV_MODE ? (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold">
-                  개발 모드
-                </span>
-                <span className="text-purple-600">admin</span>
-              </div>
-            ) : user ? (
+            {user ? (
               <div className="flex items-center gap-2 text-sm text-purple-600">
                 <UserIcon className="h-4 w-4" />
-                <span>{user.primaryEmailAddress?.emailAddress || user.username}</span>
+                <span>{user.email || user.name}</span>
               </div>
             ) : null}
           </div>
@@ -244,47 +227,28 @@ export default function PDDashboard() {
                 계정 정보
               </CardTitle>
               <CardDescription>
-                {IS_DEV_MODE ? '개발 모드' : 'Clerk 계정 정보'}
+                계정 정보
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {IS_DEV_MODE ? (
+              {user ? (
                 <>
-                  <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4">
-                    <p className="font-semibold text-yellow-900 mb-2">🔧 개발 모드</p>
-                    <ul className="text-sm text-yellow-800 space-y-1">
-                      <li>• 빠른 로그인: admin / admin</li>
-                      <li>• 비밀번호 제약 없음</li>
-                      <li>• 프로덕션은 Clerk 사용</li>
-                    </ul>
+                  <div>
+                    <p className="text-sm font-medium text-purple-900">이름</p>
+                    <p className="text-sm text-purple-600">{user.name || 'N/A'}</p>
                   </div>
-                  <p className="text-xs text-purple-600">
-                    개발 모드를 비활성화하려면 .env.local에서 NEXT_PUBLIC_DEV_MODE=false로 설정하세요
-                  </p>
-                </>
-              ) : user ? (
-                <>
                   <div>
                     <p className="text-sm font-medium text-purple-900">이메일</p>
-                    <p className="text-sm text-purple-600">
-                      {user.primaryEmailAddress?.emailAddress || 'N/A'}
-                    </p>
+                    <p className="text-sm text-purple-600">{user.email || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-purple-900">사용자명</p>
-                    <p className="text-sm text-purple-600">{user.username || 'N/A'}</p>
+                    <p className="text-sm font-medium text-purple-900">역할</p>
+                    <p className="text-sm text-purple-600">{user.role === 'admin' ? '관리자' : '회원'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-purple-900">계정 ID</p>
-                    <p className="text-xs text-purple-500 font-mono break-all">{user.id}</p>
+                    <p className="text-sm font-medium text-purple-900">로그인 방식</p>
+                    <p className="text-sm text-purple-600">{user.provider === 'google' ? 'Google' : 'TowninGraph'}</p>
                   </div>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => window.open('https://dashboard.clerk.com', '_blank')}
-                  >
-                    Clerk 대시보드에서 관리
-                  </Button>
                 </>
               ) : (
                 <p className="text-sm text-gray-500">사용자 정보 불러오는 중...</p>
