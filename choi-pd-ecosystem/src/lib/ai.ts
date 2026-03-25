@@ -295,8 +295,9 @@ export async function processChatMessage(params: {
   sessionId: string;
   userId?: string;
   userType: 'distributor' | 'pd' | 'customer' | 'anonymous';
+  memberContext?: string;
 }): Promise<{ response: string; matchedFaqId?: number; confidence: number }> {
-  const { message, sessionId, userId, userType } = params;
+  const { message, sessionId, userId, userType, memberContext } = params;
 
   // Save user message
   await db.insert(chatbotConversations).values({
@@ -340,7 +341,7 @@ export async function processChatMessage(params: {
       .where(eq(faqKnowledgeBase.id, bestMatch.id));
   } else {
     // No good match - use AI to generate response
-    response = await generateChatbotResponse(message, sessionId);
+    response = await generateChatbotResponse(message, sessionId, memberContext);
     confidence = 0.5;
   }
 
@@ -387,7 +388,7 @@ function calculateFaqMatchScore(userMessage: string, keywords: string[], questio
 /**
  * Generate chatbot response using AI
  */
-async function generateChatbotResponse(message: string, sessionId: string): Promise<string> {
+async function generateChatbotResponse(message: string, sessionId: string, memberContext?: string): Promise<string> {
   // Get conversation history
   const history = await db
     .select()
@@ -400,8 +401,13 @@ async function generateChatbotResponse(message: string, sessionId: string): Prom
     .map(msg => `${msg.role === 'user' ? '사용자' : '어시스턴트'}: ${msg.message}`)
     .join('\n');
 
-  const prompt = `당신은 imPD 플랫폼의 고객 지원 챗봇입니다. 친절하고 정확하게 답변해주세요.
+  // Obsidian Memory 컨텍스트 통합
+  const memorySection = memberContext
+    ? `\n회원 기억 정보:\n${memberContext}\n`
+    : '';
 
+  const prompt = `당신은 imPD 플랫폼의 고객 지원 챗봇입니다. 친절하고 정확하게 답변해주세요.
+${memorySection}
 대화 내역:
 ${conversationContext}
 

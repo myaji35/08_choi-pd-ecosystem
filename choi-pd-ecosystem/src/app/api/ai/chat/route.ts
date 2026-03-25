@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processChatMessage } from '@/lib/ai';
+import { loadMemberContext, saveConversationTurn } from '@/lib/obsidian';
 import { nanoid } from 'nanoid';
 
 // POST /api/ai/chat - Process chatbot message
@@ -29,12 +30,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Obsidian Memory: 회원 컨텍스트 로드 (userId가 있을 때만)
+    let memberContext: string | undefined;
+    if (userId) {
+      try {
+        memberContext = await loadMemberContext(userId);
+      } catch (err) {
+        console.error('Memory context load error:', err);
+      }
+    }
+
     const result = await processChatMessage({
       message,
       sessionId: finalSessionId,
       userId,
-      userType: finalUserType
+      userType: finalUserType,
+      memberContext
     });
+
+    // Obsidian Memory: 대화를 Vault에 비동기 저장 (응답 지연 없이)
+    if (userId) {
+      saveConversationTurn({
+        sessionId: finalSessionId,
+        memberId: userId,
+        userMessage: message,
+        assistantResponse: result.response,
+        intent: result.matchedFaqId ? 'faq' : 'general',
+        metadata: {
+          confidence: result.confidence,
+          matchedFaqId: result.matchedFaqId
+        }
+      }).catch(err => console.error('Memory save error:', err));
+    }
 
     return NextResponse.json({
       success: true,

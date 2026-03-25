@@ -44,6 +44,9 @@ next-env.d.ts
 /data/*.db-shm
 /data/*.db-wal
 
+# obsidian vault (회원 대화 기록 보호)
+/data/obsidian-vault/members/*/conversations/
+
 # uploads
 /public/uploads/*
 !/public/uploads/.gitkeep
