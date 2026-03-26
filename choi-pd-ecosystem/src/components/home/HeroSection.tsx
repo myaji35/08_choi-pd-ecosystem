@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface HeroSectionProps {
@@ -97,13 +96,12 @@ export function HeroSection({
         <div className="mx-auto max-w-4xl text-center">
           {/* Profile Image */}
           <div className="mb-8 flex justify-center">
-            <div className="relative h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow-2xl md:h-40 md:w-40">
-              <Image
+            <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow-2xl md:h-40 md:w-40">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={`/images/profile.jpg?t=${profileImageTimestamp}`}
                 alt="최범희 대표"
-                fill
-                className="object-cover"
-                priority
+                className="w-full h-full object-cover"
               />
             </div>
           </div>
