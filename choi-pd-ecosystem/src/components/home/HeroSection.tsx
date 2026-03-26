@@ -120,7 +120,7 @@ export function HeroSection({
             <Button asChild size="lg" className="shadow-lg bg-white text-primary hover:bg-white/90 font-semibold">
               <Link href="/chopd/education">교육 과정 보기</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20 shadow-lg font-semibold">
+            <Button asChild variant="outline" size="lg" className="bg-white text-gray-900 border-white hover:bg-gray-100 shadow-lg font-semibold">
               <Link href="/chopd/works">저서 소개</Link>
             </Button>
           </div>
