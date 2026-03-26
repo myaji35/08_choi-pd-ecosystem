@@ -44,33 +44,32 @@ export function HeroSection({
 
   return (
     <section className="relative min-h-[600px] md:min-h-[700px] flex items-center justify-center overflow-hidden">
-      {/* Sliding Background Images */}
+      {/* Background Images with Slide Animation */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background z-10" />
 
-        <div
-          className="flex h-full transition-transform duration-700 ease-in-out"
-          style={{
-            width: `${totalSlides * 100}%`,
-            transform: `translateX(-${currentIndex * (100 / totalSlides)}%)`,
-          }}
-        >
-          {heroImages.map((imageUrl, index) => (
-            <div
-              key={imageUrl}
-              className="relative h-full flex-shrink-0"
-              style={{ width: `${100 / totalSlides}%` }}
-            >
-              <Image
-                src={imageUrl}
-                alt={`배경 ${index + 1}`}
-                fill
-                className="object-cover"
-                priority={index === 0}
-              />
-            </div>
-          ))}
-        </div>
+        {heroImages.map((imageUrl, index) => (
+          <div
+            key={imageUrl}
+            className="absolute inset-0 transition-all duration-700 ease-in-out"
+            style={{
+              opacity: index === currentIndex ? 1 : 0,
+              transform: index === currentIndex
+                ? 'translateX(0) scale(1)'
+                : index < currentIndex
+                  ? 'translateX(-8%) scale(1.02)'
+                  : 'translateX(8%) scale(1.02)',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageUrl}
+              alt={`배경 ${index + 1}`}
+              className="w-full h-full object-cover"
+              loading={index === 0 ? 'eager' : 'lazy'}
+            />
+          </div>
+        ))}
       </div>
 
       {/* 좌우 화살표 */}
