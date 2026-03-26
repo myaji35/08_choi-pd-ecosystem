@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { NotionHeader } from '@/components/layout/NotionHeader';
-import { NotionSidebar } from '@/components/layout/NotionSidebar';
+import { LayoutShell } from '@/components/layout/LayoutShell';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { Toaster } from 'sonner';
 import { getSocialLinks } from '@/lib/db/queries/socialLinks';
@@ -83,23 +82,9 @@ export default async function RootLayout({
           <StructuredData data={webSiteSchema} />
         </head>
         <body className={inter.className}>
-          <div className="flex h-screen bg-white">
-            {/* Notion Sidebar */}
-            <NotionSidebar />
-
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Notion Header */}
-              <NotionHeader />
-
-              {/* Page Content */}
-              <main className="flex-1 overflow-y-auto mt-12 bg-white">
-                <div className="notion-page">
-                  {children}
-                </div>
-              </main>
-            </div>
-          </div>
+          <LayoutShell>
+            {children}
+          </LayoutShell>
           <Toaster />
         </body>
       </html>

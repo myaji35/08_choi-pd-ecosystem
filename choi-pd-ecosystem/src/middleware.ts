@@ -30,6 +30,52 @@ export default function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+  // /chopd/admin/* → /admin/* rewrite (URL 통합)
+  if (pathname.startsWith('/chopd/admin')) {
+    const subPath = pathname.replace('/chopd/admin', '') || '';
+    const realPath = `/admin${subPath}`;
+
+    // 로그인 페이지는 인증 체크 없이 통과
+    if (realPath === '/admin/login') {
+      const url = request.nextUrl.clone();
+      url.pathname = realPath;
+      return NextResponse.rewrite(url);
+    }
+
+    // 인증 체크
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+    if (!sessionCookie) {
+      return NextResponse.redirect(new URL('/login?callbackUrl=/chopd/admin/dashboard', request.url));
+    }
+
+    const url = request.nextUrl.clone();
+    url.pathname = realPath;
+    return NextResponse.rewrite(url);
+  }
+
+  // /chopd/pd/* → /pd/* rewrite (URL 통합)
+  if (pathname.startsWith('/chopd/pd')) {
+    const subPath = pathname.replace('/chopd/pd', '') || '';
+    const realPath = `/pd${subPath}`;
+
+    // 로그인 페이지는 인증 체크 없이 통과
+    if (realPath === '/pd/login') {
+      const url = request.nextUrl.clone();
+      url.pathname = realPath;
+      return NextResponse.rewrite(url);
+    }
+
+    // 인증 체크
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+    if (!sessionCookie) {
+      return NextResponse.redirect(new URL('/login?callbackUrl=/chopd/pd/dashboard', request.url));
+    }
+
+    const url = request.nextUrl.clone();
+    url.pathname = realPath;
+    return NextResponse.rewrite(url);
+  }
+
   // Allow public routes
   if (
     pathname === '/login' ||
@@ -41,21 +87,21 @@ export default function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check for protected admin routes
+  // Check for protected admin routes (직접 접근 시 → /chopd/admin으로 리디렉트)
   if (pathname.startsWith('/admin')) {
     const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
     if (!sessionCookie) {
-      return NextResponse.redirect(new URL('/login?callbackUrl=/admin/dashboard', request.url));
+      return NextResponse.redirect(new URL('/login?callbackUrl=/chopd/admin/dashboard', request.url));
     }
   }
 
-  // Check for protected PD routes
+  // Check for protected PD routes (직접 접근 시 → /chopd/pd로 리디렉트)
   if (pathname.startsWith('/pd')) {
     const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
     if (!sessionCookie) {
-      return NextResponse.redirect(new URL('/login?callbackUrl=/pd/dashboard', request.url));
+      return NextResponse.redirect(new URL('/login?callbackUrl=/chopd/pd/dashboard', request.url));
     }
   }
 

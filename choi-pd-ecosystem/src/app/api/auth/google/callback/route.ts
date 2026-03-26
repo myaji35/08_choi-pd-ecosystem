@@ -12,6 +12,10 @@ export async function GET(request: NextRequest) {
     const tokenData = await exchangeGoogleCode(code);
     const userInfo = await getGoogleUserInfo(tokenData.access_token);
 
+    console.log('[Google OAuth] userInfo:', JSON.stringify(userInfo));
+    console.log('[Google OAuth] ADMIN_ALLOWED_EMAILS:', process.env.ADMIN_ALLOWED_EMAILS);
+    console.log('[Google OAuth] isAdmin:', isAdminEmail(userInfo.email));
+
     if (!isAdminEmail(userInfo.email)) {
       return NextResponse.redirect(new URL('/login?error=not_admin', request.url));
     }

@@ -4,39 +4,44 @@ import { usePathname } from 'next/navigation';
 import { NotionHeader } from './NotionHeader';
 import { NotionSidebar } from './NotionSidebar';
 
-// 사이드바/헤더 없이 독립 레이아웃을 사용하는 경로
-const STANDALONE_ROUTES = ['/', '/login', '/member'];
-
-function isStandalonePath(pathname: string): boolean {
-  if (pathname === '/') return true;
-  return STANDALONE_ROUTES.some(
-    (route) => route !== '/' && pathname.startsWith(route)
+/**
+ * 사이드바 + 헤더가 필요한 관리 영역인지 판단
+ * /admin/*, /pd/*, /chopd/admin/*, /chopd/pd/* → 사이드바 레이아웃
+ * 그 외 → 독립 레이아웃 (공개 사이트, 로그인 등)
+ */
+function needsSidebarLayout(pathname: string): boolean {
+  return (
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/pd') ||
+    pathname.startsWith('/chopd/admin') ||
+    pathname.startsWith('/chopd/pd') ||
+    pathname.startsWith('/dashboard')
   );
 }
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isStandalone = isStandalonePath(pathname);
 
-  if (isStandalone) {
+  if (needsSidebarLayout(pathname)) {
     return (
-      <main className="min-h-screen bg-white">
-        {children}
-      </main>
+      <div className="flex h-screen bg-white">
+        <NotionSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <NotionHeader />
+          <main className="flex-1 overflow-y-auto mt-12 bg-white">
+            <div className="notion-page">
+              {children}
+            </div>
+          </main>
+        </div>
+      </div>
     );
   }
 
+  // 공개 사이트, 로그인, 회원 프로필 등 — 독립 레이아웃
   return (
-    <div className="flex h-screen bg-white">
-      <NotionSidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <NotionHeader />
-        <main className="flex-1 overflow-y-auto mt-12 bg-white">
-          <div className="notion-page">
-            {children}
-          </div>
-        </main>
-      </div>
-    </div>
+    <main className="min-h-screen bg-white">
+      {children}
+    </main>
   );
 }

@@ -75,8 +75,8 @@ export async function exchangeTowninGraphCode(code: string) {
 }
 
 export async function getTowninGraphUserInfo(accessToken: string) {
-  const baseUrl = process.env.TOWNINGRAPH_OAUTH_URL?.replace('/oauth', '') || '';
-  const res = await fetch(`${baseUrl}/api/oauth/userinfo`, {
+  const baseUrl = process.env.TOWNINGRAPH_OAUTH_URL || '';
+  const res = await fetch(`${baseUrl}/userinfo`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   return res.json();
