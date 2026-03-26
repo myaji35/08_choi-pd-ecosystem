@@ -45,7 +45,7 @@ export function HeroSection({
     <section className="relative min-h-[600px] md:min-h-[700px] flex items-center justify-center overflow-hidden">
       {/* Background Images with Slide Animation */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-background z-10" />
+        <div className="absolute inset-0 bg-black/50 z-10" />
 
         {heroImages.map((imageUrl, index) => (
           <div
@@ -93,7 +93,7 @@ export function HeroSection({
 
       {/* Content */}
       <div className="container relative z-20 py-20">
-        <div className="mx-auto max-w-4xl text-center">
+        <div className="mx-auto max-w-3xl text-center bg-black/50 backdrop-blur-md rounded-2xl py-12 px-8 border border-white/10">
           {/* Profile Image */}
           <div className="mb-8 flex justify-center">
             <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow-2xl md:h-40 md:w-40">
@@ -106,12 +106,12 @@ export function HeroSection({
             </div>
           </div>
 
-          <h1 className="mb-6 text-4xl font-bold tracking-tight text-white md:text-6xl drop-shadow-lg">
+          <h1 className="mb-6 text-4xl font-bold tracking-tight md:text-6xl" style={{ color: '#ffffff', textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.5)' }}>
             스마트폰으로 시작하는
             <br />
             당신의 새로운 도전
           </h1>
-          <p className="mb-8 text-xl text-white/90 drop-shadow-md">
+          <p className="mb-8 text-xl" style={{ color: '#ffffff', textShadow: '0 1px 6px rgba(0,0,0,0.8)' }}>
             교육자, 저자, 미디어 발행인 최범희와 함께
             <br />
             5060 세대의 스마트폰 창업을 응원합니다
