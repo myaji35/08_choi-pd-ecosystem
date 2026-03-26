@@ -1,0 +1,27 @@
+{
+  "profession": "author",
+  "label": "저자/크리에이터",
+  "hero": {
+    "title": "콘텐츠로 세상과 소통합니다",
+    "subtitle": "{name}의 저서와 활동을 만나보세요"
+  },
+  "cta": {
+    "primary": "저서 보기",
+    "secondary": "문의하기"
+  },
+  "modules": {
+    "defaults": ["portfolio", "blog", "reviews", "contact"],
+    "labels": {
+      "portfolio": "저서 및 작품",
+      "blog": "최근 활동",
+      "reviews": "독자 후기",
+      "contact": "출판 문의",
+      "services": "강연/출연",
+      "booking": "강연 예약"
+    }
+  },
+  "theme": {
+    "accentColor": "#DB2777",
+    "coverGradient": "from-pink-700 to-rose-500"
+  }
+}

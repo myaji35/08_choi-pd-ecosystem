@@ -1,0 +1,27 @@
+{
+  "profession": "insurance_agent",
+  "label": "보험설계사",
+  "hero": {
+    "title": "고객의 미래를 설계합니다",
+    "subtitle": "{name} 보험설계사와 함께 안전한 내일을 준비하세요"
+  },
+  "cta": {
+    "primary": "무료 상담 신청",
+    "secondary": "보장 분석 받기"
+  },
+  "modules": {
+    "defaults": ["services", "reviews", "contact", "blog"],
+    "labels": {
+      "services": "보장 상품",
+      "reviews": "상담 후기",
+      "contact": "상담 신청",
+      "blog": "보험 칼럼",
+      "portfolio": "보장 분석 사례",
+      "booking": "상담 예약"
+    }
+  },
+  "theme": {
+    "accentColor": "#2563EB",
+    "coverGradient": "from-blue-700 to-blue-500"
+  }
+}

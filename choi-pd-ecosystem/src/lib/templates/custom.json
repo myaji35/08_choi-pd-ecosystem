@@ -1,0 +1,27 @@
+{
+  "profession": "custom",
+  "label": "기본",
+  "hero": {
+    "title": "안녕하세요, {name}입니다",
+    "subtitle": "새로운 가능성을 함께 만들어갑니다"
+  },
+  "cta": {
+    "primary": "문의하기",
+    "secondary": "더 알아보기"
+  },
+  "modules": {
+    "defaults": ["portfolio", "services", "contact"],
+    "labels": {
+      "portfolio": "포트폴리오",
+      "services": "서비스",
+      "reviews": "후기",
+      "contact": "문의하기",
+      "blog": "블로그",
+      "booking": "예약"
+    }
+  },
+  "theme": {
+    "accentColor": "#00A1E0",
+    "coverGradient": "from-[#16325C] to-[#00A1E0]"
+  }
+}

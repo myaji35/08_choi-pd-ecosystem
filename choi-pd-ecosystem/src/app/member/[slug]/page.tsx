@@ -167,16 +167,16 @@ export default async function MemberPage({ params }: MemberPageProps) {
     ? JSON.parse(member.themeConfig)
     : {};
 
-  // 직업별 템플릿 적용
+  // 직업별 템플릿 적용 (JSON 파일 기반)
   const template = getTemplate((member as any).profession);
-  const accentColor = themeConfig.primaryColor || template.accentColor;
-  const heroTitle = resolveHeroText(themeConfig.heroTitle || template.heroTitle, member.name);
-  const heroSubtitle = resolveHeroText(themeConfig.heroSubtitle || template.heroSubtitle, member.name);
+  const accentColor = themeConfig.primaryColor || template.theme.accentColor;
+  const heroTitle = resolveHeroText(themeConfig.heroTitle || template.hero.title, member.name);
+  const heroSubtitle = resolveHeroText(themeConfig.heroSubtitle || template.hero.subtitle, member.name);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Cover + Hero */}
-      <div className={`relative w-full min-h-[280px] bg-gradient-to-r ${template.coverGradient} flex items-end`}>
+      <div className={`relative w-full min-h-[280px] bg-gradient-to-r ${template.theme.coverGradient} flex items-end`}>
         {member.coverImage && (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -254,13 +254,13 @@ export default async function MemberPage({ params }: MemberPageProps) {
               className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity"
               style={{ background: accentColor }}
             >
-              {template.ctaPrimary}
+              {template.cta.primary}
             </button>
             <button
               className="px-5 py-2.5 rounded-lg text-sm font-semibold border-2 hover:bg-gray-50 transition-colors"
               style={{ borderColor: accentColor, color: accentColor }}
             >
-              {template.ctaSecondary}
+              {template.cta.secondary}
             </button>
           </div>
         </div>
@@ -299,7 +299,7 @@ export default async function MemberPage({ params }: MemberPageProps) {
                 if (!moduleInfo) return null;
 
                 // 템플릿에서 커스텀 라벨 사용
-                const customLabel = template.moduleLabels[mod] || moduleInfo.label;
+                const customLabel = template.modules.labels[mod] || moduleInfo.label;
 
                 return (
                   <button

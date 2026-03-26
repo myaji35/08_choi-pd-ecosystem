@@ -1,0 +1,27 @@
+{
+  "profession": "educator",
+  "label": "교육자/강사",
+  "hero": {
+    "title": "새로운 배움의 시작",
+    "subtitle": "{name} 강사와 함께 성장하는 교육 과정"
+  },
+  "cta": {
+    "primary": "수강 신청",
+    "secondary": "커리큘럼 보기"
+  },
+  "modules": {
+    "defaults": ["services", "reviews", "blog", "booking"],
+    "labels": {
+      "services": "교육 과정",
+      "reviews": "수강 후기",
+      "blog": "교육 칼럼",
+      "portfolio": "교육 실적",
+      "contact": "교육 문의",
+      "booking": "수강 예약"
+    }
+  },
+  "theme": {
+    "accentColor": "#7C3AED",
+    "coverGradient": "from-violet-700 to-purple-500"
+  }
+}

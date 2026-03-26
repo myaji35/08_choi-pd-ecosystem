@@ -67,7 +67,7 @@ RUN addgroup -g 1001 -S nodejs && \
 # Set production environment
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3011
+ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Copy necessary files from builder
@@ -87,11 +87,11 @@ RUN chmod -R 755 /app && \
 USER nextjs
 
 # Expose port
-EXPOSE 3011
+EXPOSE 3000
 
 # Health check - 안정적인 헬스체크 설정
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
-  CMD curl -f http://localhost:3011/api/health || exit 1
+  CMD curl -f http://localhost:3000/api/health || exit 1
 
 # Use dumb-init for proper signal handling (graceful shutdown)
 ENTRYPOINT ["dumb-init", "--"]

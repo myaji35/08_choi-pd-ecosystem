@@ -1,0 +1,27 @@
+{
+  "profession": "freelancer",
+  "label": "프리랜서/전문가",
+  "hero": {
+    "title": "전문가에게 맡기세요",
+    "subtitle": "{name}의 전문 서비스로 문제를 해결하세요"
+  },
+  "cta": {
+    "primary": "견적 요청",
+    "secondary": "포트폴리오 보기"
+  },
+  "modules": {
+    "defaults": ["portfolio", "services", "reviews", "contact"],
+    "labels": {
+      "portfolio": "포트폴리오",
+      "services": "서비스 목록",
+      "reviews": "클라이언트 후기",
+      "contact": "견적 요청",
+      "blog": "작업 일지",
+      "booking": "미팅 예약"
+    }
+  },
+  "theme": {
+    "accentColor": "#0891B2",
+    "coverGradient": "from-cyan-700 to-teal-500"
+  }
+}

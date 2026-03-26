@@ -45,7 +45,7 @@ export function HeroSection({
     <section className="relative min-h-[600px] md:min-h-[700px] flex items-center justify-center overflow-hidden">
       {/* Background Images with Slide Animation */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-black/50 z-10" />
+        <div className="absolute inset-0 bg-black/30 z-10" />
 
         {heroImages.map((imageUrl, index) => (
           <div
@@ -93,7 +93,7 @@ export function HeroSection({
 
       {/* Content */}
       <div className="container relative z-20 py-20">
-        <div className="mx-auto max-w-3xl text-center bg-black/50 backdrop-blur-md rounded-2xl py-12 px-8 border border-white/10">
+        <div className="mx-auto max-w-3xl text-center bg-black/30 backdrop-blur-sm rounded-2xl py-12 px-8 border border-white/10">
           {/* Profile Image */}
           <div className="mb-8 flex justify-center">
             <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-white shadow-2xl md:h-40 md:w-40">

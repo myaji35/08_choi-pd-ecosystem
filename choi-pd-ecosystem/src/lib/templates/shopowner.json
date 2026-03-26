@@ -1,0 +1,27 @@
+{
+  "profession": "shopowner",
+  "label": "소상공인/매장",
+  "hero": {
+    "title": "정성을 담아 준비했습니다",
+    "subtitle": "{name}의 특별한 상품과 서비스를 만나보세요"
+  },
+  "cta": {
+    "primary": "방문 예약",
+    "secondary": "메뉴 보기"
+  },
+  "modules": {
+    "defaults": ["services", "portfolio", "reviews", "contact"],
+    "labels": {
+      "services": "메뉴/상품",
+      "portfolio": "매장 갤러리",
+      "reviews": "고객 리뷰",
+      "contact": "방문 예약",
+      "blog": "새 소식",
+      "booking": "온라인 예약"
+    }
+  },
+  "theme": {
+    "accentColor": "#EA580C",
+    "coverGradient": "from-orange-700 to-amber-500"
+  }
+}
