@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import Link from 'next/link';
+import { getTemplate, resolveHeroText } from '@/lib/member-templates';
 
 // SNS 아이콘 매핑 (Feather-style SVG)
 const SNS_ICONS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
@@ -166,20 +167,35 @@ export default async function MemberPage({ params }: MemberPageProps) {
     ? JSON.parse(member.themeConfig)
     : {};
 
-  const accentColor = themeConfig.primaryColor || '#00A1E0';
+  // 직업별 템플릿 적용
+  const template = getTemplate((member as any).profession);
+  const accentColor = themeConfig.primaryColor || template.accentColor;
+  const heroTitle = resolveHeroText(themeConfig.heroTitle || template.heroTitle, member.name);
+  const heroSubtitle = resolveHeroText(themeConfig.heroSubtitle || template.heroSubtitle, member.name);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Cover Image */}
-      <div className="relative w-full h-[200px] bg-gradient-to-r from-[#16325C] to-[#00A1E0]">
+      {/* Cover + Hero */}
+      <div className={`relative w-full min-h-[280px] bg-gradient-to-r ${template.coverGradient} flex items-end`}>
         {member.coverImage && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={member.coverImage}
-            alt={`${member.name} 커버 이미지`}
-            className="w-full h-full object-cover"
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={member.coverImage}
+              alt={`${member.name} 커버 이미지`}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/40" />
+          </>
         )}
+        <div className="relative z-10 w-full max-w-3xl mx-auto px-4 sm:px-6 pb-20 pt-12">
+          <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: '#ffffff', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+            {heroTitle}
+          </h2>
+          <p className="mt-2 text-base sm:text-lg" style={{ color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>
+            {heroSubtitle}
+          </p>
+        </div>
       </div>
 
       {/* Profile Section */}
@@ -213,15 +229,39 @@ export default async function MemberPage({ params }: MemberPageProps) {
               )}
             </div>
 
-            {/* Name & Bio */}
+            {/* Name, Badge & Bio */}
             <div className="text-center sm:text-left pb-2">
-              <h1 className="text-2xl font-bold text-gray-900">{member.name}</h1>
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <h1 className="text-2xl font-bold text-gray-900">{member.name}</h1>
+                <span
+                  className="text-xs font-medium px-2 py-0.5 rounded-full"
+                  style={{ background: accentColor, color: 'white' }}
+                >
+                  {template.label}
+                </span>
+              </div>
               {member.bio && (
                 <p className="mt-1 text-gray-600 text-sm leading-relaxed max-w-lg">
                   {member.bio}
                 </p>
               )}
             </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex gap-3 mt-4 justify-center sm:justify-start">
+            <button
+              className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity"
+              style={{ background: accentColor }}
+            >
+              {template.ctaPrimary}
+            </button>
+            <button
+              className="px-5 py-2.5 rounded-lg text-sm font-semibold border-2 hover:bg-gray-50 transition-colors"
+              style={{ borderColor: accentColor, color: accentColor }}
+            >
+              {template.ctaSecondary}
+            </button>
           </div>
         </div>
 
@@ -258,6 +298,9 @@ export default async function MemberPage({ params }: MemberPageProps) {
                 const moduleInfo = MODULE_LABELS[mod];
                 if (!moduleInfo) return null;
 
+                // 템플릿에서 커스텀 라벨 사용
+                const customLabel = template.moduleLabels[mod] || moduleInfo.label;
+
                 return (
                   <button
                     key={mod}
@@ -269,7 +312,7 @@ export default async function MemberPage({ params }: MemberPageProps) {
                     style={index === 0 ? { borderColor: accentColor, color: accentColor } : undefined}
                   >
                     {moduleInfo.icon}
-                    {moduleInfo.label}
+                    {customLabel}
                   </button>
                 );
               })}

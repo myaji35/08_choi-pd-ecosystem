@@ -1373,6 +1373,7 @@ export const members = sqliteTable('members', {
   bio: text('bio'), // 소개글
   socialLinks: text('social_links'), // JSON: {instagram, youtube, ...}
   businessType: text('business_type'), // individual | company | organization
+  profession: text('profession'), // insurance_agent | realtor | educator | author | shopowner | freelancer | custom
   region: text('region'),
   status: text('status').default('pending_approval'), // pending_approval|approved|rejected|suspended
   subscriptionPlan: text('subscription_plan').default('basic'), // basic|premium|enterprise
