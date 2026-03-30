@@ -4,7 +4,43 @@ import type { NextRequest } from 'next/server';
 const SESSION_COOKIE_NAME = 'impd_session';
 
 /**
+ * 서브도메인에서 tenantSlug 추출
+ * 패턴: {slug}.impd.158.247.235.31.nip.io → slug
+ *        {slug}.impd.io → slug (프로덕션)
+ *        impd.158.247.235.31.nip.io → null (메인 도메인)
+ *        app.impd.io → 'app' (슈퍼어드민)
+ *        chopd.* → 'chopd' (레거시 호환)
+ */
+function extractTenantSlug(hostname: string): string | null {
+  const baseDomain = process.env.BASE_DOMAIN || 'impd.158.247.235.31.nip.io';
+
+  // localhost 개발 환경 — 서브도메인 없음
+  if (hostname.startsWith('localhost') || hostname.startsWith('127.0.0.1')) {
+    return null;
+  }
+
+  // 레거시 chopd.* 호환 (chopd.localhost, chopd.example.com 등)
+  if (hostname.startsWith('chopd.')) {
+    return 'chopd';
+  }
+
+  // nip.io 패턴: {slug}.impd.{IP}.nip.io
+  // 프로덕션 패턴: {slug}.impd.io
+  // baseDomain 앞에 붙은 서브도메인 추출
+  if (hostname.endsWith(baseDomain) && hostname !== baseDomain) {
+    const prefix = hostname.slice(0, -(baseDomain.length + 1)); // +1 for dot
+    // prefix가 비어있지 않고, 추가 dot이 없는 경우만 유효 slug
+    if (prefix && !prefix.includes('.')) {
+      return prefix;
+    }
+  }
+
+  return null;
+}
+
+/**
  * JWT 세션 기반 미들웨어
+ * - 멀티테넌트 서브도메인 라우팅 ({slug}.impd.*.nip.io)
  * - 보호된 라우트(/admin/*, /pd/*)에 대해 세션 쿠키 존재 여부 확인
  * - 서브도메인 라우팅 (chopd.*, member slug)
  * - JWT 검증은 API 레벨에서 수행 (Edge에서는 쿠키 존재만 체크)
@@ -13,13 +49,36 @@ export default function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hostname = request.headers.get('host') || '';
 
-  // Handle subdomain routing for chopd (레거시 지원)
-  if (hostname.startsWith('chopd.')) {
+  // ─── 멀티테넌트 서브도메인 라우팅 ─────────────────────────
+  const tenantSlug = extractTenantSlug(hostname);
+
+  // tenantSlug가 있으면 x-tenant-slug 헤더 주입
+  if (tenantSlug) {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-tenant-slug', tenantSlug);
+
+    // 'app' 서브도메인 → 슈퍼어드민 (향후 구현)
+    if (tenantSlug === 'app') {
+      // 슈퍼어드민은 별도 처리 없이 통과 (Phase 4에서 구현)
+      return NextResponse.next({
+        request: { headers: requestHeaders },
+      });
+    }
+
+    // 'chopd' 또는 기타 테넌트 → 기존 chopd 로직과 호환
+    // 정적 파일, _next, api는 서브도메인 rewrite 대상 제외
     if (!pathname.startsWith('/chopd') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
       const url = request.nextUrl.clone();
       url.pathname = `/chopd${pathname}`;
-      return NextResponse.rewrite(url);
+      return NextResponse.rewrite(url, {
+        request: { headers: requestHeaders },
+      });
     }
+
+    // API 요청에도 x-tenant-slug 전달
+    return NextResponse.next({
+      request: { headers: requestHeaders },
+    });
   }
 
   // /p/chopd → /chopd rewrite (최PD 전용 페이지)

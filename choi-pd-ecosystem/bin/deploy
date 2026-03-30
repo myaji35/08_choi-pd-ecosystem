@@ -12,6 +12,8 @@ APP_NAME="impd"
 REMOTE_DIR="/opt/impd"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 DOMAIN="impd.158.247.235.31.nip.io"
+WILDCARD_DOMAIN="*.impd.158.247.235.31.nip.io"
+BASE_DOMAIN="impd.158.247.235.31.nip.io"
 
 # 색상 출력
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
@@ -39,18 +41,19 @@ if [ "$RESTART_ONLY" = true ]; then
   exit 0
 fi
 
-# ─── STEP 1: 소스 전송 ────────────────────────────────────
+# ─── STEP 1: 소스 전송 (rsync) ────────────────────────────
 info "📦 STEP 1/3: 소스 전송 중..."
 
-# choi-pd-ecosystem 디렉토리의 소스만 전송
-ssh -o StrictHostKeyChecking=no $SERVER "mkdir -p $REMOTE_DIR"
-tar -c \
+rsync -az --delete \
   --exclude='node_modules' \
   --exclude='.next' \
   --exclude='data' \
   --exclude='.git' \
   --exclude='._*' \
-  -f - . | ssh -o StrictHostKeyChecking=no $SERVER "tar -xC $REMOTE_DIR"
+  --exclude='.DS_Store' \
+  --exclude='.playwright-mcp' \
+  -e "ssh -o StrictHostKeyChecking=no" \
+  ./ $SERVER:$REMOTE_DIR/
 
 success "소스 전송 완료"
 
@@ -96,7 +99,7 @@ ssh -o StrictHostKeyChecking=no $SERVER << DEPLOY_EOF
     -e DATABASE_URL=file:./data/database.db \
     -e JWT_SECRET=impd-production-jwt-secret-$(openssl rand -hex 8) \
     -e ENCRYPTION_KEY=impd-production-encryption-$(openssl rand -hex 8) \
-    -e BASE_DOMAIN=$DOMAIN \
+    -e BASE_DOMAIN=$BASE_DOMAIN \
     -e TZ=Asia/Seoul \
     -v ${APP_NAME}_data:/app/data \
     -v ${APP_NAME}_uploads:/app/public/uploads \
@@ -125,11 +128,19 @@ ssh -o StrictHostKeyChecking=no $SERVER << DEPLOY_EOF
   APP_IP=\$(docker inspect $APP_NAME --format "{{.NetworkSettings.Networks.kamal.IPAddress}}" 2>/dev/null || echo "")
   if [ -n "\$APP_IP" ]; then
     echo "kamal-proxy 등록 중... (target: \$APP_IP:3000)"
+    # 메인 도메인 등록
     docker exec kamal-proxy kamal-proxy deploy $APP_NAME \
       --host "$DOMAIN" \
       --target "\$APP_IP:3000" \
       --target-timeout 90s 2>&1 || true
-    echo "✅ kamal-proxy 등록 완료"
+    echo "✅ kamal-proxy 메인 도메인 등록 완료"
+
+    # 와일드카드 서브도메인 등록 (멀티테넌트 SaaS)
+    docker exec kamal-proxy kamal-proxy deploy ${APP_NAME}-wildcard \
+      --host "$WILDCARD_DOMAIN" \
+      --target "\$APP_IP:3000" \
+      --target-timeout 90s 2>&1 || true
+    echo "✅ kamal-proxy 와일드카드 서브도메인 등록 완료"
   else
     echo "⚠️  kamal 네트워크 IP를 가져올 수 없습니다"
     echo "    직접 접속: http://158.247.235.31:3300"
@@ -144,6 +155,7 @@ success "=========================================="
 success "✅ 배포 완료! 소요시간: ${ELAPSED}초"
 success "🌐 https://$DOMAIN"
 success "🏠 https://$DOMAIN/chopd"
+success "🏢 https://chopd.$BASE_DOMAIN (테넌트 예시)"
 success "🔧 http://158.247.235.31:3300 (직접)"
 success "=========================================="
 
