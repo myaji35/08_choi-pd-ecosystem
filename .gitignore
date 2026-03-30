@@ -50,3 +50,4 @@ gcs-key.json
 *.temp
 .cache/
 choi-pd-ecosystem/deploy.tar.gz
+.gstack/

@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-03-30T13:24:54.554Z",
+  "lastUpdated": "2026-03-30T13:57:16.801Z",
   "activeFeatures": [
     "migrate",
     "choi-pd-rails",
@@ -87,7 +87,10 @@
     "rfm",
     "viewers",
     "stats",
-    "download"
+    "download",
+    "education",
+    "community",
+    "works"
   ],
   "primaryFeature": "migrate",
   "features": {
@@ -139,7 +142,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T04:27:21.974Z",
-        "lastUpdated": "2026-03-23T02:42:21.949Z"
+        "lastUpdated": "2026-03-30T13:49:41.771Z"
       },
       "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-ecosystem/src/app/chopd/page.tsx"
     },
@@ -282,9 +285,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-23T02:41:36.156Z",
-        "lastUpdated": "2026-03-30T10:36:14.093Z"
+        "lastUpdated": "2026-03-30T13:51:54.398Z"
       },
-      "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-ecosystem/src/components/layout/LayoutShell.tsx"
+      "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-ecosystem/src/components/layout/Footer.tsx"
     },
     "linkedin": {
       "phase": "do",
@@ -529,9 +532,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-26T08:36:24.278Z",
-        "lastUpdated": "2026-03-26T09:26:28.254Z"
+        "lastUpdated": "2026-03-30T13:51:00.403Z"
       },
-      "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-ecosystem/src/components/home/HeroSection.tsx"
+      "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-ecosystem/src/components/home/PricingSection.tsx"
     },
     "upload": {
       "phase": "do",
@@ -1208,6 +1211,45 @@
         "lastUpdated": "2026-03-30T13:21:34.788Z"
       },
       "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-ecosystem/src/app/api/admin/resources/[id]/download/route.ts"
+    },
+    "education": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-30T13:52:14.805Z",
+        "lastUpdated": "2026-03-30T13:53:23.512Z"
+      },
+      "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-ecosystem/src/components/education/CourseCard.tsx"
+    },
+    "community": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-30T13:53:39.220Z",
+        "lastUpdated": "2026-03-30T13:57:16.801Z"
+      },
+      "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-ecosystem/src/components/community/NewsletterSection.tsx"
+    },
+    "works": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-30T13:55:48.754Z",
+        "lastUpdated": "2026-03-30T13:56:44.829Z"
+      },
+      "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-ecosystem/src/components/works/BooksSection.tsx"
     }
   },
   "pipeline": {
@@ -1218,7 +1260,7 @@
   "session": {
     "startedAt": "2026-02-28T04:11:58.179Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-03-30T13:24:54.554Z"
+    "lastActivity": "2026-03-30T13:57:16.801Z"
   },
   "history": [
     {
@@ -4806,6 +4848,186 @@
     {
       "timestamp": "2026-03-30T13:24:54.554Z",
       "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:47:43.291Z",
+      "feature": "home",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:48:29.415Z",
+      "feature": "home",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:49:14.500Z",
+      "feature": "home",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:49:41.771Z",
+      "feature": "chopd",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:50:29.009Z",
+      "feature": "home",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:51:00.403Z",
+      "feature": "home",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:51:33.421Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:51:45.515Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:51:54.398Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:52:14.805Z",
+      "feature": "education",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:52:29.484Z",
+      "feature": "education",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:52:50.983Z",
+      "feature": "education",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:53:05.764Z",
+      "feature": "education",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:53:14.086Z",
+      "feature": "education",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:53:23.512Z",
+      "feature": "education",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:53:39.220Z",
+      "feature": "community",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:53:53.933Z",
+      "feature": "community",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:54:02.833Z",
+      "feature": "community",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:54:09.653Z",
+      "feature": "community",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:54:16.460Z",
+      "feature": "community",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:54:33.778Z",
+      "feature": "community",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:55:10.986Z",
+      "feature": "community",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:55:18.934Z",
+      "feature": "community",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:55:48.754Z",
+      "feature": "works",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:56:01.828Z",
+      "feature": "works",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:56:11.803Z",
+      "feature": "works",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:56:25.998Z",
+      "feature": "works",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:56:34.870Z",
+      "feature": "works",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:56:44.829Z",
+      "feature": "works",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-30T13:57:16.801Z",
+      "feature": "community",
       "phase": "do",
       "action": "updated"
     }
