@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { faqKnowledgeBase } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // Update FAQ
 export async function PATCH(
@@ -9,6 +11,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const faqId = parseInt(id);
     const body = await request.json();
 
@@ -32,7 +35,7 @@ export async function PATCH(
 
     const [updated] = await db.update(faqKnowledgeBase)
       .set(updateData)
-      .where(eq(faqKnowledgeBase.id, faqId))
+      .where(and(eq(faqKnowledgeBase.id, faqId), tenantFilter(faqKnowledgeBase.tenantId, tenantId)))
       .returning();
 
     // Parse JSON fields
@@ -57,9 +60,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const faqId = parseInt(id);
 
-    await db.delete(faqKnowledgeBase).where(eq(faqKnowledgeBase.id, faqId));
+    await db.delete(faqKnowledgeBase).where(and(eq(faqKnowledgeBase.id, faqId), tenantFilter(faqKnowledgeBase.tenantId, tenantId)));
 
     return NextResponse.json({ success: true, message: 'FAQ deleted' });
   } catch (error: any) {

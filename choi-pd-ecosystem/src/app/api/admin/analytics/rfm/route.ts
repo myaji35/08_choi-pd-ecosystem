@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { rfmSegments } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // Calculate RFM segment based on scores
 function calculateRfmSegment(recency: number, frequency: number, monetary: number): string {
@@ -101,7 +103,8 @@ export async function POST(request: NextRequest) {
 
     const rfmSegment = calculateRfmSegment(recencyScore, frequencyScore, monetaryScore);
 
-    const [segment] = await db.insert(rfmSegments).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const [segment] = await db.insert(rfmSegments).values(withTenantId({
       userId,
       userType,
       recencyScore,
@@ -111,7 +114,7 @@ export async function POST(request: NextRequest) {
       lastActivityAt: lastActivityAt ? new Date(lastActivityAt) : null,
       totalTransactions: totalTransactions || 0,
       totalRevenue: totalRevenue || 0
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({ success: true, data: segment });
   } catch (error: any) {
@@ -130,8 +133,9 @@ export async function GET(request: NextRequest) {
     const rfmSegment = searchParams.get('segment') || undefined;
     const userType = searchParams.get('userType') || undefined;
 
+    const tenantId = getTenantIdFromRequest(request);
     let query = db.select().from(rfmSegments);
-    const conditions: any[] = [];
+    const conditions: any[] = [tenantFilter(rfmSegments.tenantId, tenantId)];
 
     if (rfmSegment) {
       conditions.push(eq(rfmSegments.rfmSegment, rfmSegment));

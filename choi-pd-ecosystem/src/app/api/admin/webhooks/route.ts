@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { webhooks } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { createWebhook } from '@/lib/workflows';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/admin/webhooks
@@ -10,14 +12,17 @@ import { createWebhook } from '@/lib/workflows';
  */
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { searchParams } = new URL(request.url);
     const isActive = searchParams.get('isActive');
 
     let query = db.select().from(webhooks);
 
+    const conditions: any[] = [tenantFilter(webhooks.tenantId, tenantId)];
     if (isActive !== null) {
-      query = query.where(eq(webhooks.isActive, isActive === 'true'));
+      conditions.push(eq(webhooks.isActive, isActive === 'true'));
     }
+    query = query.where(and(...conditions)) as any;
 
     const allWebhooks = await query.orderBy(desc(webhooks.createdAt));
 

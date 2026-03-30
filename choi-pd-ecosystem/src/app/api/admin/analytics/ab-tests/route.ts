@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { abTests } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // Create A/B test
 export async function POST(request: NextRequest) {
@@ -35,7 +37,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [test] = await db.insert(abTests).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const [test] = await db.insert(abTests).values(withTenantId({
       name,
       description: description || null,
       hypothesis: hypothesis || null,
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest) {
       results: null,
       winner: null,
       createdBy
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({ success: true, data: test });
   } catch (error: any) {
@@ -63,16 +66,16 @@ export async function POST(request: NextRequest) {
 // Get A/B tests
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status') || undefined;
 
-    let query = db.select().from(abTests);
-
+    const conditions: any[] = [tenantFilter(abTests.tenantId, tenantId)];
     if (status) {
-      query = query.where(eq(abTests.status, status as any)) as any;
+      conditions.push(eq(abTests.status, status as any));
     }
 
-    const tests = await query.orderBy(desc(abTests.createdAt));
+    const tests = await db.select().from(abTests).where(and(...conditions)).orderBy(desc(abTests.createdAt));
 
     // Parse JSON fields
     const parsedTests = tests.map((test) => ({

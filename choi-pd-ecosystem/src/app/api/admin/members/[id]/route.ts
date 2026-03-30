@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { getSession } from '@/lib/auth/session';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // GET /api/admin/members/:id - 회원 상세 조회
 export async function GET(
@@ -18,11 +20,12 @@ export async function GET(
       );
     }
 
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;
     const member = await db
       .select()
       .from(members)
-      .where(eq(members.id, parseInt(id)))
+      .where(and(eq(members.id, parseInt(id)), tenantFilter(members.tenantId, tenantId)))
       .get();
 
     if (!member) {

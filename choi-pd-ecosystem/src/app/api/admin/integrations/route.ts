@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { integrations } from '@/lib/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { addIntegration, updateIntegration } from '@/lib/workflows';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/admin/integrations
@@ -10,12 +12,13 @@ import { addIntegration, updateIntegration } from '@/lib/workflows';
  */
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
     const provider = searchParams.get('provider');
     const isEnabled = searchParams.get('isEnabled');
 
-    const conditions = [];
+    const conditions: any[] = [tenantFilter(integrations.tenantId, tenantId)];
 
     if (type) {
       conditions.push(eq(integrations.type, type as any));

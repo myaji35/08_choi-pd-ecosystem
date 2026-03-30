@@ -14,17 +14,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const member = await db.query.members.findFirst({
-      where: and(eq(members.towningraphUserId, session.userId), tenantFilter(members.tenantId, tenantId)),
-    });
+    const member = await db
+      .select()
+      .from(members)
+      .where(and(eq(members.towningraphUserId, session.userId), tenantFilter(members.tenantId, tenantId)))
+      .get();
     if (!member) {
       return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
     }
 
-    const conversations = await db.query.chatConversations.findMany({
-      where: and(eq(chatConversations.memberId, member.id), tenantFilter(chatConversations.tenantId, tenantId)),
-      orderBy: [desc(chatConversations.updatedAt)],
-    });
+    const conversations = await db
+      .select()
+      .from(chatConversations)
+      .where(and(eq(chatConversations.memberId, member.id), tenantFilter(chatConversations.tenantId, tenantId)))
+      .orderBy(desc(chatConversations.updatedAt));
 
     return NextResponse.json({ success: true, data: conversations });
   } catch (error) {
@@ -44,9 +47,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const member = await db.query.members.findFirst({
-      where: and(eq(members.towningraphUserId, session.userId), tenantFilter(members.tenantId, tenantId)),
-    });
+    const member = await db
+      .select()
+      .from(members)
+      .where(and(eq(members.towningraphUserId, session.userId), tenantFilter(members.tenantId, tenantId)))
+      .get();
     if (!member) {
       return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
     }

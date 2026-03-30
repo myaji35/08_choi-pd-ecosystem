@@ -17,9 +17,11 @@ export async function POST(request: NextRequest) {
     const validatedData = leadSchema.parse(body);
 
     // 이미 구독한 이메일인지 확인 (테넌트 범위 내)
-    const existing = await db.query.leads.findFirst({
-      where: and(eq(leads.email, validatedData.email), tenantFilter(leads.tenantId, tenantId)),
-    });
+    const existing = await db
+      .select()
+      .from(leads)
+      .where(and(eq(leads.email, validatedData.email), tenantFilter(leads.tenantId, tenantId)))
+      .get();
 
     if (existing) {
       return NextResponse.json(

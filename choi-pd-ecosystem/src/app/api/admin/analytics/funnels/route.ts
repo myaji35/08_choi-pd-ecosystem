@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { funnels } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // Create funnel
 export async function POST(request: NextRequest) {
@@ -32,7 +34,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [funnel] = await db.insert(funnels).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const [funnel] = await db.insert(funnels).values(withTenantId({
       name,
       description: description || null,
       steps: JSON.stringify(steps),
@@ -40,7 +43,7 @@ export async function POST(request: NextRequest) {
       totalUsers: 0,
       conversionData: null,
       createdBy
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({ success: true, data: funnel });
   } catch (error: any) {
@@ -55,8 +58,10 @@ export async function POST(request: NextRequest) {
 // Get funnels
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const allFunnels = await db.select()
       .from(funnels)
+      .where(tenantFilter(funnels.tenantId, tenantId))
       .orderBy(desc(funnels.createdAt));
 
     // Parse JSON fields

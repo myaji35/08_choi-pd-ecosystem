@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { analyticsEvents } from '@/lib/db/schema';
 import { eq, and, gte, lte, desc, count } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // Track analytics event
 export async function POST(request: NextRequest) {
@@ -44,7 +46,8 @@ export async function POST(request: NextRequest) {
     // Get user agent
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    const [event] = await db.insert(analyticsEvents).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const [event] = await db.insert(analyticsEvents).values(withTenantId({
       userId: userId || null,
       userType: userType || null,
       sessionId: sessionId || null,
@@ -64,7 +67,7 @@ export async function POST(request: NextRequest) {
       country: country || null,
       city: city || null,
       metadata: metadata ? JSON.stringify(metadata) : null
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({ success: true, data: event });
   } catch (error: any) {
@@ -88,8 +91,9 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate') || undefined;
     const limit = parseInt(searchParams.get('limit') || '100');
 
+    const tenantId = getTenantIdFromRequest(request);
     let query = db.select().from(analyticsEvents);
-    const conditions: any[] = [];
+    const conditions: any[] = [tenantFilter(analyticsEvents.tenantId, tenantId)];
 
     if (userId) {
       conditions.push(eq(analyticsEvents.userId, userId));

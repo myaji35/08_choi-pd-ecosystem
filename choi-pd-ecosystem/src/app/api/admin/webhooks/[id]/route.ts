@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { webhooks } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/admin/webhooks/[id]
@@ -12,12 +14,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const webhookId = parseInt(id);
 
     const [webhook] = await db
       .select()
       .from(webhooks)
-      .where(eq(webhooks.id, webhookId));
+      .where(and(eq(webhooks.id, webhookId), tenantFilter(webhooks.tenantId, tenantId)));
 
     if (!webhook) {
       return NextResponse.json(
@@ -123,9 +126,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const webhookId = parseInt(id);
 
-    await db.delete(webhooks).where(eq(webhooks.id, webhookId));
+    await db.delete(webhooks).where(and(eq(webhooks.id, webhookId), tenantFilter(webhooks.tenantId, tenantId)));
 
     return NextResponse.json({
       success: true,

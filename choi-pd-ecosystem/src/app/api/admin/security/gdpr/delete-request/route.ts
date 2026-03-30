@@ -10,18 +10,22 @@ import { db } from '@/lib/db';
 import { dataDeletionRequests, distributors, leads, inquiries, type NewDataDeletionRequest } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { logAudit } from '@/lib/security';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET - 삭제 요청 목록
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status') as 'pending' | 'approved' | 'rejected' | 'completed' | null;
 
-    let query = db.select().from(dataDeletionRequests);
-
+    const conditions: any[] = [tenantFilter(dataDeletionRequests.tenantId, tenantId)];
     if (status) {
-      query = query.where(eq(dataDeletionRequests.status, status)) as any;
+      conditions.push(eq(dataDeletionRequests.status, status));
     }
+
+    let query = db.select().from(dataDeletionRequests).where(and(...conditions)) as any;
 
     const requests = await query;
 
@@ -58,15 +62,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const tenantId = getTenantIdFromRequest(request);
     const [newRequest] = await db
       .insert(dataDeletionRequests)
-      .values({
+      .values(withTenantId({
         userId,
         userEmail,
         userType,
         reason: reason || null,
         status: 'pending',
-      })
+      }, tenantId))
       .returning();
 
     return NextResponse.json({

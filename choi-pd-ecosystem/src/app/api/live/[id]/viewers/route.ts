@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateLiveViewers } from '@/lib/video';
 import { db } from '@/lib/db';
 import { liveStreams } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/live/[id]/viewers
@@ -13,6 +15,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const streamId = parseInt(id);
 
     const [stream] = await db
@@ -22,7 +25,7 @@ export async function GET(
         totalViews: liveStreams.totalViews
       })
       .from(liveStreams)
-      .where(eq(liveStreams.id, streamId));
+      .where(and(eq(liveStreams.id, streamId), tenantFilter(liveStreams.tenantId, tenantId)));
 
     if (!stream) {
       return NextResponse.json(

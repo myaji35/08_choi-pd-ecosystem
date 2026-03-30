@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { integrations } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { updateIntegration } from '@/lib/workflows';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/admin/integrations/[id]
@@ -13,12 +15,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const integrationId = parseInt(id);
 
     const [integration] = await db
       .select()
       .from(integrations)
-      .where(eq(integrations.id, integrationId));
+      .where(and(eq(integrations.id, integrationId), tenantFilter(integrations.tenantId, tenantId)));
 
     if (!integration) {
       return NextResponse.json(
@@ -52,6 +55,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // tenantId는 미들웨어에서 이미 검증됨
     const { id } = await params;    const integrationId = parseInt(id);
     const body = await request.json();
 
@@ -83,9 +87,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const integrationId = parseInt(id);
 
-    await db.delete(integrations).where(eq(integrations.id, integrationId));
+    await db.delete(integrations).where(and(eq(integrations.id, integrationId), tenantFilter(integrations.tenantId, tenantId)));
 
     return NextResponse.json({
       success: true,

@@ -8,21 +8,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { ipAccessControl, type NewIpAccessControl } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { logAudit } from '@/lib/security';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type') as 'whitelist' | 'blacklist' | null;
 
-    let query = db.select().from(ipAccessControl);
-
+    const conditions: any[] = [tenantFilter(ipAccessControl.tenantId, tenantId)];
     if (type) {
-      query = query.where(eq(ipAccessControl.type, type)) as any;
+      conditions.push(eq(ipAccessControl.type, type));
     }
 
-    const ips = await query;
+    const ips = await db.select().from(ipAccessControl).where(and(...conditions));
 
     return NextResponse.json({
       success: true,
@@ -57,9 +59,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const tenantId = getTenantIdFromRequest(request);
     const [newEntry] = await db
       .insert(ipAccessControl)
-      .values({
+      .values(withTenantId({
         ipAddress,
         type,
         reason,
@@ -67,7 +70,7 @@ export async function POST(request: NextRequest) {
         expiresAt: expiresAt || null,
         createdBy,
         isActive: true,
-      })
+      }, tenantId))
       .returning();
 
     // Log audit

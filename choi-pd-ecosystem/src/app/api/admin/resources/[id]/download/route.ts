@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { distributorResources } from '@/lib/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, and } from 'drizzle-orm';
 import { logger } from '@/lib/monitoring';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // POST /api/admin/resources/[id]/download - Track resource download
 export async function POST(
@@ -20,11 +22,12 @@ export async function POST(
       );
     }
 
+    const tenantId = getTenantIdFromRequest(request);
     // Get resource
     const resource = await db
       .select()
       .from(distributorResources)
-      .where(eq(distributorResources.id, id))
+      .where(and(eq(distributorResources.id, id), tenantFilter(distributorResources.tenantId, tenantId)))
       .get();
 
     if (!resource) {

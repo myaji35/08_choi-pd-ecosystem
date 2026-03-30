@@ -8,7 +8,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUnresolvedSecurityEvents } from '@/lib/security';
 import { db } from '@/lib/db';
 import { securityEvents } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -49,6 +51,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    const tenantId = getTenantIdFromRequest(request);
     await db
       .update(securityEvents)
       .set({
@@ -56,7 +59,7 @@ export async function PATCH(request: NextRequest) {
         resolvedAt: new Date(),
         resolvedBy,
       })
-      .where(eq(securityEvents.id, eventId));
+      .where(and(eq(securityEvents.id, eventId), tenantFilter(securityEvents.tenantId, tenantId)));
 
     return NextResponse.json({
       success: true,

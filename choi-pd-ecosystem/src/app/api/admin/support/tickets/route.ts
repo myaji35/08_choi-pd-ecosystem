@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { supportTickets } from '@/lib/db/schema';
 import { eq, desc, and, or, like } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // Create support ticket
 export async function POST(request: NextRequest) {
@@ -29,7 +31,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [ticket] = await db.insert(supportTickets).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const [ticket] = await db.insert(supportTickets).values(withTenantId({
       organizationId,
       createdBy,
       createdByEmail,
@@ -42,7 +45,7 @@ export async function POST(request: NextRequest) {
       attachments: attachments ? JSON.stringify(attachments) : null,
       tags: tags ? JSON.stringify(tags) : null,
       metadata: null
-    }).returning();
+    }, tenantId)).returning();
 
     // Parse JSON fields
     const parsed = {
@@ -73,8 +76,9 @@ export async function GET(request: NextRequest) {
     const assignedTo = searchParams.get('assignedTo') || undefined;
     const search = searchParams.get('search') || undefined;
 
+    const tenantId = getTenantIdFromRequest(request);
     let query = db.select().from(supportTickets);
-    const conditions: any[] = [];
+    const conditions: any[] = [tenantFilter(supportTickets.tenantId, tenantId)];
 
     if (organizationId) {
       conditions.push(eq(supportTickets.organizationId, parseInt(organizationId)));

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { inquiries } from '@/lib/db/schema';
 import { z } from 'zod';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { withTenantId } from '@/lib/tenant/query-helpers';
 
 const inquirySchema = z.object({
   name: z.string().min(2, '이름을 입력해주세요'),
@@ -13,15 +15,16 @@ const inquirySchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const validatedData = inquirySchema.parse(body);
 
     const result = await db
       .insert(inquiries)
-      .values({
+      .values(withTenantId({
         ...validatedData,
         status: 'pending',
-      })
+      }, tenantId))
       .returning();
 
     return NextResponse.json({

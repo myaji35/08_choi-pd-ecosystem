@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { distributorResources } from '@/lib/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // GET /api/admin/resources/[id] - 리소스 상세 조회
 export async function GET(
@@ -19,10 +21,11 @@ export async function GET(
       );
     }
 
+    const tenantId = getTenantIdFromRequest(request);
     const resource = await db
       .select()
       .from(distributorResources)
-      .where(eq(distributorResources.id, id))
+      .where(and(eq(distributorResources.id, id), tenantFilter(distributorResources.tenantId, tenantId)))
       .get();
 
     if (!resource) {

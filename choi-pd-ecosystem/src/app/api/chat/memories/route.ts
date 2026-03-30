@@ -14,9 +14,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const member = await db.query.members.findFirst({
-      where: and(eq(members.towningraphUserId, session.userId), tenantFilter(members.tenantId, tenantId)),
-    });
+    const member = await db
+      .select()
+      .from(members)
+      .where(and(eq(members.towningraphUserId, session.userId), tenantFilter(members.tenantId, tenantId)))
+      .get();
     if (!member) {
       return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
     }
@@ -42,10 +44,11 @@ export async function GET(request: NextRequest) {
       conditions.push(like(memberMemories.summary, `%${q}%`));
     }
 
-    const memories = await db.query.memberMemories.findMany({
-      where: and(...conditions),
-      orderBy: [desc(memberMemories.date), desc(memberMemories.createdAt)],
-    });
+    const memories = await db
+      .select()
+      .from(memberMemories)
+      .where(and(...conditions))
+      .orderBy(desc(memberMemories.date), desc(memberMemories.createdAt));
 
     return NextResponse.json({ success: true, data: memories });
   } catch (error) {

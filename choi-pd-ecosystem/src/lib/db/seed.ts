@@ -4,7 +4,7 @@
  */
 
 import { db } from './index';
-import { heroImages } from './schema';
+import { heroImages, tenants } from './schema';
 
 async function seedHeroImages() {
   console.log('Seeding hero images...');
@@ -29,9 +29,34 @@ async function seedHeroImages() {
   }
 }
 
+async function seedDefaultTenant() {
+  console.log('Seeding default tenant...');
+  try {
+    const existing = await db.select().from(tenants).where(
+      require('drizzle-orm').eq(tenants.id, 1)
+    ).get();
+    if (existing) {
+      console.log('Default tenant already exists, skipping');
+      return;
+    }
+    const result = await db.insert(tenants).values({
+      clerkUserId: 'system',
+      name: 'chopd',
+      slug: 'chopd',
+      profession: 'pd',
+      plan: 'enterprise',
+      status: 'active',
+    }).returning();
+    console.log('Default tenant seeded:', result[0]);
+  } catch (error) {
+    console.error('Error seeding default tenant:', error);
+  }
+}
+
 async function main() {
   console.log('Starting database seeding...\n');
 
+  await seedDefaultTenant();
   await seedHeroImages();
 
   console.log('\nDatabase seeding completed!');

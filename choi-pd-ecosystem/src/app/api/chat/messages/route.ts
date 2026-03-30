@@ -20,9 +20,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const member = await db.query.members.findFirst({
-      where: and(eq(members.towningraphUserId, session.userId), tenantFilter(members.tenantId, tenantId)),
-    });
+    const member = await db
+      .select()
+      .from(members)
+      .where(and(eq(members.towningraphUserId, session.userId), tenantFilter(members.tenantId, tenantId)))
+      .get();
     if (!member) {
       return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
     }
@@ -37,13 +39,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify conversation ownership
-    const conversation = await db.query.chatConversations.findFirst({
-      where: and(
+    // Verify conversation ownership (테넌트 범위 내)
+    const conversation = await db
+      .select()
+      .from(chatConversations)
+      .where(and(
         eq(chatConversations.id, conversationId),
-        eq(chatConversations.memberId, member.id)
-      ),
-    });
+        eq(chatConversations.memberId, member.id),
+        tenantFilter(chatConversations.tenantId, tenantId)
+      ))
+      .get();
     if (!conversation) {
       return NextResponse.json(
         { success: false, error: 'Conversation not found' },
@@ -63,18 +68,20 @@ export async function POST(request: NextRequest) {
       .returning();
 
     // 2. Load recent 20 memories for this member
-    const recentMemories = await db.query.memberMemories.findMany({
-      where: eq(memberMemories.memberId, member.id),
-      orderBy: [desc(memberMemories.createdAt)],
-      limit: 20,
-    });
+    const recentMemories = await db
+      .select()
+      .from(memberMemories)
+      .where(eq(memberMemories.memberId, member.id))
+      .orderBy(desc(memberMemories.createdAt))
+      .limit(20);
 
     // 3. Load recent conversation history for context
-    const history = await db.query.chatMessages.findMany({
-      where: eq(chatMessages.conversationId, conversationId),
-      orderBy: [desc(chatMessages.createdAt)],
-      limit: 12,
-    });
+    const history = await db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.conversationId, conversationId))
+      .orderBy(desc(chatMessages.createdAt))
+      .limit(12);
     const conversationHistory = history
       .reverse()
       .filter((m) => m.id !== userMessage.id)

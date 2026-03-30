@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { liveStreams } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/live/[id]
@@ -12,12 +14,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const streamId = parseInt(id);
 
     const [stream] = await db
       .select()
       .from(liveStreams)
-      .where(eq(liveStreams.id, streamId));
+      .where(and(eq(liveStreams.id, streamId), tenantFilter(liveStreams.tenantId, tenantId)));
 
     if (!stream) {
       return NextResponse.json(
@@ -48,6 +51,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const streamId = parseInt(id);
     const body = await request.json();
 
@@ -73,7 +77,7 @@ export async function PATCH(
     const [updatedStream] = await db
       .update(liveStreams)
       .set(updateData)
-      .where(eq(liveStreams.id, streamId))
+      .where(and(eq(liveStreams.id, streamId), tenantFilter(liveStreams.tenantId, tenantId)))
       .returning();
 
     if (!updatedStream) {
@@ -105,9 +109,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const streamId = parseInt(id);
 
-    await db.delete(liveStreams).where(eq(liveStreams.id, streamId));
+    await db.delete(liveStreams).where(and(eq(liveStreams.id, streamId), tenantFilter(liveStreams.tenantId, tenantId)));
 
     return NextResponse.json({
       success: true,

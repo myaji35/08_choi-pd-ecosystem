@@ -2,20 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { distributorResources } from '@/lib/db/schema';
 import { desc, sql } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // GET /api/admin/resources/stats - Get resource statistics
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
+    const tenantCond = tenantFilter(distributorResources.tenantId, tenantId);
+
     // Get total resources
     const totalResources = await db
       .select({ count: sql<number>`count(*)` })
       .from(distributorResources)
+      .where(tenantCond)
       .get();
 
     // Get total downloads
     const totalDownloads = await db
       .select({ total: sql<number>`sum(${distributorResources.downloadCount})` })
       .from(distributorResources)
+      .where(tenantCond)
       .get();
 
     // Get resources by category
@@ -26,6 +33,7 @@ export async function GET(request: NextRequest) {
         downloads: sql<number>`sum(${distributorResources.downloadCount})`,
       })
       .from(distributorResources)
+      .where(tenantCond)
       .groupBy(distributorResources.category)
       .all();
 
@@ -39,6 +47,7 @@ export async function GET(request: NextRequest) {
         fileType: distributorResources.fileType,
       })
       .from(distributorResources)
+      .where(tenantCond)
       .orderBy(desc(distributorResources.downloadCount))
       .limit(10)
       .all();
@@ -50,6 +59,7 @@ export async function GET(request: NextRequest) {
         count: sql<number>`count(*)`,
       })
       .from(distributorResources)
+      .where(tenantCond)
       .groupBy(distributorResources.requiredPlan)
       .all();
 

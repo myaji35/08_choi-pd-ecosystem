@@ -20,9 +20,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Find member by session userId
-    const member = await db.query.members.findFirst({
-      where: and(eq(members.towningraphUserId, session.userId), tenantFilter(members.tenantId, tenantId)),
-    });
+    const member = await db
+      .select()
+      .from(members)
+      .where(and(eq(members.towningraphUserId, session.userId), tenantFilter(members.tenantId, tenantId)))
+      .get();
     if (!member) {
       return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
     }

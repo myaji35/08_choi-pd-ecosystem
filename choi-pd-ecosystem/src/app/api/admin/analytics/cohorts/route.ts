@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { cohorts, cohortUsers } from '@/lib/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // Create cohort
 export async function POST(request: NextRequest) {
@@ -26,7 +28,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [cohort] = await db.insert(cohorts).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const [cohort] = await db.insert(cohorts).values(withTenantId({
       name,
       description: description || null,
       cohortType,
@@ -36,7 +39,7 @@ export async function POST(request: NextRequest) {
       userCount: 0,
       metrics: null,
       createdBy
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({ success: true, data: cohort });
   } catch (error: any) {
@@ -51,16 +54,16 @@ export async function POST(request: NextRequest) {
 // Get cohorts
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const cohortType = searchParams.get('cohortType') || undefined;
 
-    let query = db.select().from(cohorts);
-
+    const conditions: any[] = [tenantFilter(cohorts.tenantId, tenantId)];
     if (cohortType) {
-      query = query.where(eq(cohorts.cohortType, cohortType as any)) as any;
+      conditions.push(eq(cohorts.cohortType, cohortType as any));
     }
 
-    const allCohorts = await query.orderBy(desc(cohorts.createdAt));
+    const allCohorts = await db.select().from(cohorts).where(and(...conditions)).orderBy(desc(cohorts.createdAt));
 
     // Parse JSON fields
     const parsedCohorts = allCohorts.map((cohort) => ({

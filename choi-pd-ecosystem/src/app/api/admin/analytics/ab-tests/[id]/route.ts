@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { abTests } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // Update A/B test
 export async function PATCH(
@@ -9,6 +11,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;
     const testId = parseInt(id);
     const body = await request.json();
@@ -38,7 +41,7 @@ export async function PATCH(
 
     const [updated] = await db.update(abTests)
       .set(updateData)
-      .where(eq(abTests.id, testId))
+      .where(and(eq(abTests.id, testId), tenantFilter(abTests.tenantId, tenantId)))
       .returning();
 
     // Parse JSON fields
@@ -65,12 +68,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;
     const testId = parseInt(id);
 
     const [test] = await db.select()
       .from(abTests)
-      .where(eq(abTests.id, testId));
+      .where(and(eq(abTests.id, testId), tenantFilter(abTests.tenantId, tenantId)));
 
     if (!test) {
       return NextResponse.json(

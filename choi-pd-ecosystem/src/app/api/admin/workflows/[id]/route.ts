@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { workflows } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/admin/workflows/[id]
@@ -12,12 +14,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const workflowId = parseInt(id);
 
     const [workflow] = await db
       .select()
       .from(workflows)
-      .where(eq(workflows.id, workflowId));
+      .where(and(eq(workflows.id, workflowId), tenantFilter(workflows.tenantId, tenantId)));
 
     if (!workflow) {
       return NextResponse.json(
@@ -48,6 +51,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const workflowId = parseInt(id);
     const body = await request.json();
 
@@ -69,7 +73,7 @@ export async function PATCH(
     const [updatedWorkflow] = await db
       .update(workflows)
       .set(updateData)
-      .where(eq(workflows.id, workflowId))
+      .where(and(eq(workflows.id, workflowId), tenantFilter(workflows.tenantId, tenantId)))
       .returning();
 
     if (!updatedWorkflow) {
@@ -101,9 +105,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const workflowId = parseInt(id);
 
-    await db.delete(workflows).where(eq(workflows.id, workflowId));
+    await db.delete(workflows).where(and(eq(workflows.id, workflowId), tenantFilter(workflows.tenantId, tenantId)));
 
     return NextResponse.json({
       success: true,

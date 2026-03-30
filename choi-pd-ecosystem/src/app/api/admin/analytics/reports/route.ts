@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { customReports } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // Create custom report
 export async function POST(request: NextRequest) {
@@ -33,7 +35,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [report] = await db.insert(customReports).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const [report] = await db.insert(customReports).values(withTenantId({
       name,
       description: description || null,
       reportType,
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest) {
       recipients: recipients ? JSON.stringify(recipients) : null,
       isPublic: isPublic || false,
       createdBy
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({ success: true, data: report });
   } catch (error: any) {
@@ -67,8 +70,9 @@ export async function GET(request: NextRequest) {
     const reportType = searchParams.get('reportType') || undefined;
     const isPublic = searchParams.get('isPublic') || undefined;
 
+    const tenantId = getTenantIdFromRequest(request);
     let query = db.select().from(customReports);
-    const conditions: any[] = [];
+    const conditions: any[] = [tenantFilter(customReports.tenantId, tenantId)];
 
     if (reportType) {
       conditions.push(eq(customReports.reportType, reportType as any));
