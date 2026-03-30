@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { distributors } from '@/lib/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
 
 // GET /api/admin/distributors/[id] - 수요자 상세 조회
 export async function GET(
@@ -19,10 +20,11 @@ export async function GET(
       );
     }
 
+    const tenantId = getTenantIdFromRequest(request);
     const distributor = await db
       .select()
       .from(distributors)
-      .where(eq(distributors.id, id))
+      .where(and(eq(distributors.id, id), eq(distributors.tenantId, tenantId)))
       .get();
 
     if (!distributor) {
@@ -73,11 +75,12 @@ export async function PUT(
       notes,
     } = body;
 
-    // 수요자 존재 확인
+    // 수요자 존재 확인 (tenantId 소유권)
+    const tenantIdPut = getTenantIdFromRequest(request);
     const existing = await db
       .select()
       .from(distributors)
-      .where(eq(distributors.id, id))
+      .where(and(eq(distributors.id, id), eq(distributors.tenantId, tenantIdPut)))
       .get();
 
     if (!existing) {
@@ -159,11 +162,12 @@ export async function DELETE(
       );
     }
 
-    // 수요자 존재 확인
+    // 수요자 존재 확인 (tenantId 소유권)
+    const tenantIdDel = getTenantIdFromRequest(request);
     const existing = await db
       .select()
       .from(distributors)
-      .where(eq(distributors.id, id))
+      .where(and(eq(distributors.id, id), eq(distributors.tenantId, tenantIdDel)))
       .get();
 
     if (!existing) {
@@ -174,7 +178,7 @@ export async function DELETE(
     }
 
     // 삭제 실행 (CASCADE로 activity log도 자동 삭제)
-    await db.delete(distributors).where(eq(distributors.id, id));
+    await db.delete(distributors).where(and(eq(distributors.id, id), eq(distributors.tenantId, tenantIdDel)));
 
     return NextResponse.json({
       success: true,

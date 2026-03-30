@@ -1,6 +1,5 @@
 /* Notion-inspired Design System for imPD Platform */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* Inter 폰트는 globals.css 최상단에서 @import 처리 */
 
 /* Notion-style CSS Variables */
 :root {

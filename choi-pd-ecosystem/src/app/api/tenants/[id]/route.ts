@@ -14,9 +14,24 @@ import { getPlanLimits } from '@/lib/tenant/context';
 
 type RouteParams = { params: Promise<{ id: string }> };
 
+// 인증 헬퍼
+function authenticateRequest(request: NextRequest) {
+  const clerkUserId = request.headers.get('x-clerk-user-id');
+  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+  if (!clerkUserId && !isDevMode) {
+    return { authenticated: false as const, userId: null };
+  }
+  return { authenticated: true as const, userId: clerkUserId || 'dev_user' };
+}
+
 // GET /api/tenants/:id — 테넌트 상세 조회
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = authenticateRequest(request);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: '인증이 필요합니다', code: 'UNAUTHORIZED' }, { status: 401 });
+    }
+
     const { id } = await params;
     const tenantId = parseInt(id, 10);
 
@@ -73,6 +88,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // PATCH /api/tenants/:id — 테넌트 수정
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = authenticateRequest(request);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: '인증이 필요합니다', code: 'UNAUTHORIZED' }, { status: 401 });
+    }
+
     const { id } = await params;
     const tenantId = parseInt(id, 10);
 
@@ -138,6 +158,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 // DELETE /api/tenants/:id — 테넌트 삭제 (소프트 딜리트)
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const auth = authenticateRequest(request);
+    if (!auth.authenticated) {
+      return NextResponse.json({ error: '인증이 필요합니다', code: 'UNAUTHORIZED' }, { status: 401 });
+    }
+
     const { id } = await params;
     const tenantId = parseInt(id, 10);
 

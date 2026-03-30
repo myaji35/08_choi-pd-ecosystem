@@ -119,6 +119,13 @@ export async function GET() {
 // POST /api/onboarding — slug 사용 가능 여부 확인
 export async function POST(request: NextRequest) {
   try {
+    // 인증 확인
+    const clerkUserId = request.headers.get('x-clerk-user-id');
+    const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    if (!clerkUserId && !isDevMode) {
+      return NextResponse.json({ error: '인증이 필요합니다', code: 'UNAUTHORIZED' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { slug } = body;
 

@@ -98,8 +98,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // 인증 확인
+    const clerkUserId = request.headers.get('x-clerk-user-id');
+    const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    if (!clerkUserId && !isDevMode) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
+
     // 멤버 초대 생성
-    const invitedBy = request.headers.get('x-clerk-user-id') || 'dev_user';
+    const invitedBy = clerkUserId || 'dev_user';
     const newMember = await db.insert(tenantMembers).values({
       tenantId,
       clerkUserId: `pending_${email}`, // Clerk 가입 전이면 placeholder
@@ -131,6 +141,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 // GET /api/tenants/:id/members — 멤버 목록 조회
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    // 인증 확인
+    const clerkUserIdGet = request.headers.get('x-clerk-user-id');
+    const isDevModeGet = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    if (!clerkUserIdGet && !isDevModeGet) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     const tenantId = parseInt(id, 10);
 

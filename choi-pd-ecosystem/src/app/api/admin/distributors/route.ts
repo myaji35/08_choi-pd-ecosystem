@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { distributors } from '@/lib/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
 
 // GET /api/admin/distributors - 수요자 목록 조회
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');
+    const tenantId = getTenantIdFromRequest(request);
 
     const results = status
-      ? await db.select().from(distributors).where(eq(distributors.status, status as any)).all()
-      : await db.select().from(distributors).all();
+      ? await db.select().from(distributors).where(and(eq(distributors.tenantId, tenantId), eq(distributors.status, status as any))).all()
+      : await db.select().from(distributors).where(eq(distributors.tenantId, tenantId)).all();
 
     return NextResponse.json({
       success: true,
@@ -54,8 +56,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 수요자 생성
+    // 수요자 생성 (tenantId 포함)
+    const tenantId = getTenantIdFromRequest(request);
     const result = await db.insert(distributors).values({
+      tenantId,
       name,
       email,
       phone: phone || null,

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { distributors } from '@/lib/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
 
 export async function POST(
   request: NextRequest,
@@ -18,11 +19,12 @@ export async function POST(
       );
     }
 
-    // 수요자 존재 확인
+    // 수요자 존재 확인 (tenantId 소유권)
+    const tenantId = getTenantIdFromRequest(request);
     const distributor = await db
       .select()
       .from(distributors)
-      .where(eq(distributors.id, id))
+      .where(and(eq(distributors.id, id), eq(distributors.tenantId, tenantId)))
       .get();
 
     if (!distributor) {

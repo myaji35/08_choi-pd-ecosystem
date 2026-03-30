@@ -71,12 +71,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 인증 정보에서 clerkUserId 추출 (dev mode: 헤더 또는 기본값)
-    const clerkUserId = request.headers.get('x-clerk-user-id') || 'dev_user';
+    // 인증 정보에서 clerkUserId 추출
+    const clerkUserId = request.headers.get('x-clerk-user-id');
+    const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    if (!clerkUserId && !isDevMode) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
+    const userId = clerkUserId || 'dev_user';
 
     // 테넌트 생성
     const newTenant = await db.insert(tenants).values({
-      clerkUserId,
+      clerkUserId: userId,
       name,
       slug,
       profession,
@@ -89,8 +97,8 @@ export async function POST(request: NextRequest) {
     // 소유자를 테넌트 멤버로 등록
     await db.insert(tenantMembers).values({
       tenantId: newTenant.id,
-      clerkUserId,
-      email: body.email || `${clerkUserId}@placeholder.com`,
+      clerkUserId: userId,
+      email: body.email || `${userId}@placeholder.com`,
       name,
       role: 'owner',
       status: 'active',
@@ -121,7 +129,15 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     // 인증 정보에서 clerkUserId 추출
-    const clerkUserId = request.headers.get('x-clerk-user-id') || 'dev_user';
+    const clerkUserId = request.headers.get('x-clerk-user-id');
+    const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    if (!clerkUserId && !isDevMode) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+    }
+    const userId = clerkUserId || 'dev_user';
 
     // 사용자가 속한 테넌트 멤버십 조회
     const memberships = await db
@@ -132,7 +148,7 @@ export async function GET(request: NextRequest) {
       })
       .from(tenantMembers)
       .innerJoin(tenants, eq(tenantMembers.tenantId, tenants.id))
-      .where(eq(tenantMembers.clerkUserId, clerkUserId))
+      .where(eq(tenantMembers.clerkUserId, userId))
       .orderBy(desc(tenants.createdAt))
       .all();
 

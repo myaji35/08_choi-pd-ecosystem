@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { courses } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
 
 // GET /api/pd/courses/[id] - 과정 상세 조회
 export async function GET(
@@ -19,10 +20,11 @@ export async function GET(
       );
     }
 
+    const tenantId = getTenantIdFromRequest(request);
     const course = await db
       .select()
       .from(courses)
-      .where(eq(courses.id, id))
+      .where(and(eq(courses.id, id), eq(courses.tenantId, tenantId)))
       .get();
 
     if (!course) {
@@ -79,10 +81,11 @@ export async function PUT(
     if (externalLink !== undefined) updateData.externalLink = externalLink;
     if (published !== undefined) updateData.published = published;
 
+    const tenantIdPut = getTenantIdFromRequest(request);
     const result = await db
       .update(courses)
       .set(updateData)
-      .where(eq(courses.id, id))
+      .where(and(eq(courses.id, id), eq(courses.tenantId, tenantIdPut)))
       .returning();
 
     if (result.length === 0) {
@@ -121,9 +124,10 @@ export async function DELETE(
       );
     }
 
+    const tenantIdDel = getTenantIdFromRequest(request);
     const result = await db
       .delete(courses)
-      .where(eq(courses.id, id))
+      .where(and(eq(courses.id, id), eq(courses.tenantId, tenantIdDel)))
       .returning();
 
     if (result.length === 0) {

@@ -26,6 +26,13 @@ const STRIPE_PRICE_IDS: Record<string, Record<string, string>> = {
 // GET /api/subscriptions — 현재 구독 정보 조회
 export async function GET(request: NextRequest) {
   try {
+    // 인증 확인
+    const clerkUserId = request.headers.get('x-clerk-user-id');
+    const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    if (!clerkUserId && !isDevMode) {
+      return NextResponse.json({ error: '인증이 필요합니다', code: 'UNAUTHORIZED' }, { status: 401 });
+    }
+
     const tenantId = getTenantIdFromRequest(request);
 
     // 구독 정보 조회
@@ -73,6 +80,13 @@ export async function GET(request: NextRequest) {
 // POST /api/subscriptions — Stripe Checkout 세션 생성
 export async function POST(request: NextRequest) {
   try {
+    // 인증 확인
+    const clerkUserIdPost = request.headers.get('x-clerk-user-id');
+    const isDevModePost = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    if (!clerkUserIdPost && !isDevModePost) {
+      return NextResponse.json({ error: '인증이 필요합니다', code: 'UNAUTHORIZED' }, { status: 401 });
+    }
+
     const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const { planId, billingPeriod = 'monthly' } = body;

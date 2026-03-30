@@ -86,6 +86,16 @@ ssh -o StrictHostKeyChecking=no $SERVER << DEPLOY_EOF
   docker stop $APP_NAME 2>/dev/null || true
   docker rm   $APP_NAME 2>/dev/null || true
 
+  # 시크릿 파일 경로 (서버에 1회만 생성)
+  SECRET_FILE="/opt/impd/.env.secrets"
+  if [ ! -f "\$SECRET_FILE" ]; then
+    echo "시크릿 파일 최초 생성: \$SECRET_FILE"
+    echo "JWT_SECRET=impd-production-jwt-secret-\$(openssl rand -hex 16)" > "\$SECRET_FILE"
+    echo "ENCRYPTION_KEY=impd-production-encryption-\$(openssl rand -hex 16)" >> "\$SECRET_FILE"
+    chmod 600 "\$SECRET_FILE"
+  fi
+  source "\$SECRET_FILE"
+
   # 새 컨테이너 시작
   docker run -d \
     --name $APP_NAME \
@@ -97,8 +107,8 @@ ssh -o StrictHostKeyChecking=no $SERVER << DEPLOY_EOF
     -e NODE_ENV=production \
     -e PORT=3000 \
     -e DATABASE_URL=file:./data/database.db \
-    -e JWT_SECRET=impd-production-jwt-secret-$(openssl rand -hex 8) \
-    -e ENCRYPTION_KEY=impd-production-encryption-$(openssl rand -hex 8) \
+    -e JWT_SECRET=\$JWT_SECRET \
+    -e ENCRYPTION_KEY=\$ENCRYPTION_KEY \
     -e BASE_DOMAIN=$BASE_DOMAIN \
     -e TZ=Asia/Seoul \
     -v ${APP_NAME}_data:/app/data \

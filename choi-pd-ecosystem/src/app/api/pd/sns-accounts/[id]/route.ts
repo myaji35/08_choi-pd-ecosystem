@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { snsAccounts } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
 
 // GET /api/pd/sns-accounts/[id] - SNS 계정 상세 조회
 export async function GET(
@@ -19,10 +20,11 @@ export async function GET(
       );
     }
 
+    const tenantId = getTenantIdFromRequest(request);
     const account = await db
       .select()
       .from(snsAccounts)
-      .where(eq(snsAccounts.id, id))
+      .where(and(eq(snsAccounts.id, id), eq(snsAccounts.tenantId, tenantId)))
       .get();
 
     if (!account) {
@@ -83,10 +85,11 @@ export async function PUT(
     if (isActive !== undefined) updateData.isActive = isActive;
     if (metadata !== undefined) updateData.metadata = JSON.stringify(metadata);
 
+    const tenantIdPut = getTenantIdFromRequest(request);
     const result = await db
       .update(snsAccounts)
       .set(updateData)
-      .where(eq(snsAccounts.id, id))
+      .where(and(eq(snsAccounts.id, id), eq(snsAccounts.tenantId, tenantIdPut)))
       .returning();
 
     if (result.length === 0) {
@@ -125,9 +128,10 @@ export async function DELETE(
       );
     }
 
+    const tenantIdDel = getTenantIdFromRequest(request);
     const result = await db
       .delete(snsAccounts)
-      .where(eq(snsAccounts.id, id))
+      .where(and(eq(snsAccounts.id, id), eq(snsAccounts.tenantId, tenantIdDel)))
       .returning();
 
     if (result.length === 0) {
