@@ -1,0 +1,66 @@
+{
+  "nav": {
+    "home": "홈",
+    "education": "교육",
+    "media": "미디어",
+    "works": "작품",
+    "community": "커뮤니티",
+    "dashboard": "대시보드",
+    "settings": "설정"
+  },
+  "dashboard": {
+    "title": "대시보드",
+    "courses": "교육 과정",
+    "inquiries": "문의",
+    "subscribers": "구독자",
+    "analytics": "분석",
+    "heroImages": "히어로 이미지",
+    "kanban": "칸반 보드",
+    "profile": "프로필 설정",
+    "snsAccounts": "SNS 계정 관리",
+    "scheduledPosts": "예약 포스트",
+    "newsletter": "뉴스레터",
+    "notifications": "알림"
+  },
+  "distributor": {
+    "title": "유통사",
+    "singular": "유통사",
+    "plural": "유통사 목록",
+    "pending": "승인 대기",
+    "approved": "승인됨",
+    "resources": "유통 자료실"
+  },
+  "content": {
+    "courses": "교육 과정",
+    "posts": "게시글",
+    "gallery": "갤러리",
+    "press": "언론 보도",
+    "works": "저작 및 활동"
+  },
+  "plan": {
+    "free": "무료",
+    "pro": "프로",
+    "enterprise": "엔터프라이즈",
+    "upgrade": "업그레이드",
+    "current": "현재 플랜"
+  },
+  "common": {
+    "save": "저장",
+    "cancel": "취소",
+    "delete": "삭제",
+    "edit": "수정",
+    "create": "등록",
+    "search": "검색",
+    "loading": "로딩 중...",
+    "noData": "데이터가 없습니다.",
+    "confirm": "확인",
+    "back": "뒤로"
+  },
+  "onboarding": {
+    "title": "시작하기",
+    "selectProfession": "직업군을 선택하세요",
+    "brandInfo": "브랜드 정보",
+    "selectPlan": "플랜 선택",
+    "complete": "설정 완료"
+  }
+}

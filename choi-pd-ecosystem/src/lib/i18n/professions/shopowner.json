@@ -1,0 +1,34 @@
+{
+  "nav": {
+    "education": "상품 교육",
+    "media": "매장 소식",
+    "works": "상품 갤러리"
+  },
+  "dashboard": {
+    "courses": "상품 교육",
+    "inquiries": "고객 문의",
+    "subscribers": "단골 고객",
+    "heroImages": "매장 배너",
+    "snsAccounts": "마케팅 채널",
+    "scheduledPosts": "예약 홍보",
+    "newsletter": "고객 소식지"
+  },
+  "distributor": {
+    "title": "입점업체",
+    "singular": "입점업체",
+    "plural": "입점업체 목록",
+    "pending": "입점 심사 중",
+    "approved": "입점 완료",
+    "resources": "입점 가이드"
+  },
+  "content": {
+    "courses": "상품 카탈로그",
+    "posts": "매장 공지",
+    "gallery": "상품 이미지",
+    "press": "매체 노출",
+    "works": "상품 갤러리"
+  },
+  "common": {
+    "create": "상품 등록"
+  }
+}

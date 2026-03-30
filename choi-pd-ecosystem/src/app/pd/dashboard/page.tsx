@@ -3,15 +3,19 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/hooks/use-session';
+import { useTenant } from '@/lib/tenant/useTenant';
+import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Image as ImageIcon, LogOut, User as UserIcon } from 'lucide-react';
+import { Upload, Image as ImageIcon, LogOut, User as UserIcon, Settings } from 'lucide-react';
 import Image from 'next/image';
 import { ImageCropModal } from '@/components/admin/ImageCropModal';
 
 export default function PDDashboard() {
   const router = useRouter();
   const { user, logout } = useSession();
+  const { tenant } = useTenant();
+  const { t } = useTranslation();
   const [profileImage, setProfileImage] = useState('/images/profile.jpg');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
@@ -89,7 +93,7 @@ export default function PDDashboard() {
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold">PD 관리자 대시보드</h1>
+            <h1 className="text-xl font-bold">{tenant?.name || 'PD'} {t('dashboard.title')}</h1>
             {user ? (
               <div className="flex items-center gap-2 text-sm text-purple-600">
                 <UserIcon className="h-4 w-4" />
@@ -181,7 +185,13 @@ export default function PDDashboard() {
             </CardHeader>
             <CardContent className="space-y-2">
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/dashboard/profile">프로필 설정</a>
+                <a href="/pd/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  {t('nav.settings')} (브랜딩/도메인)
+                </a>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <a href="/pd/dashboard/profile">{t('dashboard.profile')}</a>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
                 <a href="/pd/sns-accounts">SNS 계정 관리</a>

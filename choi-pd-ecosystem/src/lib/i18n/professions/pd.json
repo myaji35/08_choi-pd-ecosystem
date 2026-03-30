@@ -1,0 +1,22 @@
+{
+  "nav": {
+    "education": "교육",
+    "media": "미디어",
+    "works": "저작 및 활동"
+  },
+  "dashboard": {
+    "courses": "교육 과정",
+    "inquiries": "문의 관리"
+  },
+  "distributor": {
+    "title": "유통사",
+    "singular": "유통사",
+    "plural": "유통사 목록",
+    "resources": "유통 자료실"
+  },
+  "content": {
+    "courses": "교육 과정",
+    "gallery": "모바일 스케치 갤러리",
+    "press": "언론 보도"
+  }
+}

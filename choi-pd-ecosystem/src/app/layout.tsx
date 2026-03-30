@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { LayoutShell } from '@/components/layout/LayoutShell';
 import { StructuredData } from '@/components/seo/StructuredData';
+import { TenantProvider } from '@/lib/tenant/TenantProvider';
+import { TranslationProvider } from '@/lib/i18n';
 import { Toaster } from 'sonner';
 import { getSocialLinks } from '@/lib/db/queries/socialLinks';
 import { generatePersonSchema, generateWebSiteSchema } from '@/lib/seo';
@@ -82,9 +84,13 @@ export default async function RootLayout({
           <StructuredData data={webSiteSchema} />
         </head>
         <body className={inter.className}>
-          <LayoutShell>
-            {children}
-          </LayoutShell>
+          <TenantProvider>
+            <TranslationProvider>
+              <LayoutShell>
+                {children}
+              </LayoutShell>
+            </TranslationProvider>
+          </TenantProvider>
           <Toaster />
         </body>
       </html>

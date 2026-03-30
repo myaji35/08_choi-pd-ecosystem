@@ -10,6 +10,9 @@ import { NotionSidebar } from './NotionSidebar';
  * 그 외 → 독립 레이아웃 (공개 사이트, 로그인 등)
  */
 function needsSidebarLayout(pathname: string): boolean {
+  // 온보딩은 독립 레이아웃 사용
+  if (pathname.startsWith('/onboarding')) return false;
+
   return (
     pathname.startsWith('/admin') ||
     pathname.startsWith('/pd') ||
