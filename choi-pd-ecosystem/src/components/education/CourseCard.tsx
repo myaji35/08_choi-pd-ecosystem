@@ -19,9 +19,9 @@ export function CourseCard({ course, variant = 'default' }: CourseCardProps) {
   };
 
   const typeColors: Record<string, string> = {
-    online: 'bg-blue-100 text-blue-700',
-    offline: 'bg-green-100 text-green-700',
-    b2b: 'bg-purple-100 text-purple-700',
+    online: '#00A1E0',
+    offline: '#10b981',
+    b2b: '#8b5cf6',
   };
 
   return (
@@ -50,10 +50,8 @@ export function CourseCard({ course, variant = 'default' }: CourseCardProps) {
       <CardHeader>
         <div className="mb-2 flex items-center justify-between">
           <span
-            className={cn(
-              'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
-              typeColors[course.type] || 'bg-gray-100 text-gray-700'
-            )}
+            className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold text-white"
+            style={{ background: typeColors[course.type] || '#6b7280' }}
           >
             {typeLabels[course.type] || course.type}
           </span>

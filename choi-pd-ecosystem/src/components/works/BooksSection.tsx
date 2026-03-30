@@ -24,14 +24,14 @@ export function BooksSection() {
   ];
 
   return (
-    <section className="border-b py-20">
+    <section className="border-b border-gray-200 py-20 bg-white">
       <div className="container">
         <div className="mb-12 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-            <BookOpen className="h-8 w-8 text-primary" />
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg" style={{ background: '#00A1E0' }}>
+            <BookOpen className="h-7 w-7 text-white" />
           </div>
-          <h2 className="text-3xl font-bold">저서</h2>
-          <p className="mt-4 text-muted-foreground">
+          <h2 className="text-3xl font-bold" style={{ color: '#16325C' }}>저서</h2>
+          <p className="mt-4 text-gray-500">
             실용적인 지식과 경험을 담은 책들
           </p>
         </div>

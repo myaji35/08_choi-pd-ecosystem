@@ -4,6 +4,8 @@ import { eq, desc } from 'drizzle-orm';
 import { HeroSection } from '@/components/home/HeroSection';
 import { ServiceHubSection } from '@/components/home/ServiceHubSection';
 import { LatestCoursesSection } from '@/components/home/LatestCoursesSection';
+import { WhyImpdSection } from '@/components/home/WhyImpdSection';
+import { PricingSection } from '@/components/home/PricingSection';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { getSocialLinks } from '@/lib/db/queries/socialLinks';
 import { generatePersonSchema, generateOrganizationSchema } from '@/lib/seo';
@@ -37,7 +39,7 @@ export default async function HomePage() {
 
   const heroImages = heroImagesSettings?.value
     ? JSON.parse(heroImagesSettings.value)
-    : ['https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=1920&h=1080&fit=crop&q=80'];
+    : [];
 
   // 백그라운드: 소셜 링크 가져와서 구조화 데이터에 자동 반영
   const socialLinks = await getSocialLinks();
@@ -52,7 +54,9 @@ export default async function HomePage() {
         heroImages={heroImages}
       />
       <ServiceHubSection />
+      <WhyImpdSection />
       <LatestCoursesSection courses={latestCourses} />
+      <PricingSection />
     </>
   );
 }

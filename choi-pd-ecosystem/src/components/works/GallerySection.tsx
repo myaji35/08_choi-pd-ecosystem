@@ -14,23 +14,29 @@ export function GallerySection({ works }: GallerySectionProps) {
   const [selectedWork, setSelectedWork] = useState<Work | null>(null);
 
   return (
-    <section className="bg-muted/20 py-20">
+    <section className="py-20" style={{ background: '#F3F2F2' }}>
       <div className="container">
         <div className="mb-12 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-            <Palette className="h-8 w-8 text-primary" />
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg" style={{ background: '#8b5cf6' }}>
+            <Palette className="h-7 w-7 text-white" />
           </div>
-          <h2 className="text-3xl font-bold">모바일 스케치 갤러리</h2>
-          <p className="mt-4 text-muted-foreground">
+          <h2 className="text-3xl font-bold" style={{ color: '#16325C' }}>모바일 스케치 갤러리</h2>
+          <p className="mt-4 text-gray-500">
             스마트폰으로 그린 일상의 감성을 담은 작품들
           </p>
         </div>
 
         {works.length === 0 ? (
-          <div className="rounded-lg border-2 border-dashed p-12 text-center">
-            <Palette className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
-            <p className="text-muted-foreground">
-              곧 멋진 작품들이 업로드될 예정입니다
+          <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-12 md:p-16 text-center">
+            <div className="mx-auto mb-6 w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(139,92,246,0.1)' }}>
+              <Palette className="h-10 w-10" style={{ color: '#8b5cf6' }} />
+            </div>
+            <h3 className="text-xl font-bold mb-3" style={{ color: '#16325C' }}>
+              갤러리 작품을 준비 중입니다
+            </h3>
+            <p className="text-gray-500 max-w-md mx-auto leading-relaxed">
+              스마트폰으로 그린 일상의 감성 작품들이 곧 공개됩니다.
+              기대해 주세요!
             </p>
           </div>
         ) : (

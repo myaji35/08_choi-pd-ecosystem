@@ -27,14 +27,18 @@ function CourseFilterContent() {
   return (
     <div className="flex flex-wrap gap-2">
       {filters.map((filter) => (
-        <Button
+        <button
           key={filter.label}
-          variant={currentType === filter.value ? 'default' : 'outline'}
           onClick={() => handleFilter(filter.value)}
-          className="min-w-[100px]"
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${
+            currentType === filter.value
+              ? 'text-white border-transparent shadow-sm'
+              : 'text-gray-600 border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+          }`}
+          style={currentType === filter.value ? { background: '#00A1E0', borderColor: '#00A1E0' } : {}}
         >
           {filter.label}
-        </Button>
+        </button>
       ))}
     </div>
   );

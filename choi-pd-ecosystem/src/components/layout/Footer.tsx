@@ -45,16 +45,21 @@ export async function Footer() {
   };
 
   return (
-    <footer className="border-t bg-muted/40">
+    <footer className="border-t-2 bg-white" style={{ borderTopColor: '#00A1E0' }}>
       <div className="container py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Brand & Contact */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">최범희 대표</h3>
-            <p className="text-sm text-muted-foreground">
-              5060 베이비부머를 위한
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: '#16325C' }}>
+                <span className="text-white text-xs font-bold">im</span>
+              </div>
+              <span className="text-lg font-bold" style={{ color: '#16325C' }}>PD</span>
+            </div>
+            <p className="text-sm text-gray-500">
+              1인 사업자를 위한
               <br />
-              스마트폰 창업 교육
+              AI 브랜드 매니저
             </p>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
@@ -123,10 +128,10 @@ export async function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>© {currentYear} 최범희. All rights reserved.</p>
+        <div className="mt-12 border-t border-gray-200 pt-8 text-center text-sm text-gray-400">
+          <p>&copy; {currentYear} imPD by Gagahoho, Inc. All rights reserved.</p>
           <p className="mt-2">
-            스마트폰 창업 전략가 · 저자 · 한국환경저널 발행인
+            AI 브랜드 매니저 &middot; 콘텐츠 자동화 &middot; SNS 통합 관리
           </p>
         </div>
       </div>

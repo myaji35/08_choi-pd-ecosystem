@@ -10,23 +10,28 @@ interface PressSectionProps {
 
 export function PressSection({ works }: PressSectionProps) {
   return (
-    <section className="border-t py-20">
+    <section className="border-t border-gray-200 py-20 bg-white">
       <div className="container">
         <div className="mb-12 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-            <Newspaper className="h-8 w-8 text-primary" />
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg" style={{ background: '#10b981' }}>
+            <Newspaper className="h-7 w-7 text-white" />
           </div>
-          <h2 className="text-3xl font-bold">언론 보도</h2>
-          <p className="mt-4 text-muted-foreground">
-            미디어에 소개된 최범희 PD의 활동
+          <h2 className="text-3xl font-bold" style={{ color: '#16325C' }}>언론 보도</h2>
+          <p className="mt-4 text-gray-500">
+            미디어에 소개된 활동 기록
           </p>
         </div>
 
         {works.length === 0 ? (
-          <div className="rounded-lg border-2 border-dashed p-12 text-center">
-            <Newspaper className="mx-auto mb-4 h-12 w-12 text-muted-foreground/30" />
-            <p className="text-muted-foreground">
-              곧 언론 보도 자료가 업로드될 예정입니다
+          <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-12 md:p-16 text-center">
+            <div className="mx-auto mb-6 w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.1)' }}>
+              <Newspaper className="h-10 w-10" style={{ color: '#10b981' }} />
+            </div>
+            <h3 className="text-xl font-bold mb-3" style={{ color: '#16325C' }}>
+              언론 보도 자료를 준비 중입니다
+            </h3>
+            <p className="text-gray-500 max-w-md mx-auto leading-relaxed">
+              미디어에 소개된 활동과 보도 자료가 곧 업로드됩니다.
             </p>
           </div>
         ) : (
