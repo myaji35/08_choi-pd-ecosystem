@@ -1,5 +1,3 @@
-'use client';
-
 // 직업군 타입
 export type Profession =
   | 'pd'

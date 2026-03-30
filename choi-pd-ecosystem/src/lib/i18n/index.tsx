@@ -13,6 +13,8 @@ import type { Profession } from '@/lib/tenant/types';
 import baseLabels from './base.json';
 import pdLabels from './professions/pd.json';
 import shopownerLabels from './professions/shopowner.json';
+import realtorLabels from './professions/realtor.json';
+import educatorLabels from './professions/educator.json';
 
 // ---- 타입 정의 ----
 
@@ -31,8 +33,8 @@ type LabelKey = NestedKeyOf<Labels>;
 const professionMap: Record<Profession, Record<string, unknown>> = {
   pd: pdLabels,
   shopowner: shopownerLabels,
-  realtor: {},       // TODO: realtor.json 추가 시 교체
-  educator: {},      // TODO: educator.json 추가 시 교체
+  realtor: realtorLabels,
+  educator: educatorLabels,
   insurance: {},     // TODO: insurance.json 추가 시 교체
   freelancer: {},    // TODO: freelancer.json 추가 시 교체
 };

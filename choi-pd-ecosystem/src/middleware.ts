@@ -65,17 +65,19 @@ export default function middleware(request: NextRequest) {
       });
     }
 
-    // 'chopd' 또는 기타 테넌트 → 기존 chopd 로직과 호환
-    // 정적 파일, _next, api는 서브도메인 rewrite 대상 제외
-    if (!pathname.startsWith('/chopd') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
-      const url = request.nextUrl.clone();
-      url.pathname = `/chopd${pathname}`;
-      return NextResponse.rewrite(url, {
-        request: { headers: requestHeaders },
-      });
+    // 'chopd' 테넌트 → /chopd prefix rewrite (레거시 호환)
+    if (tenantSlug === 'chopd') {
+      // 정적 파일, _next, api는 rewrite 대상 제외
+      if (!pathname.startsWith('/chopd') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/chopd${pathname}`;
+        return NextResponse.rewrite(url, {
+          request: { headers: requestHeaders },
+        });
+      }
     }
 
-    // API 요청에도 x-tenant-slug 전달
+    // 일반 테넌트 및 API 요청 → x-tenant-slug 헤더만 주입, 기존 라우트 그대로 접근
     return NextResponse.next({
       request: { headers: requestHeaders },
     });

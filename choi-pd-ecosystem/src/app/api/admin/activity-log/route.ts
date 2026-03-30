@@ -1,17 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { distributorActivityLog, distributors } from '@/lib/db/schema';
-import { eq, desc, sql } from 'drizzle-orm';
+import { eq, desc, sql, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/admin/activity-log - 활동 로그 조회
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const distributorId = searchParams.get('distributorId');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    let query = db
+    // WHERE 조건 구성
+    let whereCondition = tenantFilter(distributorActivityLog.tenantId, tenantId);
+    if (distributorId) {
+      const id = parseInt(distributorId);
+      if (!isNaN(id)) {
+        whereCondition = and(
+          tenantFilter(distributorActivityLog.tenantId, tenantId),
+          eq(distributorActivityLog.distributorId, id)
+        )!;
+      }
+    }
+
+    const results = await db
       .select({
         log: distributorActivityLog,
         distributor: {
@@ -22,19 +37,11 @@ export async function GET(request: NextRequest) {
       })
       .from(distributorActivityLog)
       .leftJoin(distributors, eq(distributorActivityLog.distributorId, distributors.id))
+      .where(whereCondition)
       .orderBy(desc(distributorActivityLog.createdAt))
       .limit(limit)
-      .offset(offset);
-
-    // 특정 수요자 필터
-    if (distributorId) {
-      const id = parseInt(distributorId);
-      if (!isNaN(id)) {
-        query = query.where(eq(distributorActivityLog.distributorId, id)) as any;
-      }
-    }
-
-    const results = await query.all();
+      .offset(offset)
+      .all();
 
     return NextResponse.json({
       success: true,
@@ -76,7 +83,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 활동 로그 생성
-    const result = await db.insert(distributorActivityLog).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const result = await db.insert(distributorActivityLog).values(withTenantId({
       distributorId,
       activityType,
       description,
@@ -84,7 +92,7 @@ export async function POST(request: NextRequest) {
       ipAddress: ipAddress || null,
       userAgent: userAgent || null,
       createdAt: sql`CURRENT_TIMESTAMP`,
-    }).returning();
+    }, tenantId)).returning();
 
     // 수요자의 lastActivityAt 업데이트
     await db

@@ -38,14 +38,9 @@ const DEFAULT_TENANT: Tenant = {
   createdAt: '2024-01-01T00:00:00Z',
 };
 
-export const TenantContext = createContext<TenantContextValue>({
-  tenant: null,
-  isLoading: true,
-  error: null,
-  isDefaultTenant: true,
-  canUseFeature: () => true,
-  refresh: async () => {},
-});
+export const TenantContext = createContext<TenantContextValue | undefined>(
+  undefined
+);
 
 interface TenantProviderProps {
   children: ReactNode;

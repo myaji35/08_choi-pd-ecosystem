@@ -1,37 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { payments } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/admin/payments - 결제 내역 조회
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const distributorId = searchParams.get('distributorId');
     const status = searchParams.get('status');
 
-    let query = db
-      .select()
-      .from(payments)
-      .orderBy(desc(payments.createdAt));
-
     // Filter by distributor if specified
     if (distributorId) {
-      const results = await query
-        .where(eq(payments.distributorId, parseInt(distributorId)))
+      const results = await db
+        .select()
+        .from(payments)
+        .where(and(
+          tenantFilter(payments.tenantId, tenantId),
+          eq(payments.distributorId, parseInt(distributorId))
+        ))
+        .orderBy(desc(payments.createdAt))
         .all();
       return NextResponse.json({ success: true, payments: results });
     }
 
     // Filter by status if specified
     if (status && status !== 'all') {
-      const results = await query
-        .where(eq(payments.status, status as any))
+      const results = await db
+        .select()
+        .from(payments)
+        .where(and(
+          tenantFilter(payments.tenantId, tenantId),
+          eq(payments.status, status as any)
+        ))
+        .orderBy(desc(payments.createdAt))
         .all();
       return NextResponse.json({ success: true, payments: results });
     }
 
-    const results = await query.all();
+    const results = await db
+      .select()
+      .from(payments)
+      .where(tenantFilter(payments.tenantId, tenantId))
+      .orderBy(desc(payments.createdAt))
+      .all();
     return NextResponse.json({ success: true, payments: results });
   } catch (error) {
     console.error('Failed to fetch payments:', error);
@@ -64,7 +79,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 결제 생성
-    const result = await db.insert(payments).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const result = await db.insert(payments).values(withTenantId({
       distributorId,
       planId,
       amount,
@@ -74,7 +90,7 @@ export async function POST(request: NextRequest) {
       transactionId: null,
       paidAt: null,
       metadata: metadata ? JSON.stringify(metadata) : null,
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({
       success: true,

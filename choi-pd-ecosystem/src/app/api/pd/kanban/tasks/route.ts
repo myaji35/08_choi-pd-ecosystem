@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { kanbanTasks } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/pd/kanban/tasks?projectId=1 - Get tasks by project
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
 
@@ -19,7 +22,10 @@ export async function GET(request: NextRequest) {
     const tasks = await db
       .select()
       .from(kanbanTasks)
-      .where(eq(kanbanTasks.projectId, parseInt(projectId)))
+      .where(and(
+        tenantFilter(kanbanTasks.tenantId, tenantId),
+        eq(kanbanTasks.projectId, parseInt(projectId))
+      ))
       .orderBy(kanbanTasks.sortOrder, kanbanTasks.createdAt)
       .all();
 
@@ -67,9 +73,11 @@ export async function POST(request: NextRequest) {
 
     const sortOrder = (maxOrder?.max || 0) + 1;
 
+    const tenantId = getTenantIdFromRequest(request);
+
     const result = await db
       .insert(kanbanTasks)
-      .values({
+      .values(withTenantId({
         projectId,
         columnId,
         title,
@@ -79,7 +87,7 @@ export async function POST(request: NextRequest) {
         labels: labels ? JSON.stringify(labels) : null,
         assignee,
         sortOrder,
-      })
+      }, tenantId))
       .returning()
       .get();
 
@@ -99,6 +107,7 @@ export async function POST(request: NextRequest) {
 // PATCH /api/pd/kanban/tasks - Move task to different column
 export async function PATCH(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const { taskId, columnId, sortOrder } = body;
 
@@ -121,13 +130,19 @@ export async function PATCH(request: NextRequest) {
     await db
       .update(kanbanTasks)
       .set(updateData)
-      .where(eq(kanbanTasks.id, taskId))
+      .where(and(
+        eq(kanbanTasks.id, taskId),
+        tenantFilter(kanbanTasks.tenantId, tenantId)
+      ))
       .run();
 
     const updated = await db
       .select()
       .from(kanbanTasks)
-      .where(eq(kanbanTasks.id, taskId))
+      .where(and(
+        eq(kanbanTasks.id, taskId),
+        tenantFilter(kanbanTasks.tenantId, tenantId)
+      ))
       .get();
 
     return NextResponse.json({

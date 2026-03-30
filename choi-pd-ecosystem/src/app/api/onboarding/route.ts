@@ -161,8 +161,23 @@ export async function POST(request: NextRequest) {
       .get();
 
     if (existing) {
-      // 대안 slug 제안
-      const suggestion = `${slug}${Math.floor(Math.random() * 99) + 1}`;
+      // 대안 slug 제안 — DB 중복 체크 루프
+      let suggestion = '';
+      for (let i = 0; i < 10; i++) {
+        const candidate = `${slug}${Math.floor(Math.random() * 999) + 1}`;
+        const exists = await db
+          .select()
+          .from(tenants)
+          .where(eq(tenants.slug, candidate))
+          .get();
+        if (!exists) {
+          suggestion = candidate;
+          break;
+        }
+      }
+      if (!suggestion) {
+        suggestion = `${slug}-${Date.now().toString(36)}`;
+      }
       return NextResponse.json({
         available: false,
         reason: '이미 사용 중인 slug입니다.',

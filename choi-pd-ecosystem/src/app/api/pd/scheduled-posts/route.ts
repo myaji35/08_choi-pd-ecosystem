@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { snsScheduledPosts, snsAccounts } from '@/lib/db/schema';
-import { eq, desc, gte } from 'drizzle-orm';
+import { eq, desc, gte, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/pd/scheduled-posts - 예약 포스트 목록 조회
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');
     const platform = searchParams.get('platform');
@@ -19,6 +22,7 @@ export async function GET(request: NextRequest) {
       })
       .from(snsScheduledPosts)
       .leftJoin(snsAccounts, eq(snsScheduledPosts.accountId, snsAccounts.id))
+      .where(tenantFilter(snsScheduledPosts.tenantId, tenantId))
       .orderBy(desc(snsScheduledPosts.scheduledAt))
       .all();
 
@@ -36,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     // Filter upcoming only
     if (upcomingOnly) {
-      const now = Math.floor(Date.now() / 1000);
+      const now = new Date();
       filtered = filtered.filter(r =>
         r.post.scheduledAt && r.post.scheduledAt > now && r.post.status === 'pending'
       );
@@ -82,7 +86,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 예약 포스트 생성
-    const result = await db.insert(snsScheduledPosts).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const result = await db.insert(snsScheduledPosts).values(withTenantId({
       contentType,
       contentId,
       platform,
@@ -90,13 +95,13 @@ export async function POST(request: NextRequest) {
       message,
       imageUrl: imageUrl || null,
       link: link || null,
-      scheduledAt: Math.floor(new Date(scheduledAt).getTime() / 1000),
+      scheduledAt: new Date(scheduledAt),
       status: 'pending',
       publishedAt: null,
       externalPostId: null,
       error: null,
       retryCount: 0,
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({
       success: true,

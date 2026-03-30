@@ -1,0 +1,34 @@
+{
+  "nav": {
+    "education": "부동산 교육",
+    "media": "시장 동향",
+    "works": "매물 갤러리"
+  },
+  "dashboard": {
+    "courses": "부동산 교육",
+    "inquiries": "매물 문의",
+    "subscribers": "관심 고객",
+    "heroImages": "대표 매물 배너",
+    "snsAccounts": "홍보 채널",
+    "scheduledPosts": "예약 매물 홍보",
+    "newsletter": "부동산 소식지"
+  },
+  "distributor": {
+    "title": "협력 중개사",
+    "singular": "협력 중개사",
+    "plural": "협력 중개사 목록",
+    "pending": "제휴 심사 중",
+    "approved": "제휴 완료",
+    "resources": "중개 자료실"
+  },
+  "content": {
+    "courses": "부동산 강의",
+    "posts": "시장 분석",
+    "gallery": "매물 사진",
+    "press": "언론 보도",
+    "works": "매물 및 실적"
+  },
+  "common": {
+    "create": "매물 등록"
+  }
+}

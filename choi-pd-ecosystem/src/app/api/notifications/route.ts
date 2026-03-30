@@ -2,28 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { notifications } from '@/lib/db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/notifications?userType=admin&limit=50 - Get notifications
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { searchParams } = new URL(request.url);
     const userType = searchParams.get('userType') || 'admin';
     const limit = parseInt(searchParams.get('limit') || '50');
     const unreadOnly = searchParams.get('unreadOnly') === 'true';
 
-    let query = db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.userType, userType as any));
+    let whereCondition = and(
+      tenantFilter(notifications.tenantId, tenantId),
+      eq(notifications.userType, userType as any)
+    );
 
     if (unreadOnly) {
-      query = query.where(and(
+      whereCondition = and(
+        tenantFilter(notifications.tenantId, tenantId),
         eq(notifications.userType, userType as any),
         eq(notifications.isRead, false)
-      )) as any;
+      );
     }
 
-    const results = await query
+    const results = await db
+      .select()
+      .from(notifications)
+      .where(whereCondition)
       .orderBy(desc(notifications.createdAt))
       .limit(limit)
       .all();
@@ -32,6 +39,7 @@ export async function GET(request: NextRequest) {
       .select({ count: sql<number>`count(*)` })
       .from(notifications)
       .where(and(
+        tenantFilter(notifications.tenantId, tenantId),
         eq(notifications.userType, userType as any),
         eq(notifications.isRead, false)
       ))
@@ -64,9 +72,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const tenantId = getTenantIdFromRequest(request);
     const result = await db
       .insert(notifications)
-      .values({
+      .values(withTenantId({
         userType,
         type: type || 'info',
         category,
@@ -74,7 +83,7 @@ export async function POST(request: NextRequest) {
         message,
         link,
         metadata: metadata ? JSON.stringify(metadata) : null,
-      })
+      }, tenantId))
       .returning()
       .get();
 

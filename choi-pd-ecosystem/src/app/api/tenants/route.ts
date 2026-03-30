@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       plan: newTenant.plan,
       status: newTenant.status,
       createdAt: newTenant.createdAt,
-      publicUrl: `https://${newTenant.slug}.impd.io`,
+      publicUrl: `https://${newTenant.slug}.${process.env.BASE_DOMAIN || 'impd.io'}`,
     }, { status: 201 });
 
   } catch (error) {

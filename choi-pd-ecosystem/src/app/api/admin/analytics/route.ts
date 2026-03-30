@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { distributors, distributorResources, distributorActivityLog } from '@/lib/db/schema';
 import { eq, sql, gte, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // GET /api/admin/analytics - 통계 데이터 조회
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const period = searchParams.get('period') || '30'; // days
 
@@ -14,7 +17,7 @@ export async function GET(request: NextRequest) {
     startDate.setDate(startDate.getDate() - parseInt(period));
 
     // 1. 수요자 통계
-    const allDistributors = await db.select().from(distributors).all();
+    const allDistributors = await db.select().from(distributors).where(tenantFilter(distributors.tenantId, tenantId)).all();
 
     const distributorStats = {
       total: allDistributors.length,
@@ -52,7 +55,7 @@ export async function GET(request: NextRequest) {
     const totalRevenue = allDistributors.reduce((sum, d) => sum + (d.totalRevenue || 0), 0);
 
     // 6. 리소스 통계
-    const allResources = await db.select().from(distributorResources).all();
+    const allResources = await db.select().from(distributorResources).where(tenantFilter(distributorResources.tenantId, tenantId)).all();
 
     const resourceStats = {
       total: allResources.length,
@@ -82,6 +85,7 @@ export async function GET(request: NextRequest) {
     const recentActivities = await db
       .select()
       .from(distributorActivityLog)
+      .where(tenantFilter(distributorActivityLog.tenantId, tenantId))
       .orderBy(sql`${distributorActivityLog.createdAt} DESC`)
       .limit(50)
       .all();

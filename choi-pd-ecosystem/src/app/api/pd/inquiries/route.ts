@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { inquiries } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/pd/inquiries - 문의 목록 조회
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');
     const type = searchParams.get('type');
@@ -13,6 +16,7 @@ export async function GET(request: NextRequest) {
     let results = await db
       .select()
       .from(inquiries)
+      .where(tenantFilter(inquiries.tenantId, tenantId))
       .orderBy(desc(inquiries.createdAt))
       .all();
 
@@ -63,14 +67,15 @@ export async function POST(request: NextRequest) {
     }
 
     // 문의 생성
-    const result = await db.insert(inquiries).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const result = await db.insert(inquiries).values(withTenantId({
       name,
       email,
       phone: phone || null,
       message,
       type,
       status: 'pending',
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({
       success: true,

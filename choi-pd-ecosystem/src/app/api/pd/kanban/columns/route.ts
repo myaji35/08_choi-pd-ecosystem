@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { kanbanColumns } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // GET /api/pd/kanban/columns?projectId=1 - Get columns by project
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get('projectId');
 
@@ -19,7 +22,10 @@ export async function GET(request: NextRequest) {
     const columns = await db
       .select()
       .from(kanbanColumns)
-      .where(eq(kanbanColumns.projectId, parseInt(projectId)))
+      .where(and(
+        tenantFilter(kanbanColumns.tenantId, tenantId),
+        eq(kanbanColumns.projectId, parseInt(projectId))
+      ))
       .orderBy(kanbanColumns.sortOrder)
       .all();
 

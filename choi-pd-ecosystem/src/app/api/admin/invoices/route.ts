@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { invoices, payments, distributors } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/admin/invoices - 영수증 목록 조회
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const distributorId = searchParams.get('distributorId');
     const status = searchParams.get('status');
@@ -19,6 +22,7 @@ export async function GET(request: NextRequest) {
       .from(invoices)
       .leftJoin(payments, eq(invoices.paymentId, payments.id))
       .leftJoin(distributors, eq(invoices.distributorId, distributors.id))
+      .where(tenantFilter(invoices.tenantId, tenantId))
       .orderBy(desc(invoices.createdAt));
 
     const results = await query.all();
@@ -78,18 +82,19 @@ export async function POST(request: NextRequest) {
     const total = amount + tax;
 
     // 영수증 생성
-    const result = await db.insert(invoices).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const result = await db.insert(invoices).values(withTenantId({
       paymentId,
       distributorId,
       invoiceNumber,
       amount,
       taxAmount: tax,
       totalAmount: total,
-      dueDate: dueDate ? Math.floor(new Date(dueDate).getTime() / 1000) : null,
+      dueDate: dueDate ? new Date(dueDate) : null,
       paidAt: null,
       status: 'draft',
       pdfUrl: null,
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({
       success: true,

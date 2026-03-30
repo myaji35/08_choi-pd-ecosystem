@@ -241,6 +241,7 @@ export const snsAccounts = sqliteTable('sns_accounts', {
 // SNS Scheduled Posts Table (예약된 SNS 포스팅)
 export const snsScheduledPosts = sqliteTable('sns_scheduled_posts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   contentType: text('content_type', { enum: ['posts', 'courses', 'works'] }).notNull(),
   contentId: integer('content_id').notNull(),
   platform: text('platform', { enum: ['facebook', 'instagram', 'twitter', 'linkedin'] }).notNull(),
@@ -256,11 +257,14 @@ export const snsScheduledPosts = sqliteTable('sns_scheduled_posts', {
   retryCount: integer('retry_count').default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_sns_scheduled_posts_tenant').on(table.tenantId),
+]);
 
 // SNS Post History Table (SNS 포스팅 이력)
 export const snsPostHistory = sqliteTable('sns_post_history', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   scheduledPostId: integer('scheduled_post_id').notNull().references(() => snsScheduledPosts.id, { onDelete: 'cascade' }),
   platform: text('platform', { enum: ['facebook', 'instagram', 'twitter', 'linkedin'] }).notNull(),
   externalPostId: text('external_post_id'),
@@ -270,7 +274,9 @@ export const snsPostHistory = sqliteTable('sns_post_history', {
   error: text('error'),
   metadata: text('metadata'), // 추가 정보 (JSON 형태)
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_sns_post_history_tenant').on(table.tenantId),
+]);
 
 // Hero Images Table (히어로 섹션 이미지)
 export const heroImages = sqliteTable('hero_images', {
@@ -316,6 +322,7 @@ export const distributors = sqliteTable('distributors', {
 // Distributor Activity Log (분양자 활동 로그)
 export const distributorActivityLog = sqliteTable('distributor_activity_log', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   distributorId: integer('distributor_id').notNull().references(() => distributors.id, { onDelete: 'cascade' }),
   activityType: text('activity_type', { enum: ['login', 'content_access', 'download', 'payment', 'support_request'] }).notNull(),
   description: text('description').notNull(),
@@ -323,11 +330,14 @@ export const distributorActivityLog = sqliteTable('distributor_activity_log', {
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_distributor_activity_log_tenant').on(table.tenantId),
+]);
 
 // Distributor Resources (분양자용 리소스)
 export const distributorResources = sqliteTable('distributor_resources', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   title: text('title').notNull(),
   description: text('description'),
   fileUrl: text('file_url').notNull(),
@@ -339,11 +349,14 @@ export const distributorResources = sqliteTable('distributor_resources', {
   isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_distributor_resources_tenant').on(table.tenantId),
+]);
 
 // Subscription Plans (구독 플랜 정의)
 export const subscriptionPlans = sqliteTable('subscription_plans', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(), // Basic, Premium, Enterprise
   displayName: text('display_name').notNull(),
   description: text('description'),
@@ -354,11 +367,14 @@ export const subscriptionPlans = sqliteTable('subscription_plans', {
   isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_subscription_plans_tenant').on(table.tenantId),
+]);
 
 // Payments (결제 내역)
 export const payments = sqliteTable('payments', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   distributorId: integer('distributor_id').notNull().references(() => distributors.id, { onDelete: 'cascade' }),
   planId: integer('plan_id').notNull().references(() => subscriptionPlans.id),
   amount: integer('amount').notNull(),
@@ -369,11 +385,14 @@ export const payments = sqliteTable('payments', {
   paidAt: integer('paid_at', { mode: 'timestamp' }),
   metadata: text('metadata'), // JSON
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_payments_tenant').on(table.tenantId),
+]);
 
 // Invoices (영수증)
 export const invoices = sqliteTable('invoices', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   paymentId: integer('payment_id').notNull().references(() => payments.id, { onDelete: 'cascade' }),
   distributorId: integer('distributor_id').notNull().references(() => distributors.id),
   invoiceNumber: text('invoice_number').notNull().unique(),
@@ -385,7 +404,9 @@ export const invoices = sqliteTable('invoices', {
   status: text('status', { enum: ['draft', 'sent', 'paid', 'overdue', 'cancelled'] }).default('draft').notNull(),
   pdfUrl: text('pdf_url'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_invoices_tenant').on(table.tenantId),
+]);
 
 // Kanban Projects (칸반 프로젝트)
 export const kanbanProjects = sqliteTable('kanban_projects', {
@@ -406,16 +427,20 @@ export const kanbanProjects = sqliteTable('kanban_projects', {
 // Kanban Columns (칸반 컬럼/상태)
 export const kanbanColumns = sqliteTable('kanban_columns', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   projectId: integer('project_id').notNull().references(() => kanbanProjects.id, { onDelete: 'cascade' }),
   title: text('title').notNull(), // 예: "To Do", "In Progress", "Done"
   color: text('color').default('#6b7280'),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_kanban_columns_tenant').on(table.tenantId),
+]);
 
 // Kanban Tasks (칸반 태스크/카드)
 export const kanbanTasks = sqliteTable('kanban_tasks', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   projectId: integer('project_id').notNull().references(() => kanbanProjects.id, { onDelete: 'cascade' }),
   columnId: integer('column_id').notNull().references(() => kanbanColumns.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
@@ -429,11 +454,14 @@ export const kanbanTasks = sqliteTable('kanban_tasks', {
   completedAt: integer('completed_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_kanban_tasks_tenant').on(table.tenantId),
+]);
 
 // Notifications (인앱 알림)
 export const notifications = sqliteTable('notifications', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: integer('user_id'), // Admin or PD user ID (optional - can use Clerk ID in metadata)
   userType: text('user_type', { enum: ['admin', 'pd', 'distributor'] }).notNull(),
   type: text('type', { enum: ['info', 'success', 'warning', 'error'] }).default('info').notNull(),
@@ -444,7 +472,9 @@ export const notifications = sqliteTable('notifications', {
   isRead: integer('is_read', { mode: 'boolean' }).default(false),
   metadata: text('metadata'), // JSON for additional data
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_notifications_tenant').on(table.tenantId),
+]);
 
 // ============================================
 // Epic 21: 고급 보안 및 컴플라이언스 테이블
@@ -453,6 +483,7 @@ export const notifications = sqliteTable('notifications', {
 // Audit Logs (감사 로그 - 모든 중요 작업 기록)
 export const auditLogs = sqliteTable('audit_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: text('user_id').notNull(), // Clerk user ID or admin ID
   userType: text('user_type', { enum: ['admin', 'pd', 'distributor', 'system'] }).notNull(),
   userEmail: text('user_email'),
@@ -466,11 +497,14 @@ export const auditLogs = sqliteTable('audit_logs', {
   errorMessage: text('error_message'), // 실패 시 에러 메시지
   metadata: text('metadata'), // JSON: 추가 정보
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_audit_logs_tenant').on(table.tenantId),
+]);
 
 // Security Events (보안 이벤트 - 의심스러운 활동 추적)
 export const securityEvents = sqliteTable('security_events', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: text('user_id'), // null 가능 (로그인 실패 시 등)
   eventType: text('event_type', {
     enum: ['login_failed', 'login_success', 'suspicious_activity', 'brute_force', 'ip_blocked', 'password_change', '2fa_enabled', '2fa_disabled']
@@ -485,11 +519,14 @@ export const securityEvents = sqliteTable('security_events', {
   resolvedBy: text('resolved_by'), // Admin user ID
   metadata: text('metadata'), // JSON
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_security_events_tenant').on(table.tenantId),
+]);
 
 // Data Deletion Requests (GDPR 개인정보 삭제 요청)
 export const dataDeletionRequests = sqliteTable('data_deletion_requests', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: text('user_id').notNull(),
   userEmail: text('user_email').notNull(),
   userType: text('user_type', { enum: ['distributor', 'lead', 'inquiry'] }).notNull(),
@@ -501,11 +538,14 @@ export const dataDeletionRequests = sqliteTable('data_deletion_requests', {
   deletedAt: integer('deleted_at', { mode: 'timestamp' }),
   notes: text('notes'), // Admin 메모
   metadata: text('metadata') // JSON: 삭제된 데이터 백업 정보
-});
+}, (table) => [
+  index('idx_data_deletion_requests_tenant').on(table.tenantId),
+]);
 
 // IP Whitelist/Blacklist (IP 접근 제어)
 export const ipAccessControl = sqliteTable('ip_access_control', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   ipAddress: text('ip_address').notNull().unique(),
   type: text('type', { enum: ['whitelist', 'blacklist'] }).notNull(),
   reason: text('reason').notNull(),
@@ -515,11 +555,14 @@ export const ipAccessControl = sqliteTable('ip_access_control', {
   createdBy: text('created_by').notNull(), // Admin user ID
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_ip_access_control_tenant').on(table.tenantId),
+]);
 
 // Two-Factor Authentication (2FA 설정)
 export const twoFactorAuth = sqliteTable('two_factor_auth', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: text('user_id').notNull().unique(),
   userType: text('user_type', { enum: ['admin', 'pd', 'distributor'] }).notNull(),
   method: text('method', { enum: ['totp', 'sms', 'email'] }).notNull(),
@@ -530,22 +573,28 @@ export const twoFactorAuth = sqliteTable('two_factor_auth', {
   lastUsedAt: integer('last_used_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_two_factor_auth_tenant').on(table.tenantId),
+]);
 
 // Login Attempts (로그인 시도 추적 - Brute Force 방지)
 export const loginAttempts = sqliteTable('login_attempts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   identifier: text('identifier').notNull(), // email or username
   ipAddress: text('ip_address').notNull(),
   success: integer('success', { mode: 'boolean' }).notNull(),
   userAgent: text('user_agent'),
   failureReason: text('failure_reason'), // 'wrong_password', 'user_not_found', '2fa_failed', etc.
   attemptedAt: integer('attempted_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_login_attempts_tenant').on(table.tenantId),
+]);
 
 // Sessions (세션 관리 - 동시 로그인 제어)
 export const sessions = sqliteTable('sessions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: text('user_id').notNull(),
   userType: text('user_type', { enum: ['admin', 'pd', 'distributor'] }).notNull(),
   sessionToken: text('session_token').notNull().unique(),
@@ -558,15 +607,20 @@ export const sessions = sqliteTable('sessions', {
   revokedAt: integer('revoked_at', { mode: 'timestamp' }),
   revokedReason: text('revoked_reason'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_sessions_tenant').on(table.tenantId),
+]);
 
 // Password History (비밀번호 재사용 방지)
 export const passwordHistory = sqliteTable('password_history', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: text('user_id').notNull(),
   passwordHash: text('password_hash').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_password_history_tenant').on(table.tenantId),
+]);
 
 // ============================================
 // Epic 25: 엔터프라이즈 기능 및 화이트라벨
@@ -780,6 +834,7 @@ export const userBulkImportLogs = sqliteTable('user_bulk_import_logs', {
 // Analytics Events (분석 이벤트 추적)
 export const analyticsEvents = sqliteTable('analytics_events', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: text('user_id'), // null = 익명 사용자
   userType: text('user_type', { enum: ['admin', 'pd', 'distributor', 'lead', 'anonymous'] }),
   sessionId: text('session_id'), // 세션 ID
@@ -800,11 +855,14 @@ export const analyticsEvents = sqliteTable('analytics_events', {
   city: text('city'), // GeoIP
   metadata: text('metadata'), // JSON: 추가 데이터
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_analytics_events_tenant').on(table.tenantId),
+]);
 
 // Cohort Analysis (코호트 분석)
 export const cohorts = sqliteTable('cohorts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(), // 코호트 이름
   description: text('description'),
   cohortType: text('cohort_type', { enum: ['acquisition', 'behavior', 'demographic', 'custom'] }).notNull(),
@@ -816,21 +874,27 @@ export const cohorts = sqliteTable('cohorts', {
   createdBy: text('created_by').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_cohorts_tenant').on(table.tenantId),
+]);
 
 // Cohort Users (코호트 사용자 매핑)
 export const cohortUsers = sqliteTable('cohort_users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   cohortId: integer('cohort_id').notNull().references(() => cohorts.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull(),
   userEmail: text('user_email'),
   joinedAt: integer('joined_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   metadata: text('metadata') // JSON
-});
+}, (table) => [
+  index('idx_cohort_users_tenant').on(table.tenantId),
+]);
 
 // A/B Tests (A/B 테스트)
 export const abTests = sqliteTable('ab_tests', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(),
   description: text('description'),
   hypothesis: text('hypothesis'), // 가설
@@ -847,11 +911,14 @@ export const abTests = sqliteTable('ab_tests', {
   createdBy: text('created_by').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_ab_tests_tenant').on(table.tenantId),
+]);
 
 // A/B Test Participants (A/B 테스트 참가자)
 export const abTestParticipants = sqliteTable('ab_test_participants', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   testId: integer('test_id').notNull().references(() => abTests.id, { onDelete: 'cascade' }),
   userId: text('user_id'), // null = 익명
   sessionId: text('session_id').notNull(),
@@ -861,11 +928,14 @@ export const abTestParticipants = sqliteTable('ab_test_participants', {
   assignedAt: integer('assigned_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   convertedAt: integer('converted_at', { mode: 'timestamp' }),
   metadata: text('metadata') // JSON
-});
+}, (table) => [
+  index('idx_ab_test_participants_tenant').on(table.tenantId),
+]);
 
 // Custom Reports (커스텀 리포트)
 export const customReports = sqliteTable('custom_reports', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(),
   description: text('description'),
   reportType: text('report_type', { enum: ['table', 'chart', 'dashboard', 'export'] }).notNull(),
@@ -882,11 +952,14 @@ export const customReports = sqliteTable('custom_reports', {
   createdBy: text('created_by').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_custom_reports_tenant').on(table.tenantId),
+]);
 
 // Funnel Analysis (퍼널 분석)
 export const funnels = sqliteTable('funnels', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(),
   description: text('description'),
   steps: text('steps').notNull(), // JSON: 퍼널 단계 (page_view → signup → payment)
@@ -896,11 +969,14 @@ export const funnels = sqliteTable('funnels', {
   createdBy: text('created_by').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_funnels_tenant').on(table.tenantId),
+]);
 
 // RFM Analysis (Recency, Frequency, Monetary 분석)
 export const rfmSegments = sqliteTable('rfm_segments', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: text('user_id').notNull(),
   userType: text('user_type', { enum: ['distributor', 'lead'] }).notNull(),
   recencyScore: integer('recency_score').notNull(), // 1-5 (최근 활동)
@@ -911,7 +987,9 @@ export const rfmSegments = sqliteTable('rfm_segments', {
   totalTransactions: integer('total_transactions').default(0),
   totalRevenue: integer('total_revenue').default(0),
   calculatedAt: integer('calculated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_rfm_segments_tenant').on(table.tenantId),
+]);
 
 // ============================================================
 // TypeScript Types — SaaS 멀티테넌시
@@ -1078,6 +1156,7 @@ export type NewRfmSegment = typeof rfmSegments.$inferInsert;
 // AI Recommendations Table (AI 추천 결과)
 export const aiRecommendations = sqliteTable('ai_recommendations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: text('user_id').notNull(), // 분양자 또는 사용자 ID
   userType: text('user_type', { enum: ['distributor', 'pd', 'customer'] }).notNull(),
   recommendationType: text('recommendation_type', { enum: ['resource', 'course', 'post', 'distributor'] }).notNull(),
@@ -1088,11 +1167,14 @@ export const aiRecommendations = sqliteTable('ai_recommendations', {
   clicked: integer('clicked', { mode: 'boolean' }).default(false),
   clickedAt: integer('clicked_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_ai_recommendations_tenant').on(table.tenantId),
+]);
 
 // Content Embeddings Table (벡터 임베딩 저장)
 export const contentEmbeddings = sqliteTable('content_embeddings', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   contentType: text('content_type', { enum: ['resource', 'course', 'post', 'work'] }).notNull(),
   contentId: integer('content_id').notNull(),
   embeddingModel: text('embedding_model').notNull(), // "text-embedding-ada-002", "all-MiniLM-L6-v2"
@@ -1101,11 +1183,14 @@ export const contentEmbeddings = sqliteTable('content_embeddings', {
   metadata: text('metadata'), // JSON: { "title": "...", "category": "..." }
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_content_embeddings_tenant').on(table.tenantId),
+]);
 
 // Chatbot Conversations Table (챗봇 대화 이력)
 export const chatbotConversations = sqliteTable('chatbot_conversations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   sessionId: text('session_id').notNull(), // 세션별 대화 그룹
   userId: text('user_id'), // 로그인 사용자 (null = 비로그인)
   userType: text('user_type', { enum: ['distributor', 'pd', 'customer', 'anonymous'] }).notNull(),
@@ -1114,11 +1199,14 @@ export const chatbotConversations = sqliteTable('chatbot_conversations', {
   intent: text('intent'), // "faq", "resource_search", "course_inquiry", "general"
   metadata: text('metadata'), // JSON: { "confidence": 0.95, "matched_faq_id": 123 }
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_chatbot_conversations_tenant').on(table.tenantId),
+]);
 
 // AI Generated Content Table (AI 생성 콘텐츠)
 export const aiGeneratedContent = sqliteTable('ai_generated_content', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   contentType: text('content_type', { enum: ['sns_post', 'email', 'description', 'summary', 'tag'] }).notNull(),
   prompt: text('prompt').notNull(), // 사용자가 입력한 프롬프트
   generatedText: text('generated_text').notNull(), // AI가 생성한 텍스트
@@ -1132,11 +1220,14 @@ export const aiGeneratedContent = sqliteTable('ai_generated_content', {
   metadata: text('metadata'), // JSON: { "platform": "instagram", "hashtags": [...] }
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_ai_generated_content_tenant').on(table.tenantId),
+]);
 
 // Content Quality Scores Table (콘텐츠 품질 점수)
 export const contentQualityScores = sqliteTable('content_quality_scores', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   contentType: text('content_type', { enum: ['resource', 'course', 'post', 'work'] }).notNull(),
   contentId: integer('content_id').notNull(),
   overallScore: integer('overall_score').notNull(), // 0-100
@@ -1148,11 +1239,14 @@ export const contentQualityScores = sqliteTable('content_quality_scores', {
   suggestions: text('suggestions'), // JSON array: ["제목에 숫자 추가", "메타 설명 개선"]
   analyzedBy: text('analyzed_by').notNull(), // "gpt-4", "claude-3-sonnet"
   analyzedAt: integer('analyzed_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_content_quality_scores_tenant').on(table.tenantId),
+]);
 
 // Image Auto-Tagging Table (이미지 자동 태깅)
 export const imageAutoTags = sqliteTable('image_auto_tags', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   imageUrl: text('image_url').notNull(),
   contentType: text('content_type', { enum: ['work', 'resource', 'hero_image', 'profile'] }).notNull(),
   contentId: integer('content_id').notNull(),
@@ -1165,11 +1259,14 @@ export const imageAutoTags = sqliteTable('image_auto_tags', {
   confidence: integer('confidence').notNull(), // 0-100
   model: text('model').notNull(), // "gpt-4-vision", "claude-3-opus"
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_image_auto_tags_tenant').on(table.tenantId),
+]);
 
 // FAQ Knowledge Base (FAQ 지식 베이스)
 export const faqKnowledgeBase = sqliteTable('faq_knowledge_base', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   category: text('category', { enum: ['general', 'distributor', 'payment', 'resource', 'technical'] }).notNull(),
   question: text('question').notNull(),
   answer: text('answer').notNull(),
@@ -1182,11 +1279,14 @@ export const faqKnowledgeBase = sqliteTable('faq_knowledge_base', {
   createdBy: text('created_by').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_faq_knowledge_base_tenant').on(table.tenantId),
+]);
 
 // User Activity Patterns (사용자 활동 패턴 분석)
 export const userActivityPatterns = sqliteTable('user_activity_patterns', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: text('user_id').notNull().unique(),
   userType: text('user_type', { enum: ['distributor', 'pd', 'customer'] }).notNull(),
   preferredCategories: text('preferred_categories'), // JSON: ["marketing", "education"]
@@ -1200,7 +1300,9 @@ export const userActivityPatterns = sqliteTable('user_activity_patterns', {
   lastAnalyzedAt: integer('last_analyzed_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_user_activity_patterns_tenant').on(table.tenantId),
+]);
 
 // Export types for Epic 16
 export type AiRecommendation = typeof aiRecommendations.$inferSelect;
@@ -1234,6 +1336,7 @@ export type NewUserActivityPattern = typeof userActivityPatterns.$inferInsert;
 // Workflows Table (워크플로우 정의)
 export const workflows = sqliteTable('workflows', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(),
   description: text('description'),
   trigger: text('trigger').notNull(), // 'manual', 'schedule', 'event', 'webhook'
@@ -1247,11 +1350,14 @@ export const workflows = sqliteTable('workflows', {
   failureCount: integer('failure_count').default(0).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_workflows_tenant').on(table.tenantId),
+]);
 
 // Workflow Executions Table (워크플로우 실행 이력)
 export const workflowExecutions = sqliteTable('workflow_executions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   workflowId: integer('workflow_id').notNull().references(() => workflows.id, { onDelete: 'cascade' }),
   status: text('status', { enum: ['pending', 'running', 'completed', 'failed', 'cancelled'] }).default('pending').notNull(),
   trigger: text('trigger').notNull(), // 'manual', 'schedule', 'event', 'webhook'
@@ -1263,11 +1369,14 @@ export const workflowExecutions = sqliteTable('workflow_executions', {
   error: text('error'), // 에러 메시지
   metadata: text('metadata'), // JSON
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_workflow_executions_tenant').on(table.tenantId),
+]);
 
 // Integrations Table (외부 서비스 연동)
 export const integrations = sqliteTable('integrations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(), // 'Slack', 'Discord', 'Google Sheets', 'HubSpot', 'Zapier'
   type: text('type', { enum: ['messaging', 'crm', 'storage', 'analytics', 'automation'] }).notNull(),
   provider: text('provider').notNull(), // 'slack', 'discord', 'google', 'hubspot', 'zapier'
@@ -1282,11 +1391,14 @@ export const integrations = sqliteTable('integrations', {
   createdBy: text('created_by').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_integrations_tenant').on(table.tenantId),
+]);
 
 // Webhooks Table (웹훅 관리)
 export const webhooks = sqliteTable('webhooks', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(),
   url: text('url').notNull(),
   events: text('events').notNull(), // JSON array: ['distributor.created', 'payment.completed']
@@ -1300,11 +1412,14 @@ export const webhooks = sqliteTable('webhooks', {
   createdBy: text('created_by').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_webhooks_tenant').on(table.tenantId),
+]);
 
 // Webhook Logs Table (웹훅 실행 로그)
 export const webhookLogs = sqliteTable('webhook_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   webhookId: integer('webhook_id').notNull().references(() => webhooks.id, { onDelete: 'cascade' }),
   event: text('event').notNull(),
   payload: text('payload').notNull(), // JSON
@@ -1314,11 +1429,14 @@ export const webhookLogs = sqliteTable('webhook_logs', {
   attemptNumber: integer('attempt_number').default(1).notNull(),
   error: text('error'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_webhook_logs_tenant').on(table.tenantId),
+]);
 
 // Automation Templates Table (자동화 템플릿)
 export const automationTemplates = sqliteTable('automation_templates', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(),
   description: text('description').notNull(),
   category: text('category', { enum: ['onboarding', 'engagement', 'support', 'marketing', 'sales'] }).notNull(),
@@ -1332,7 +1450,9 @@ export const automationTemplates = sqliteTable('automation_templates', {
   createdBy: text('created_by').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_automation_templates_tenant').on(table.tenantId),
+]);
 
 // Export types for Epic 22
 export type Workflow = typeof workflows.$inferSelect;

@@ -3,10 +3,13 @@ import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
 import { sendNewsletter } from '@/lib/email';
 import { logger } from '@/lib/monitoring';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // POST /api/pd/newsletter/send - Send newsletter to subscribers
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const { subject, content, previewText, recipientIds } = body;
 
@@ -26,6 +29,7 @@ export async function POST(request: NextRequest) {
       const selectedLeads = await db
         .select()
         .from(leads)
+        .where(tenantFilter(leads.tenantId, tenantId))
         .all();
 
       recipients = selectedLeads
@@ -33,7 +37,7 @@ export async function POST(request: NextRequest) {
         .map(lead => lead.email);
     } else {
       // Send to all subscribers
-      const allLeads = await db.select().from(leads).all();
+      const allLeads = await db.select().from(leads).where(tenantFilter(leads.tenantId, tenantId)).all();
       recipients = allLeads.map(lead => lead.email);
     }
 

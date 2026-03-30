@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // DELETE /api/pd/newsletter/[id] - 구독 취소
 export async function DELETE(
@@ -9,6 +11,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id: idStr } = await params;
     const id = parseInt(idStr);
 
@@ -21,7 +24,10 @@ export async function DELETE(
 
     const result = await db
       .delete(leads)
-      .where(eq(leads.id, id))
+      .where(and(
+        eq(leads.id, id),
+        tenantFilter(leads.tenantId, tenantId)
+      ))
       .returning();
 
     if (result.length === 0) {

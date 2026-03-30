@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id: idStr } = await params;
     const id = parseInt(idStr);
 
@@ -18,7 +21,10 @@ export async function DELETE(
       );
     }
 
-    await db.delete(leads).where(eq(leads.id, id));
+    await db.delete(leads).where(and(
+      eq(leads.id, id),
+      tenantFilter(leads.tenantId, tenantId)
+    ));
 
     return NextResponse.json({
       success: true,

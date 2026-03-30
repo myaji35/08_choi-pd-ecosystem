@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { distributorResources } from '@/lib/db/schema';
-import { eq, sql, like, or } from 'drizzle-orm';
+import { eq, sql, like, or, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/admin/resources - 리소스 목록 조회
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get('category');
     const searchQuery = searchParams.get('search');
 
-    // 카테고리 필터
+    // 카테고리 필터 + 테넌트 필터
     const results = category && category !== 'all'
-      ? await db.select().from(distributorResources).where(eq(distributorResources.category, category as any)).all()
-      : await db.select().from(distributorResources).all();
+      ? await db.select().from(distributorResources).where(and(tenantFilter(distributorResources.tenantId, tenantId), eq(distributorResources.category, category as any))).all()
+      : await db.select().from(distributorResources).where(tenantFilter(distributorResources.tenantId, tenantId)).all();
 
     // 검색어 필터 (클라이언트 사이드에서 처리하거나 여기서 처리 가능)
     let filteredResults = results;
@@ -61,7 +64,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 리소스 생성
-    const result = await db.insert(distributorResources).values({
+    const tenantId = getTenantIdFromRequest(request);
+    const result = await db.insert(distributorResources).values(withTenantId({
       title,
       description: description || null,
       fileUrl,
@@ -73,7 +77,7 @@ export async function POST(request: NextRequest) {
       isActive: true,
       createdAt: sql`CURRENT_TIMESTAMP`,
       updatedAt: sql`CURRENT_TIMESTAMP`,
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({
       success: true,

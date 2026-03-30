@@ -32,11 +32,11 @@ export const PLAN_LIMITS = {
     customDomain: true,
   },
   enterprise: {
-    maxSnsAccounts: Infinity,
+    maxSnsAccounts: 999999,
     maxStorage: 53687091200,     // 50GB
-    maxTeamMembers: Infinity,
-    maxCourses: Infinity,
-    maxDistributors: Infinity,
+    maxTeamMembers: 999999,
+    maxCourses: 999999,
+    maxDistributors: 999999,
     customDomain: true,
   },
 } as const;
