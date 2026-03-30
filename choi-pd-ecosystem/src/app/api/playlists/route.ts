@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { videoPlaylists } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { createPlaylist } from '@/lib/video';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/playlists
@@ -10,20 +12,23 @@ import { createPlaylist } from '@/lib/video';
  */
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { searchParams } = new URL(request.url);
     const createdBy = searchParams.get('createdBy');
     const visibility = searchParams.get('visibility');
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    let query = db.select().from(videoPlaylists);
+    const conditions = [tenantFilter(videoPlaylists.tenantId, tenantId)];
 
     if (createdBy) {
-      query = query.where(eq(videoPlaylists.createdBy, createdBy));
+      conditions.push(eq(videoPlaylists.createdBy, createdBy));
     }
 
     if (visibility) {
-      query = query.where(eq(videoPlaylists.visibility, visibility as any));
+      conditions.push(eq(videoPlaylists.visibility, visibility as any));
     }
+
+    let query = db.select().from(videoPlaylists).where(and(...conditions));
 
     const playlists = await query
       .orderBy(desc(videoPlaylists.createdAt))

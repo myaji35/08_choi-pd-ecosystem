@@ -73,7 +73,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       ))
       .all();
 
-    if (limits.maxTeamMembers !== Infinity && currentMembers.length >= limits.maxTeamMembers + 1) {
+    if (limits.maxTeamMembers !== 999999 && currentMembers.length >= limits.maxTeamMembers + 1) {
       // +1은 소유자 포함
       return NextResponse.json(
         { error: '팀 멤버 수 한도를 초과했습니다. 플랜을 업그레이드하세요.', code: 'PLAN_LIMIT_EXCEEDED' },

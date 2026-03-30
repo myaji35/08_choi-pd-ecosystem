@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
+import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 const leadSchema = z.object({
   email: z.string().email('유효한 이메일 주소를 입력해주세요'),
@@ -9,12 +12,13 @@ const leadSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const validatedData = leadSchema.parse(body);
 
-    // 이미 구독한 이메일인지 확인
+    // 이미 구독한 이메일인지 확인 (테넌트 범위 내)
     const existing = await db.query.leads.findFirst({
-      where: (leads, { eq }) => eq(leads.email, validatedData.email),
+      where: and(eq(leads.email, validatedData.email), tenantFilter(leads.tenantId, tenantId)),
     });
 
     if (existing) {
@@ -24,9 +28,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await db.insert(leads).values({
+    const result = await db.insert(leads).values(withTenantId({
       email: validatedData.email,
-    }).returning();
+    }, tenantId)).returning();
 
     return NextResponse.json({
       success: true,

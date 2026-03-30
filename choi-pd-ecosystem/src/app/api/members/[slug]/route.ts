@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/members/[slug]
@@ -12,6 +14,7 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { slug } = await params;
 
     const member = await db
@@ -29,7 +32,7 @@ export async function GET(
         region: members.region,
       })
       .from(members)
-      .where(and(eq(members.slug, slug), eq(members.status, 'approved')))
+      .where(and(eq(members.slug, slug), eq(members.status, 'approved'), tenantFilter(members.tenantId, tenantId)))
       .limit(1);
 
     if (member.length === 0) {

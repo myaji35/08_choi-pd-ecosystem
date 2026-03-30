@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { liveStreams } from '@/lib/db/schema';
 import { eq, desc, and, gte, lte } from 'drizzle-orm';
 import { createLiveStream } from '@/lib/video';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/live
@@ -10,15 +12,14 @@ import { createLiveStream } from '@/lib/video';
  */
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const hostedBy = searchParams.get('hostedBy');
     const upcoming = searchParams.get('upcoming') === 'true';
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    let query = db.select().from(liveStreams);
-
-    const conditions = [];
+    const conditions = [tenantFilter(liveStreams.tenantId, tenantId)];
 
     if (status) {
       conditions.push(eq(liveStreams.status, status as any));
@@ -30,19 +31,12 @@ export async function GET(request: NextRequest) {
 
     if (upcoming) {
       const now = new Date();
-      conditions.push(
-        and(
-          eq(liveStreams.status, 'scheduled'),
-          gte(liveStreams.scheduledStartTime, now)
-        )
-      );
+      conditions.push(eq(liveStreams.status, 'scheduled'));
+      conditions.push(gte(liveStreams.scheduledStartTime, now));
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    const streams = await query
+    const streams = await db.select().from(liveStreams)
+      .where(and(...conditions))
       .orderBy(desc(liveStreams.scheduledStartTime))
       .limit(limit);
 

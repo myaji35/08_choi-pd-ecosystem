@@ -137,6 +137,44 @@ export default function middleware(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
+  // ─── API 인증 가드 (/api/admin/*, /api/pd/*) ────────────────
+  // 인증 불필요 공개 API 경로
+  const PUBLIC_API_PATHS = [
+    '/api/health',
+    '/api/onboarding',
+    '/api/auth/',
+    '/api/courses',
+    '/api/tenants/by-slug/',
+  ];
+
+  const isProtectedApi =
+    pathname.startsWith('/api/admin') || pathname.startsWith('/api/pd');
+
+  if (isProtectedApi) {
+    const isPublicApi = PUBLIC_API_PATHS.some((p) =>
+      p.endsWith('/') ? pathname.startsWith(p) : pathname === p || pathname.startsWith(p + '/')
+    );
+
+    if (!isPublicApi) {
+      // 개발 모드에서는 통과
+      const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+
+      if (!isDevMode) {
+        const sessionCookie =
+          request.cookies.get(SESSION_COOKIE_NAME)?.value ||
+          request.cookies.get('admin_session')?.value;
+        const clerkUserId = request.headers.get('x-clerk-user-id');
+
+        if (!sessionCookie && !clerkUserId) {
+          return NextResponse.json(
+            { error: '인증이 필요합니다' },
+            { status: 401 }
+          );
+        }
+      }
+    }
+  }
+
   // Allow public routes
   if (
     pathname === '/login' ||

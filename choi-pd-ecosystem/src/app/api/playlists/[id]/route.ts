@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { videoPlaylists, playlistVideos, videos } from '@/lib/db/schema';
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/playlists/[id]
@@ -12,13 +14,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const playlistId = parseInt(id);
 
     // Get playlist
     const [playlist] = await db
       .select()
       .from(videoPlaylists)
-      .where(eq(videoPlaylists.id, playlistId));
+      .where(and(eq(videoPlaylists.id, playlistId), tenantFilter(videoPlaylists.tenantId, tenantId)));
 
     if (!playlist) {
       return NextResponse.json(
@@ -66,6 +69,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const playlistId = parseInt(id);
     const body = await request.json();
 
@@ -81,7 +85,7 @@ export async function PATCH(
     const [updatedPlaylist] = await db
       .update(videoPlaylists)
       .set(updateData)
-      .where(eq(videoPlaylists.id, playlistId))
+      .where(and(eq(videoPlaylists.id, playlistId), tenantFilter(videoPlaylists.tenantId, tenantId)))
       .returning();
 
     if (!updatedPlaylist) {
@@ -113,9 +117,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const playlistId = parseInt(id);
 
-    await db.delete(videoPlaylists).where(eq(videoPlaylists.id, playlistId));
+    await db.delete(videoPlaylists).where(and(eq(videoPlaylists.id, playlistId), tenantFilter(videoPlaylists.tenantId, tenantId)));
 
     return NextResponse.json({
       success: true,

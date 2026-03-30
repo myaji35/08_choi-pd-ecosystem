@@ -629,6 +629,7 @@ export const passwordHistory = sqliteTable('password_history', {
 // Organizations (조직/기업)
 export const organizations = sqliteTable('organizations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(),
   displayName: text('display_name').notNull(),
   slug: text('slug').notNull().unique(), // URL-friendly identifier
@@ -654,11 +655,14 @@ export const organizations = sqliteTable('organizations', {
   isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_organizations_tenant').on(table.tenantId),
+]);
 
 // Organization Branding (화이트라벨 브랜딩)
 export const organizationBranding = sqliteTable('organization_branding', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   organizationId: integer('organization_id').notNull().unique().references(() => organizations.id, { onDelete: 'cascade' }),
   logoUrl: text('logo_url'), // 로고 이미지 URL
   faviconUrl: text('favicon_url'), // 파비콘 URL
@@ -677,11 +681,14 @@ export const organizationBranding = sqliteTable('organization_branding', {
   metadata: text('metadata'), // JSON: 추가 브랜딩 설정
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_organization_branding_tenant').on(table.tenantId),
+]);
 
 // Teams (팀/부서)
 export const teams = sqliteTable('teams', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   description: text('description'),
@@ -692,11 +699,14 @@ export const teams = sqliteTable('teams', {
   isActive: integer('is_active', { mode: 'boolean' }).default(true).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_teams_tenant').on(table.tenantId),
+]);
 
 // Organization Members (조직 구성원)
 export const organizationMembers = sqliteTable('organization_members', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull(), // Clerk user ID
   userEmail: text('user_email').notNull(),
@@ -714,11 +724,14 @@ export const organizationMembers = sqliteTable('organization_members', {
   metadata: text('metadata'), // JSON
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_organization_members_tenant').on(table.tenantId),
+]);
 
 // SSO Configurations (Single Sign-On 설정)
 export const ssoConfigurations = sqliteTable('sso_configurations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   organizationId: integer('organization_id').notNull().unique().references(() => organizations.id, { onDelete: 'cascade' }),
   provider: text('provider', { enum: ['saml', 'oauth', 'ldap', 'oidc'] }).notNull(),
   providerName: text('provider_name'), // Okta, Azure AD, Google, etc.
@@ -753,11 +766,14 @@ export const ssoConfigurations = sqliteTable('sso_configurations', {
   metadata: text('metadata'), // JSON
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_sso_configurations_tenant').on(table.tenantId),
+]);
 
 // Support Tickets (지원 티켓)
 export const supportTickets = sqliteTable('support_tickets', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   createdBy: text('created_by').notNull(), // User ID
   createdByEmail: text('created_by_email').notNull(),
@@ -777,11 +793,14 @@ export const supportTickets = sqliteTable('support_tickets', {
   metadata: text('metadata'), // JSON
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_support_tickets_tenant').on(table.tenantId),
+]);
 
 // Support Ticket Comments (티켓 댓글)
 export const supportTicketComments = sqliteTable('support_ticket_comments', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   ticketId: integer('ticket_id').notNull().references(() => supportTickets.id, { onDelete: 'cascade' }),
   authorId: text('author_id').notNull(), // User ID
   authorEmail: text('author_email').notNull(),
@@ -791,11 +810,14 @@ export const supportTicketComments = sqliteTable('support_ticket_comments', {
   isInternal: integer('is_internal', { mode: 'boolean' }).default(false), // 내부 메모 (고객에게 비공개)
   attachments: text('attachments'), // JSON array
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_support_ticket_comments_tenant').on(table.tenantId),
+]);
 
 // SLA Metrics (Service Level Agreement 메트릭)
 export const slaMetrics = sqliteTable('sla_metrics', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   metricType: text('metric_type', { enum: ['uptime', 'response_time', 'resolution_time', 'availability'] }).notNull(),
   targetValue: integer('target_value').notNull(), // 목표 값 (예: 99.9% = 999)
@@ -807,11 +829,14 @@ export const slaMetrics = sqliteTable('sla_metrics', {
   isViolation: integer('is_violation', { mode: 'boolean' }).default(false).notNull(),
   violationDetails: text('violation_details'), // JSON
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_sla_metrics_tenant').on(table.tenantId),
+]);
 
 // User Bulk Import Logs (대량 사용자 임포트 로그)
 export const userBulkImportLogs = sqliteTable('user_bulk_import_logs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   importedBy: text('imported_by').notNull(), // Admin user ID
   fileName: text('file_name').notNull(),
@@ -825,7 +850,9 @@ export const userBulkImportLogs = sqliteTable('user_bulk_import_logs', {
   startedAt: integer('started_at', { mode: 'timestamp' }),
   completedAt: integer('completed_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_user_bulk_import_logs_tenant').on(table.tenantId),
+]);
 
 // ============================================
 // Epic 17: 고급 분석 및 BI 대시보드
@@ -1480,6 +1507,7 @@ export type NewAutomationTemplate = typeof automationTemplates.$inferInsert;
 // Videos Table (비디오 콘텐츠)
 export const videos = sqliteTable('videos', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   title: text('title').notNull(),
   description: text('description'),
   courseId: integer('course_id').references(() => courses.id, { onDelete: 'cascade' }),
@@ -1514,11 +1542,14 @@ export const videos = sqliteTable('videos', {
   uploadedBy: text('uploaded_by').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_videos_tenant').on(table.tenantId),
+]);
 
 // Video Chapters Table (비디오 챕터)
 export const videoChapters = sqliteTable('video_chapters', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   videoId: integer('video_id').notNull().references(() => videos.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   startTime: integer('start_time').notNull(), // 초 단위
@@ -1526,11 +1557,14 @@ export const videoChapters = sqliteTable('video_chapters', {
   thumbnailUrl: text('thumbnail_url'),
   order: integer('order').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_video_chapters_tenant').on(table.tenantId),
+]);
 
 // Video Subtitles Table (자막)
 export const videoSubtitles = sqliteTable('video_subtitles', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   videoId: integer('video_id').notNull().references(() => videos.id, { onDelete: 'cascade' }),
   language: text('language').notNull(), // 'ko', 'en', 'ja'
   label: text('label').notNull(), // '한국어', 'English', '日本語'
@@ -1539,11 +1573,14 @@ export const videoSubtitles = sqliteTable('video_subtitles', {
   isDefault: integer('is_default', { mode: 'boolean' }).default(false),
   isAutoGenerated: integer('is_auto_generated', { mode: 'boolean' }).default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_video_subtitles_tenant').on(table.tenantId),
+]);
 
 // Watch History Table (시청 기록)
 export const watchHistory = sqliteTable('watch_history', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   userId: text('user_id').notNull(),
   userType: text('user_type', { enum: ['distributor', 'pd', 'customer'] }).notNull(),
   videoId: integer('video_id').notNull().references(() => videos.id, { onDelete: 'cascade' }),
@@ -1555,11 +1592,14 @@ export const watchHistory = sqliteTable('watch_history', {
   quality: text('quality'), // '360p', '720p', '1080p'
   lastWatchedAt: integer('last_watched_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_watch_history_tenant').on(table.tenantId),
+]);
 
 // Live Streams Table (라이브 스트리밍)
 export const liveStreams = sqliteTable('live_streams', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   title: text('title').notNull(),
   description: text('description'),
   scheduledStartTime: integer('scheduled_start_time', { mode: 'timestamp' }).notNull(),
@@ -1587,11 +1627,14 @@ export const liveStreams = sqliteTable('live_streams', {
   hostedBy: text('hosted_by').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_live_streams_tenant').on(table.tenantId),
+]);
 
 // Video Comments Table (비디오 댓글)
 export const videoComments = sqliteTable('video_comments', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   videoId: integer('video_id').notNull().references(() => videos.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull(),
   userName: text('user_name').notNull(),
@@ -1603,11 +1646,14 @@ export const videoComments = sqliteTable('video_comments', {
   isPinned: integer('is_pinned', { mode: 'boolean' }).default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_video_comments_tenant').on(table.tenantId),
+]);
 
 // Video Playlists Table (재생목록)
 export const videoPlaylists = sqliteTable('video_playlists', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(),
   description: text('description'),
   thumbnailUrl: text('thumbnail_url'),
@@ -1617,16 +1663,21 @@ export const videoPlaylists = sqliteTable('video_playlists', {
   totalDuration: integer('total_duration').default(0), // 초 단위
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_video_playlists_tenant').on(table.tenantId),
+]);
 
 // Playlist Videos Table (재생목록 비디오 매핑)
 export const playlistVideos = sqliteTable('playlist_videos', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   playlistId: integer('playlist_id').notNull().references(() => videoPlaylists.id, { onDelete: 'cascade' }),
   videoId: integer('video_id').notNull().references(() => videos.id, { onDelete: 'cascade' }),
   order: integer('order').notNull(),
   addedAt: integer('added_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_playlist_videos_tenant').on(table.tenantId),
+]);
 
 // Export types for Epic 23
 export type Video = typeof videos.$inferSelect;
@@ -1660,6 +1711,7 @@ export type NewPlaylistVideo = typeof playlistVideos.$inferInsert;
 // Members Table (회원 - 개인비즈니스 페이지 운영자)
 export const members = sqliteTable('members', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   towningraphUserId: text('towningraph_user_id').unique(), // 외부 연동 키
   slug: text('slug').unique().notNull(), // 서브도메인 slug
   name: text('name').notNull(),
@@ -1681,11 +1733,14 @@ export const members = sqliteTable('members', {
   featuredOrder: integer('featured_order').default(0), // 쇼케이스 노출 순서
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_members_tenant').on(table.tenantId),
+]);
 
 // Member Portfolio Items Table (포트폴리오)
 export const memberPortfolioItems = sqliteTable('member_portfolio_items', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   memberId: integer('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   description: text('description'),
@@ -1694,11 +1749,14 @@ export const memberPortfolioItems = sqliteTable('member_portfolio_items', {
   category: text('category'),
   sortOrder: integer('sort_order').default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_member_portfolio_items_tenant').on(table.tenantId),
+]);
 
 // Member Services Table (서비스/상품)
 export const memberServices = sqliteTable('member_services', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   memberId: integer('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   description: text('description'),
@@ -1710,11 +1768,14 @@ export const memberServices = sqliteTable('member_services', {
   sortOrder: integer('sort_order').default(0),
   isActive: integer('is_active').default(1),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_member_services_tenant').on(table.tenantId),
+]);
 
 // Member Posts Table (블로그/소식)
 export const memberPosts = sqliteTable('member_posts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   memberId: integer('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   content: text('content').notNull(),
@@ -1724,38 +1785,49 @@ export const memberPosts = sqliteTable('member_posts', {
   publishedAt: integer('published_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_member_posts_tenant').on(table.tenantId),
+]);
 
 // Member Inquiries Table (문의)
 export const memberInquiries = sqliteTable('member_inquiries', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   memberId: integer('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
   senderName: text('sender_name').notNull(),
   senderEmail: text('sender_email').notNull(),
   message: text('message').notNull(),
   isRead: integer('is_read').default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_member_inquiries_tenant').on(table.tenantId),
+]);
 
 // Member Reviews Table (후기)
 export const memberReviews = sqliteTable('member_reviews', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   memberId: integer('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
   reviewerName: text('reviewer_name').notNull(),
   rating: integer('rating').notNull(), // 1-5
   content: text('content'),
   isApproved: integer('is_approved').default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_member_reviews_tenant').on(table.tenantId),
+]);
 
 // Member Bookings Table (예약 설정)
 export const memberBookings = sqliteTable('member_bookings', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   memberId: integer('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
   bookingType: text('booking_type'), // external_link | calendar
   externalUrl: text('external_url'),
   description: text('description')
-});
+}, (table) => [
+  index('idx_member_bookings_tenant').on(table.tenantId),
+]);
 
 // Export types for Member tables
 export type Member = typeof members.$inferSelect;
@@ -1786,25 +1858,32 @@ export type NewMemberBooking = typeof memberBookings.$inferInsert;
 // Chat Conversations Table (채팅 대화)
 export const chatConversations = sqliteTable('chat_conversations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   memberId: integer('member_id').notNull().references(() => members.id),
   title: text('title'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_chat_conversations_tenant').on(table.tenantId),
+]);
 
 // Chat Messages Table (채팅 메시지)
 export const chatMessages = sqliteTable('chat_messages', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   conversationId: integer('conversation_id').notNull().references(() => chatConversations.id, { onDelete: 'cascade' }),
   role: text('role').notNull(), // 'user' | 'assistant'
   content: text('content').notNull(),
   imageUrls: text('image_urls'), // JSON array
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_chat_messages_tenant').on(table.tenantId),
+]);
 
 // Member Memories Table (회원 기억/메모)
 export const memberMemories = sqliteTable('member_memories', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   memberId: integer('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
   type: text('type').default('activity'), // 'activity' | 'note' | 'preference'
   date: text('date'), // YYYY-MM-DD format
@@ -1815,18 +1894,23 @@ export const memberMemories = sqliteTable('member_memories', {
   imageUrls: text('image_urls'), // JSON array
   sourceMessageId: integer('source_message_id'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_member_memories_tenant').on(table.tenantId),
+]);
 
 // Member Uploads Table (회원 파일 업로드)
 export const memberUploads = sqliteTable('member_uploads', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   memberId: integer('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
   filename: text('filename').notNull(),
   storagePath: text('storage_path').notNull(),
   fileSize: integer('file_size').notNull(),
   mimeType: text('mime_type').notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_member_uploads_tenant').on(table.tenantId),
+]);
 
 // Export types for Chat & Memory tables
 export type ChatConversation = typeof chatConversations.$inferSelect;

@@ -9,16 +9,19 @@ import {
 } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { chatWithAI } from '@/lib/chat/openai';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const member = await db.query.members.findFirst({
-      where: eq(members.towningraphUserId, session.userId),
+      where: and(eq(members.towningraphUserId, session.userId), tenantFilter(members.tenantId, tenantId)),
     });
     if (!member) {
       return NextResponse.json({ success: false, error: 'Member not found' }, { status: 404 });
@@ -51,12 +54,12 @@ export async function POST(request: NextRequest) {
     // 1. Save user message
     const [userMessage] = await db
       .insert(chatMessages)
-      .values({
+      .values(withTenantId({
         conversationId,
         role: 'user',
         content,
         imageUrls: imageUrls ? JSON.stringify(imageUrls) : null,
-      })
+      }, tenantId))
       .returning();
 
     // 2. Load recent 20 memories for this member
@@ -89,11 +92,11 @@ export async function POST(request: NextRequest) {
       // Save error as assistant message
       const [assistantMessage] = await db
         .insert(chatMessages)
-        .values({
+        .values(withTenantId({
           conversationId,
           role: 'assistant',
           content: `[오류] ${errMsg}`,
-        })
+        }, tenantId))
         .returning();
 
       return NextResponse.json({
@@ -105,11 +108,11 @@ export async function POST(request: NextRequest) {
     // 5. Save assistant message
     const [assistantMessage] = await db
       .insert(chatMessages)
-      .values({
+      .values(withTenantId({
         conversationId,
         role: 'assistant',
         content: aiResponse.reply,
-      })
+      }, tenantId))
       .returning();
 
     // 6. If memory extracted, save to memberMemories
@@ -117,7 +120,7 @@ export async function POST(request: NextRequest) {
     if (aiResponse.memory) {
       const [memory] = await db
         .insert(memberMemories)
-        .values({
+        .values(withTenantId({
           memberId: member.id,
           type: 'activity',
           date: aiResponse.memory.date,
@@ -126,7 +129,7 @@ export async function POST(request: NextRequest) {
           summary: aiResponse.memory.summary,
           imageUrls: imageUrls ? JSON.stringify(imageUrls) : null,
           sourceMessageId: userMessage.id,
-        })
+        }, tenantId))
         .returning();
       savedMemory = memory;
     }

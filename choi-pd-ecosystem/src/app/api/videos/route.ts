@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { videos } from '@/lib/db/schema';
 import { eq, desc, and, or, like } from 'drizzle-orm';
 import { createVideo } from '@/lib/video';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/videos
@@ -10,6 +12,7 @@ import { createVideo } from '@/lib/video';
  */
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get('courseId');
     const status = searchParams.get('status');
@@ -19,9 +22,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    let query = db.select().from(videos);
-
-    const conditions = [];
+    const conditions: any[] = [tenantFilter(videos.tenantId, tenantId)];
 
     if (courseId) {
       conditions.push(eq(videos.courseId, parseInt(courseId)));
@@ -48,11 +49,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    const allVideos = await query
+    const allVideos = await db.select().from(videos)
+      .where(and(...conditions))
       .orderBy(desc(videos.createdAt))
       .limit(limit)
       .offset(offset);

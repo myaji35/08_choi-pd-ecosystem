@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { videos } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/videos/[id]
@@ -12,12 +14,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const videoId = parseInt(id);
 
     const [video] = await db
       .select()
       .from(videos)
-      .where(eq(videos.id, videoId));
+      .where(and(eq(videos.id, videoId), tenantFilter(videos.tenantId, tenantId)));
 
     if (!video) {
       return NextResponse.json(
@@ -32,7 +35,7 @@ export async function GET(
       .set({
         viewCount: video.viewCount + 1
       })
-      .where(eq(videos.id, videoId));
+      .where(and(eq(videos.id, videoId), tenantFilter(videos.tenantId, tenantId)));
 
     return NextResponse.json({
       success: true,
@@ -59,6 +62,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const videoId = parseInt(id);
     const body = await request.json();
 
@@ -87,7 +91,7 @@ export async function PATCH(
     const [updatedVideo] = await db
       .update(videos)
       .set(updateData)
-      .where(eq(videos.id, videoId))
+      .where(and(eq(videos.id, videoId), tenantFilter(videos.tenantId, tenantId)))
       .returning();
 
     if (!updatedVideo) {
@@ -119,6 +123,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const videoId = parseInt(id);
 
     // TODO: Delete actual video files from storage
@@ -127,7 +132,7 @@ export async function DELETE(
     // - MP4 file
     // - Thumbnails
 
-    await db.delete(videos).where(eq(videos.id, videoId));
+    await db.delete(videos).where(and(eq(videos.id, videoId), tenantFilter(videos.tenantId, tenantId)));
 
     return NextResponse.json({
       success: true,

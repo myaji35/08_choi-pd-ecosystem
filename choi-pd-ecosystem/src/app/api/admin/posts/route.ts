@@ -1,26 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { posts } from '@/lib/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/admin/posts - Get all posts
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const published = searchParams.get('published');
 
-    let query = db.select().from(posts);
+    const conditions = [tenantFilter(posts.tenantId, tenantId)];
 
     if (category) {
-      query = query.where(eq(posts.category, category as any)) as any;
+      conditions.push(eq(posts.category, category as any));
     }
 
     if (published !== null && published !== undefined) {
-      query = query.where(eq(posts.published, published === 'true')) as any;
+      conditions.push(eq(posts.published, published === 'true'));
     }
 
-    const allPosts = await query.orderBy(desc(posts.createdAt)).all();
+    const allPosts = await db.select().from(posts).where(and(...conditions)).orderBy(desc(posts.createdAt)).all();
 
     return NextResponse.json({
       success: true,
@@ -38,6 +41,7 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/posts - Create new post
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const { title, content, category, published } = body;
 
@@ -50,12 +54,12 @@ export async function POST(request: NextRequest) {
 
     const result = await db
       .insert(posts)
-      .values({
+      .values(withTenantId({
         title,
         content,
         category,
         published: published !== undefined ? published : true,
-      })
+      }, tenantId))
       .returning()
       .get();
 

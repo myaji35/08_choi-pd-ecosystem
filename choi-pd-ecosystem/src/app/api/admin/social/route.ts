@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { settings } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 import { encrypt } from '@/lib/crypto/encryption';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 const socialSchema = z.object({
   facebook: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
@@ -24,6 +26,7 @@ const socialSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const validatedData = socialSchema.parse(body);
 
@@ -63,15 +66,15 @@ export async function POST(request: NextRequest) {
 
     for (const setting of settingsToUpdate) {
       const existing = await db.query.settings.findFirst({
-        where: eq(settings.key, setting.key),
+        where: and(eq(settings.key, setting.key), tenantFilter(settings.tenantId, tenantId)),
       });
 
       if (existing) {
         await db.update(settings)
           .set({ value: setting.value, updatedAt: new Date() })
-          .where(eq(settings.key, setting.key));
+          .where(and(eq(settings.key, setting.key), tenantFilter(settings.tenantId, tenantId)));
       } else {
-        await db.insert(settings).values(setting);
+        await db.insert(settings).values(withTenantId(setting, tenantId));
       }
     }
 

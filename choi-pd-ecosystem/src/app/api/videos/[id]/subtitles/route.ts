@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { videoSubtitles } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { addVideoSubtitle } from '@/lib/video';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 /**
  * GET /api/videos/[id]/subtitles
@@ -13,12 +15,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const videoId = parseInt(id);
 
     const subtitles = await db
       .select()
       .from(videoSubtitles)
-      .where(eq(videoSubtitles.videoId, videoId));
+      .where(and(eq(videoSubtitles.videoId, videoId), tenantFilter(videoSubtitles.tenantId, tenantId)));
 
     return NextResponse.json({
       success: true,

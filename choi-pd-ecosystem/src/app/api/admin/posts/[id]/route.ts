@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { posts } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // GET /api/admin/posts/[id] - Get single post
 export async function GET(
@@ -9,6 +11,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const postId = parseInt(id, 10);
 
     if (isNaN(postId)) {
@@ -21,7 +24,7 @@ export async function GET(
     const post = await db
       .select()
       .from(posts)
-      .where(eq(posts.id, postId))
+      .where(and(eq(posts.id, postId), tenantFilter(posts.tenantId, tenantId)))
       .get();
 
     if (!post) {
@@ -50,6 +53,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const postId = parseInt(id, 10);
 
     if (isNaN(postId)) {
@@ -73,7 +77,7 @@ export async function PUT(
     const existingPost = await db
       .select()
       .from(posts)
-      .where(eq(posts.id, postId))
+      .where(and(eq(posts.id, postId), tenantFilter(posts.tenantId, tenantId)))
       .get();
 
     if (!existingPost) {
@@ -92,7 +96,7 @@ export async function PUT(
         category,
         published: published !== undefined ? published : true,
       })
-      .where(eq(posts.id, postId))
+      .where(and(eq(posts.id, postId), tenantFilter(posts.tenantId, tenantId)))
       .returning()
       .get();
 
@@ -115,6 +119,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;    const postId = parseInt(id, 10);
 
     if (isNaN(postId)) {
@@ -128,7 +133,7 @@ export async function DELETE(
     const existingPost = await db
       .select()
       .from(posts)
-      .where(eq(posts.id, postId))
+      .where(and(eq(posts.id, postId), tenantFilter(posts.tenantId, tenantId)))
       .get();
 
     if (!existingPost) {
@@ -141,7 +146,7 @@ export async function DELETE(
     // Delete post
     await db
       .delete(posts)
-      .where(eq(posts.id, postId))
+      .where(and(eq(posts.id, postId), tenantFilter(posts.tenantId, tenantId)))
       .run();
 
     return NextResponse.json({
