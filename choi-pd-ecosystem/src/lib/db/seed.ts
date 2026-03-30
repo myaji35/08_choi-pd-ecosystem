@@ -153,6 +153,7 @@ async function seedPosts() {
         content: '안녕하세요, imPD 서비스가 정식 오픈했습니다.\n\nimPD는 개인사업자, 프리랜서, PD를 위한 통합 브랜드 허브 플랫폼입니다. 교육 과정 관리, SNS 연동, 유통사 관리 등 다양한 기능을 제공합니다.\n\n많은 관심과 이용 부탁드립니다.',
         category: 'notice' as const,
         published: true,
+        createdAt: new Date('2026-03-25'),
       },
       {
         tenantId: 1,
@@ -160,6 +161,7 @@ async function seedPosts() {
         content: '3월 새로운 교육 과정이 준비되었습니다.\n\n1. 스마트폰 창업 입문 (온라인, 무료)\n2. SNS 마케팅 실전 (오프라인, 99,000원)\n3. B2B 디지털 전환 컨설팅 (기업/기관 대상, 문의)\n\n자세한 내용은 교육 페이지에서 확인해 주세요.',
         category: 'notice' as const,
         published: true,
+        createdAt: new Date('2026-03-28'),
       },
     ];
 

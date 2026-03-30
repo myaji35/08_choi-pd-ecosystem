@@ -67,8 +67,8 @@ export function AnnouncementsSection({ posts }: AnnouncementsSectionProps) {
                     {getCategoryLabel(post.category)}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {post.createdAt instanceof Date
-                      ? post.createdAt.toISOString().split('T')[0].replace(/-/g, '.')
+                    {post.createdAt
+                      ? new Date(post.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').replace(/\.$/, '')
                       : '날짜 없음'}
                   </span>
                 </div>

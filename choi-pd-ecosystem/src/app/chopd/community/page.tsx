@@ -15,11 +15,13 @@ export const metadata = {
 
 export default async function CommunityPage() {
   // 공지사항 조회 (최근 10개)
-  const announcements = await db.query.posts.findMany({
-    where: eq(posts.published, true),
-    orderBy: [desc(posts.createdAt)],
-    limit: 10,
-  });
+  const announcements = await db
+    .select()
+    .from(posts)
+    .where(eq(posts.published, true))
+    .orderBy(desc(posts.createdAt))
+    .limit(10)
+    .all();
 
   return (
     <div className="min-h-screen">
