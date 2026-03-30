@@ -58,7 +58,7 @@ export function HeroSection({
             {/* CTA Buttons */}
             <div className={`mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <Link
-                href="/chopd/community"
+                href="/onboarding"
                 className="inline-flex items-center justify-center px-8 py-3.5 rounded-lg text-base font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
                 style={{ background: '#00A1E0' }}
               >
