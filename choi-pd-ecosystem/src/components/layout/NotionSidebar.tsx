@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTenant } from '@/lib/tenant/useTenant';
 import {
   Home,
   GraduationCap,
@@ -46,6 +47,7 @@ export function NotionSidebar() {
   const pathname = usePathname();
   const { logout } = useSession();
   const { isSidebarOpen, toggleSidebar } = useUIStore();
+  const { tenant } = useTenant();
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
   const toggleExpanded = (key: string) => {
@@ -184,13 +186,16 @@ export function NotionSidebar() {
 
       {/* 공개 사이트 바로가기 */}
       <div className="px-2 pb-1">
-        <Link
-          href="/chopd"
+        <a
+          href={`/p/${tenant?.slug || 'chopd'}`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center gap-2 px-2 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
         >
           <Home className="w-3.5 h-3.5" />
           <span>공개 사이트 보기</span>
-        </Link>
+          <svg className="w-3 h-3 ml-auto opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
       </div>
 
       <div className="h-px bg-gray-200 mx-3" />
