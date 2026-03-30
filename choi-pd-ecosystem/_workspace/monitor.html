@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>imPD SaaS 전환 — 진행 모니터</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }
+  .pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .file-content { max-height: 600px; overflow-y: auto; }
+  .file-content::-webkit-scrollbar { width: 6px; }
+  .file-content::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+  pre { white-space: pre-wrap; word-wrap: break-word; }
+  .agent-card { transition: all 0.3s ease; }
+  .agent-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .status-done { background: #22c55e; }
+  .status-active { background: #f59e0b; animation: pulse 1.5s infinite; }
+  .status-pending { background: #64748b; }
+  .tab-active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+</style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+<!-- Header -->
+<div class="max-w-7xl mx-auto mb-8">
+  <div class="flex items-center justify-between flex-wrap gap-4">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-white">imPD SaaS 전환 모니터</h1>
+      <p class="text-slate-400 mt-1">Fullstack Web App Pipeline — 실시간 진행 현황</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div id="autoReloadBadge" class="hidden px-3 py-1 bg-blue-900/50 border border-blue-700 rounded-full text-xs text-blue-300">
+        <span class="pulse">&#9679;</span> 자동 새로고침 <span id="countdownDisplay">30</span>초
+      </div>
+      <select id="reloadInterval" class="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500">
+        <option value="0">수동 새로고침</option>
+        <option value="10">10초마다</option>
+        <option value="30" selected>30초마다</option>
+        <option value="60">60초마다</option>
+      </select>
+      <button onclick="reloadFiles()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        새로고침
+      </button>
+      <span id="lastUpdate" class="text-xs text-slate-500"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Pipeline Overview -->
+<div class="max-w-7xl mx-auto mb-8">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+    <!-- Phase 1: 설계 -->
+    <div class="agent-card bg-slate-800/80 border border-slate-700 rounded-xl p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-emerald-900/50 border border-emerald-700 rounded-lg flex items-center justify-center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-white">Phase 1: 설계</h3>
+          <p class="text-xs text-slate-400">architect</p>
+        </div>
+        <span class="ml-auto status-dot status-done" title="완료"></span>
+      </div>
+      <div class="space-y-2 text-sm">
+        <div class="flex items-center gap-2"><span class="status-dot status-done"></span><span class="text-slate-300">01_architecture.md</span></div>
+        <div class="flex items-center gap-2"><span class="status-dot status-done"></span><span class="text-slate-300">02_api_spec.md</span></div>
+        <div class="flex items-center gap-2"><span class="status-dot status-done"></span><span class="text-slate-300">03_db_schema.md</span></div>
+      </div>
+    </div>
+
+    <!-- Phase 2: 구현 -->
+    <div class="agent-card bg-slate-800/80 border border-slate-700 rounded-xl p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-amber-900/50 border border-amber-700 rounded-lg flex items-center justify-center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-white">Phase 2: 구현</h3>
+          <p class="text-xs text-slate-400">frontend + backend + devops</p>
+        </div>
+        <span class="ml-auto status-dot status-active" title="진행중"></span>
+      </div>
+      <div class="space-y-2 text-sm">
+        <div class="flex items-center gap-2"><span class="status-dot status-pending" id="dot-frontend"></span><span class="text-slate-300">프론트엔드 (멀티테넌시 UI)</span></div>
+        <div class="flex items-center gap-2"><span class="status-dot status-pending" id="dot-backend"></span><span class="text-slate-300">백엔드 (API + DB 마이그레이션)</span></div>
+        <div class="flex items-center gap-2"><span class="status-dot status-pending" id="dot-devops"></span><span class="text-slate-300">DevOps (배포 설정)</span></div>
+      </div>
+    </div>
+
+    <!-- Phase 3: 검증 -->
+    <div class="agent-card bg-slate-800/80 border border-slate-700 rounded-xl p-5">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-slate-700/50 border border-slate-600 rounded-lg flex items-center justify-center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-white">Phase 3: 검증</h3>
+          <p class="text-xs text-slate-400">qa-engineer</p>
+        </div>
+        <span class="ml-auto status-dot status-pending" title="대기"></span>
+      </div>
+      <div class="space-y-2 text-sm">
+        <div class="flex items-center gap-2"><span class="status-dot status-pending"></span><span class="text-slate-300">04_test_plan.md</span></div>
+        <div class="flex items-center gap-2"><span class="status-dot status-pending"></span><span class="text-slate-300">05_deploy_guide.md</span></div>
+        <div class="flex items-center gap-2"><span class="status-dot status-pending"></span><span class="text-slate-300">06_review_report.md</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- File Viewer Tabs -->
+<div class="max-w-7xl mx-auto">
+  <div class="bg-slate-800/80 border border-slate-700 rounded-xl overflow-hidden">
+    <!-- Tab Bar -->
+    <div class="flex border-b border-slate-700 overflow-x-auto" id="tabBar">
+      <button class="tab-btn tab-active px-4 py-3 text-sm font-medium whitespace-nowrap hover:bg-slate-700/50 transition-colors" data-file="01_architecture.md">Architecture</button>
+      <button class="tab-btn px-4 py-3 text-sm font-medium text-slate-400 whitespace-nowrap hover:bg-slate-700/50 transition-colors" data-file="02_api_spec.md">API Spec</button>
+      <button class="tab-btn px-4 py-3 text-sm font-medium text-slate-400 whitespace-nowrap hover:bg-slate-700/50 transition-colors" data-file="03_db_schema.md">DB Schema</button>
+      <button class="tab-btn px-4 py-3 text-sm font-medium text-slate-400 whitespace-nowrap hover:bg-slate-700/50 transition-colors" data-file="04_test_plan.md">Test Plan</button>
+      <button class="tab-btn px-4 py-3 text-sm font-medium text-slate-400 whitespace-nowrap hover:bg-slate-700/50 transition-colors" data-file="05_deploy_guide.md">Deploy Guide</button>
+      <button class="tab-btn px-4 py-3 text-sm font-medium text-slate-400 whitespace-nowrap hover:bg-slate-700/50 transition-colors" data-file="06_review_report.md">Review Report</button>
+    </div>
+
+    <!-- File Content -->
+    <div class="p-6 file-content" id="fileContent">
+      <p class="text-slate-500 text-center py-12">새로고침 버튼을 클릭하거나 자동 새로고침을 활성화하세요</p>
+    </div>
+
+    <!-- File Meta -->
+    <div class="px-6 py-3 border-t border-slate-700 flex items-center justify-between text-xs text-slate-500">
+      <span id="fileMeta"></span>
+      <span id="fileSize"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Git Status -->
+<div class="max-w-7xl mx-auto mt-6 mb-8">
+  <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-semibold text-white text-sm">최근 변경 파일 (Git)</h3>
+      <button onclick="reloadGit()" class="text-xs text-blue-400 hover:text-blue-300">갱신</button>
+    </div>
+    <pre id="gitStatus" class="text-xs text-slate-400 font-mono">새로고침 대기 중...</pre>
+  </div>
+</div>
+
+<script>
+const WORKSPACE = '/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-ecosystem/_workspace';
+const PROJECT = '/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-ecosystem';
+
+let currentFile = '01_architecture.md';
+let autoReloadTimer = null;
+let countdown = 30;
+let countdownTimer = null;
+let fileCache = {};
+
+// ── Tab switching ──
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('tab-active');
+      b.classList.add('text-slate-400');
+    });
+    btn.classList.add('tab-active');
+    btn.classList.remove('text-slate-400');
+    currentFile = btn.dataset.file;
+    displayFile(currentFile);
+  });
+});
+
+// ── File loading (via fetch to local file) ──
+// Since we can't fetch local files directly, we use a polling approach
+// The files are read and embedded by the reload mechanism
+
+async function reloadFiles() {
+  const files = [
+    '00_input.md', '01_architecture.md', '02_api_spec.md',
+    '03_db_schema.md', '04_test_plan.md', '05_deploy_guide.md', '06_review_report.md'
+  ];
+
+  // Use XMLHttpRequest to load local files (works when opened via file://)
+  for (const file of files) {
+    try {
+      const response = await fetch(file);
+      if (response.ok) {
+        fileCache[file] = await response.text();
+      }
+    } catch (e) {
+      // file:// protocol - try alternative
+    }
+  }
+
+  displayFile(currentFile);
+  updateStatus();
+  document.getElementById('lastUpdate').textContent = '갱신: ' + new Date().toLocaleTimeString('ko-KR');
+}
+
+function displayFile(filename) {
+  const content = fileCache[filename];
+  const el = document.getElementById('fileContent');
+  const meta = document.getElementById('fileMeta');
+  const size = document.getElementById('fileSize');
+
+  if (content) {
+    // Simple markdown rendering
+    let html = escapeHtml(content);
+    // Headers
+    html = html.replace(/^### (.+)$/gm, '<span class="text-blue-300 font-semibold">### $1</span>');
+    html = html.replace(/^## (.+)$/gm, '<span class="text-blue-200 font-bold text-lg">## $1</span>');
+    html = html.replace(/^# (.+)$/gm, '<span class="text-white font-bold text-xl"># $1</span>');
+    // Bold
+    html = html.replace(/\*\*(.+?)\*\*/g, '<span class="text-white font-semibold">$1</span>');
+    // Code blocks
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<div class="bg-slate-900 rounded p-3 my-2 text-green-300 text-xs">$2</div>');
+    // Inline code
+    html = html.replace(/`([^`]+)`/g, '<code class="bg-slate-900 px-1 rounded text-green-300 text-xs">$1</code>');
+    // Tables (basic)
+    html = html.replace(/\|(.+)\|/g, (match) => {
+      return '<span class="text-slate-300">' + match + '</span>';
+    });
+
+    el.innerHTML = '<pre class="text-sm leading-relaxed">' + html + '</pre>';
+    meta.textContent = filename;
+    size.textContent = (content.length / 1024).toFixed(1) + ' KB';
+  } else {
+    el.innerHTML = '<p class="text-slate-500 text-center py-12">파일 미생성 또는 로딩 대기 중: ' + filename + '</p>';
+    meta.textContent = filename;
+    size.textContent = '-';
+  }
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function updateStatus() {
+  // Update status dots based on file existence
+  const files = {
+    '01_architecture.md': true,
+    '02_api_spec.md': true,
+    '03_db_schema.md': true,
+    '04_test_plan.md': false,
+    '05_deploy_guide.md': false,
+    '06_review_report.md': false
+  };
+
+  for (const [file, _] of Object.entries(files)) {
+    const exists = !!fileCache[file];
+    // Update tab indicators if needed
+  }
+}
+
+function reloadGit() {
+  document.getElementById('gitStatus').textContent = 'git status는 터미널에서 확인하세요:\ncd ' + PROJECT + ' && git status --short';
+}
+
+// ── Auto reload ──
+document.getElementById('reloadInterval').addEventListener('change', (e) => {
+  const interval = parseInt(e.target.value);
+  clearInterval(autoReloadTimer);
+  clearInterval(countdownTimer);
+
+  if (interval > 0) {
+    countdown = interval;
+    document.getElementById('autoReloadBadge').classList.remove('hidden');
+    autoReloadTimer = setInterval(() => {
+      reloadFiles();
+      countdown = interval;
+    }, interval * 1000);
+    countdownTimer = setInterval(() => {
+      countdown--;
+      if (countdown < 0) countdown = interval;
+      document.getElementById('countdownDisplay').textContent = countdown;
+    }, 1000);
+  } else {
+    document.getElementById('autoReloadBadge').classList.add('hidden');
+  }
+});
+
+// ── Initial load ──
+reloadFiles();
+reloadGit();
+
+// Start auto-reload (30s default)
+(function() {
+  const interval = 30;
+  countdown = interval;
+  document.getElementById('autoReloadBadge').classList.remove('hidden');
+  autoReloadTimer = setInterval(() => {
+    reloadFiles();
+    countdown = interval;
+  }, interval * 1000);
+  countdownTimer = setInterval(() => {
+    countdown--;
+    if (countdown < 0) countdown = interval;
+    document.getElementById('countdownDisplay').textContent = countdown;
+  }, 1000);
+})();
+</script>
+
+</body>
+</html>

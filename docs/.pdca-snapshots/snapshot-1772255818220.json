@@ -1,0 +1,531 @@
+{
+  "timestamp": "2026-02-28T05:16:58.220Z",
+  "reason": "compaction",
+  "status": {
+    "version": "2.0",
+    "lastUpdated": "2026-02-28T04:52:47.682Z",
+    "activeFeatures": [
+      "migrate",
+      "choi-pd-rails",
+      "config",
+      "chopd",
+      "admin",
+      "pd",
+      "initializers",
+      "javascript",
+      "db",
+      "environments"
+    ],
+    "primaryFeature": "migrate",
+    "features": {
+      "migrate": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-28T04:25:08.405Z",
+          "lastUpdated": "2026-02-28T04:26:55.505Z"
+        },
+        "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-rails/db/migrate/20260228042649_add_role_to_admin_users.rb"
+      },
+      "choi-pd-rails": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-28T04:25:41.761Z",
+          "lastUpdated": "2026-02-28T04:42:25.689Z"
+        },
+        "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-rails/app/controllers/application_controller.rb"
+      },
+      "config": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-28T04:27:16.551Z",
+          "lastUpdated": "2026-02-28T04:27:16.552Z"
+        },
+        "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-rails/config/routes.rb"
+      },
+      "chopd": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-28T04:27:21.974Z",
+          "lastUpdated": "2026-02-28T04:27:44.683Z"
+        },
+        "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-rails/app/controllers/chopd/leads_controller.rb"
+      },
+      "admin": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-28T04:27:47.971Z",
+          "lastUpdated": "2026-02-28T04:49:45.628Z"
+        },
+        "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-rails/app/controllers/admin/hero_images_controller.rb"
+      },
+      "pd": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-28T04:28:50.192Z",
+          "lastUpdated": "2026-02-28T04:52:47.682Z"
+        },
+        "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-rails/app/controllers/pd/leads_controller.rb"
+      },
+      "initializers": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-28T04:29:40.143Z",
+          "lastUpdated": "2026-02-28T04:29:40.143Z"
+        },
+        "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-rails/config/initializers/pagy.rb"
+      },
+      "javascript": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-28T04:31:24.298Z",
+          "lastUpdated": "2026-02-28T04:31:26.800Z"
+        },
+        "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-rails/app/javascript/controllers/mobile_menu_controller.js"
+      },
+      "db": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-28T04:37:30.081Z",
+          "lastUpdated": "2026-02-28T04:37:30.081Z"
+        },
+        "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-rails/db/seeds.rb"
+      },
+      "environments": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-28T04:42:19.360Z",
+          "lastUpdated": "2026-02-28T04:42:19.360Z"
+        },
+        "lastFile": "/Volumes/E_SSD/02_GitHub.nosync/0008_choi-pd/choi-pd-rails/config/environments/development.rb"
+      }
+    },
+    "pipeline": {
+      "currentPhase": 1,
+      "level": "Dynamic",
+      "phaseHistory": []
+    },
+    "session": {
+      "startedAt": "2026-02-28T04:11:58.179Z",
+      "onboardingCompleted": false,
+      "lastActivity": "2026-02-28T04:52:47.682Z"
+    },
+    "history": [
+      {
+        "timestamp": "2026-02-28T04:25:08.405Z",
+        "feature": "migrate",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:25:18.120Z",
+        "feature": "migrate",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:25:20.924Z",
+        "feature": "migrate",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:25:41.761Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:25:44.889Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:25:47.583Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:25:51.298Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:25:54.309Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:25:57.408Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:00.809Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:04.158Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:08.319Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:11.426Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:15.143Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:29.868Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:32.820Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:35.579Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:38.253Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:42.877Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:55.505Z",
+        "feature": "migrate",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:26:58.858Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:27:16.552Z",
+        "feature": "config",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:27:21.974Z",
+        "feature": "chopd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:27:24.826Z",
+        "feature": "chopd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:27:27.733Z",
+        "feature": "chopd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:27:30.264Z",
+        "feature": "chopd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:27:32.919Z",
+        "feature": "chopd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:27:35.673Z",
+        "feature": "chopd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:27:40.393Z",
+        "feature": "chopd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:27:44.683Z",
+        "feature": "chopd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:27:47.971Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:27:51.229Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:28:07.388Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:28:18.346Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:28:21.681Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:28:25.024Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:28:30.367Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:28:34.938Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:28:39.483Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:28:46.173Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:28:50.192Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:28:53.727Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:28:57.267Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:29:03.386Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:29:10.631Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:29:15.618Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:29:18.798Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:29:25.358Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:29:30.807Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:29:36.691Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:29:40.143Z",
+        "feature": "initializers",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:29:46.405Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:31:24.298Z",
+        "feature": "javascript",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:31:26.800Z",
+        "feature": "javascript",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:37:30.081Z",
+        "feature": "db",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:42:19.360Z",
+        "feature": "environments",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:42:25.689Z",
+        "feature": "choi-pd-rails",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:47:21.487Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:49:45.628Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:52:32.977Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-28T04:52:47.682Z",
+        "feature": "pd",
+        "phase": "do",
+        "action": "updated"
+      }
+    ]
+  }
+}
