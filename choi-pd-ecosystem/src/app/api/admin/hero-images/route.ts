@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { settings } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 const heroImagesSchema = z.object({
   images: z.array(z.string().url()).max(5, '최대 5개의 이미지만 등록할 수 있습니다'),
@@ -10,24 +12,36 @@ const heroImagesSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const validatedData = heroImagesSchema.parse(body);
 
-    const existing = await db.query.settings.findFirst({
-      where: eq(settings.key, 'hero_images'),
-    });
+    // 테넌트별 hero_images 설정 조회
+    const existing = await db
+      .select()
+      .from(settings)
+      .where(and(
+        tenantFilter(settings.tenantId, tenantId),
+        eq(settings.key, 'hero_images')
+      ))
+      .get();
 
     const imagesJson = JSON.stringify(validatedData.images);
 
     if (existing) {
       await db.update(settings)
         .set({ value: imagesJson, updatedAt: new Date() })
-        .where(eq(settings.key, 'hero_images'));
+        .where(and(
+          tenantFilter(settings.tenantId, tenantId),
+          eq(settings.key, 'hero_images')
+        ));
     } else {
-      await db.insert(settings).values({
-        key: 'hero_images',
-        value: imagesJson,
-      });
+      await db.insert(settings).values(
+        withTenantId({
+          key: 'hero_images',
+          value: imagesJson,
+        }, tenantId)
+      );
     }
 
     return NextResponse.json({

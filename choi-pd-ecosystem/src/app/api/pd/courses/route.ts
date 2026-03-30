@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { courses } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/pd/courses - 교육 과정 목록 조회
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type');
     const publishedOnly = searchParams.get('publishedOnly') === 'true';
@@ -16,13 +19,17 @@ export async function GET(request: NextRequest) {
       results = await db
         .select()
         .from(courses)
-        .where(eq(courses.published, true))
+        .where(and(
+          tenantFilter(courses.tenantId, tenantId),
+          eq(courses.published, true)
+        ))
         .orderBy(desc(courses.createdAt))
         .all();
     } else {
       results = await db
         .select()
         .from(courses)
+        .where(tenantFilter(courses.tenantId, tenantId))
         .orderBy(desc(courses.createdAt))
         .all();
     }
@@ -48,6 +55,7 @@ export async function GET(request: NextRequest) {
 // POST /api/pd/courses - 교육 과정 생성
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const {
       title,
@@ -67,16 +75,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 과정 생성
-    const result = await db.insert(courses).values({
-      title,
-      description,
-      type,
-      price: price || null,
-      thumbnailUrl: thumbnailUrl || null,
-      externalLink: externalLink || null,
-      published,
-    }).returning();
+    // 과정 생성 (tenantId 자동 주입)
+    const result = await db.insert(courses).values(
+      withTenantId({
+        title,
+        description,
+        type,
+        price: price || null,
+        thumbnailUrl: thumbnailUrl || null,
+        externalLink: externalLink || null,
+        published,
+      }, tenantId)
+    ).returning();
 
     return NextResponse.json({
       success: true,

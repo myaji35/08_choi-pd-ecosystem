@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { leads } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/pd/newsletter - 구독자 목록 조회
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const limit = searchParams.get('limit');
     const offset = searchParams.get('offset');
@@ -13,6 +16,7 @@ export async function GET(request: NextRequest) {
     let query = db
       .select()
       .from(leads)
+      .where(tenantFilter(leads.tenantId, tenantId))
       .orderBy(desc(leads.subscribedAt));
 
     // Pagination
@@ -25,8 +29,12 @@ export async function GET(request: NextRequest) {
 
     const results = await query.all();
 
-    // Get total count
-    const totalCount = await db.select().from(leads).all();
+    // Get total count (테넌트 필터 적용)
+    const totalCount = await db
+      .select()
+      .from(leads)
+      .where(tenantFilter(leads.tenantId, tenantId))
+      .all();
 
     return NextResponse.json({
       success: true,
@@ -45,6 +53,7 @@ export async function GET(request: NextRequest) {
 // POST /api/pd/newsletter - 구독 추가 (프론트엔드용)
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const { email } = body;
 
@@ -65,11 +74,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 중복 확인
+    // 중복 확인 (테넌트 내에서만)
     const existing = await db
       .select()
       .from(leads)
-      .where(eq(leads.email, email))
+      .where(and(
+        tenantFilter(leads.tenantId, tenantId),
+        eq(leads.email, email)
+      ))
       .get();
 
     if (existing) {
@@ -79,10 +91,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 구독 추가
-    const result = await db.insert(leads).values({
-      email,
-    }).returning();
+    // 구독 추가 (tenantId 자동 주입)
+    const result = await db.insert(leads).values(
+      withTenantId({ email }, tenantId)
+    ).returning();
 
     return NextResponse.json({
       success: true,

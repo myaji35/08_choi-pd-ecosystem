@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { kanbanProjects, kanbanColumns } from '@/lib/db/schema';
-import { desc, eq, sql } from 'drizzle-orm';
+import { desc, eq, and } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
 // GET /api/pd/kanban/projects - Get all projects
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
+
     const projects = await db
       .select()
       .from(kanbanProjects)
-      .where(eq(kanbanProjects.isArchived, false))
+      .where(and(
+        tenantFilter(kanbanProjects.tenantId, tenantId),
+        eq(kanbanProjects.isArchived, false)
+      ))
       .orderBy(kanbanProjects.sortOrder, kanbanProjects.createdAt)
       .all();
 
@@ -29,6 +36,7 @@ export async function GET(request: NextRequest) {
 // POST /api/pd/kanban/projects - Create new project
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const { title, description, color, icon } = body;
 
@@ -39,15 +47,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create project
+    // Create project (tenantId 자동 주입)
     const result = await db
       .insert(kanbanProjects)
-      .values({
+      .values(withTenantId({
         title,
         description,
         color: color || '#3b82f6',
         icon: icon || 'folder',
-      })
+      }, tenantId))
       .returning()
       .get();
 

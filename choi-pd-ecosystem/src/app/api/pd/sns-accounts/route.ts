@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { snsAccounts } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
+import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { tenantFilter } from '@/lib/tenant/query-helpers';
 
 // GET /api/pd/sns-accounts - SNS 계정 목록 조회
 export async function GET(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const searchParams = request.nextUrl.searchParams;
     const platform = searchParams.get('platform');
     const activeOnly = searchParams.get('activeOnly') === 'true';
@@ -16,13 +19,17 @@ export async function GET(request: NextRequest) {
       results = await db
         .select()
         .from(snsAccounts)
-        .where(eq(snsAccounts.isActive, true))
+        .where(and(
+          tenantFilter(snsAccounts.tenantId, tenantId),
+          eq(snsAccounts.isActive, true)
+        ))
         .orderBy(desc(snsAccounts.createdAt))
         .all();
     } else {
       results = await db
         .select()
         .from(snsAccounts)
+        .where(tenantFilter(snsAccounts.tenantId, tenantId))
         .orderBy(desc(snsAccounts.createdAt))
         .all();
     }
@@ -48,6 +55,7 @@ export async function GET(request: NextRequest) {
 // POST /api/pd/sns-accounts - SNS 계정 추가
 export async function POST(request: NextRequest) {
   try {
+    const tenantId = getTenantIdFromRequest(request);
     const body = await request.json();
     const {
       platform,
@@ -67,8 +75,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // SNS 계정 생성
+    // SNS 계정 생성 (tenantId 주입)
     const result = await db.insert(snsAccounts).values({
+      tenantId,
       platform,
       accountName,
       accountId: accountId || null,
@@ -78,7 +87,7 @@ export async function POST(request: NextRequest) {
       isActive: true,
       lastSyncedAt: null,
       metadata: metadata ? JSON.stringify(metadata) : null,
-    }).returning();
+    } as any).returning();
 
     return NextResponse.json({
       success: true,

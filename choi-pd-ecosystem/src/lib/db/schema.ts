@@ -1,9 +1,140 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
+
+// ============================================================
+// SaaS 멀티테넌시: 테넌트 시스템 테이블
+// ============================================================
+
+// Tenants Table (테넌트 — SaaS 핵심)
+export const tenants = sqliteTable('tenants', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  clerkUserId: text('clerk_user_id').notNull(),           // 소유자 Clerk ID
+  name: text('name').notNull(),                            // 테넌트 이름
+  slug: text('slug').notNull().unique(),                   // 서브도메인 slug
+  profession: text('profession', {
+    enum: ['pd', 'shopowner', 'realtor', 'educator', 'insurance', 'freelancer']
+  }).notNull().default('freelancer'),
+  businessType: text('business_type', {
+    enum: ['individual', 'company', 'organization']
+  }).notNull().default('individual'),
+  region: text('region'),
+  status: text('status', {
+    enum: ['active', 'suspended', 'deleted', 'pending']
+  }).notNull().default('active'),
+  plan: text('plan', {
+    enum: ['free', 'pro', 'enterprise']
+  }).notNull().default('free'),
+  // 브랜딩
+  logoUrl: text('logo_url'),
+  faviconUrl: text('favicon_url'),
+  primaryColor: text('primary_color').default('#3b82f6'),
+  secondaryColor: text('secondary_color').default('#8b5cf6'),
+  fontFamily: text('font_family').default('Inter'),
+  customDomain: text('custom_domain'),                     // Pro+ 전용
+  // 스토리지 제한
+  maxStorage: integer('max_storage').default(524288000),    // 500MB (Free)
+  usedStorage: integer('used_storage').default(0),
+  // Stripe 연동
+  stripeCustomerId: text('stripe_customer_id'),
+  stripeSubscriptionId: text('stripe_subscription_id'),
+  // 메타
+  settings: text('settings'),                              // JSON: 추가 설정
+  metadata: text('metadata'),                              // JSON: 추가 데이터
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }), // 소프트 딜리트
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
+}, (table) => [
+  index('idx_tenants_clerk_user').on(table.clerkUserId),
+  index('idx_tenants_status').on(table.status),
+  index('idx_tenants_plan').on(table.plan),
+  index('idx_tenants_custom_domain').on(table.customDomain),
+]);
+
+// Tenant Members Table (테넌트 멤버)
+export const tenantMembers = sqliteTable('tenant_members', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  clerkUserId: text('clerk_user_id').notNull(),
+  email: text('email').notNull(),
+  name: text('name'),
+  role: text('role', {
+    enum: ['owner', 'admin', 'member', 'guest']
+  }).notNull().default('member'),
+  status: text('status', {
+    enum: ['invited', 'active', 'suspended', 'removed']
+  }).notNull().default('invited'),
+  invitedBy: text('invited_by'),                           // Clerk user ID
+  invitedAt: integer('invited_at', { mode: 'timestamp' }),
+  joinedAt: integer('joined_at', { mode: 'timestamp' }),
+  lastActiveAt: integer('last_active_at', { mode: 'timestamp' }),
+  permissions: text('permissions'),                         // JSON: 세분화된 권한
+  metadata: text('metadata'),                               // JSON
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
+}, (table) => [
+  uniqueIndex('idx_tenant_members_unique').on(table.tenantId, table.clerkUserId),
+  index('idx_tenant_members_tenant').on(table.tenantId),
+  index('idx_tenant_members_user').on(table.clerkUserId),
+  index('idx_tenant_members_email').on(table.email),
+]);
+
+// SaaS Subscriptions Table (SaaS 구독 — Stripe 연동)
+export const saasSubscriptions = sqliteTable('saas_subscriptions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  stripeSubscriptionId: text('stripe_subscription_id').unique(),
+  stripeCustomerId: text('stripe_customer_id').notNull(),
+  stripePriceId: text('stripe_price_id').notNull(),
+  plan: text('plan', {
+    enum: ['free', 'pro', 'enterprise']
+  }).notNull(),
+  billingPeriod: text('billing_period', {
+    enum: ['monthly', 'yearly']
+  }).notNull().default('monthly'),
+  status: text('status', {
+    enum: ['active', 'past_due', 'canceled', 'trialing', 'unpaid']
+  }).notNull().default('active'),
+  currentPeriodStart: integer('current_period_start', { mode: 'timestamp' }),
+  currentPeriodEnd: integer('current_period_end', { mode: 'timestamp' }),
+  cancelAtPeriodEnd: integer('cancel_at_period_end', { mode: 'boolean' }).default(false),
+  canceledAt: integer('canceled_at', { mode: 'timestamp' }),
+  trialStart: integer('trial_start', { mode: 'timestamp' }),
+  trialEnd: integer('trial_end', { mode: 'timestamp' }),
+  metadata: text('metadata'),                               // JSON
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
+}, (table) => [
+  uniqueIndex('idx_saas_sub_tenant').on(table.tenantId),
+  index('idx_saas_sub_stripe').on(table.stripeSubscriptionId),
+  index('idx_saas_sub_status').on(table.status),
+]);
+
+// SaaS Invoices Table (SaaS 인보이스 — Stripe 연동)
+export const saasInvoices = sqliteTable('saas_invoices', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
+  subscriptionId: integer('subscription_id').references(() => saasSubscriptions.id),
+  stripeInvoiceId: text('stripe_invoice_id').unique(),
+  amount: integer('amount').notNull(),                      // 센트 단위
+  currency: text('currency').default('krw').notNull(),
+  status: text('status', {
+    enum: ['draft', 'open', 'paid', 'void', 'uncollectible']
+  }).notNull(),
+  invoicePdfUrl: text('invoice_pdf_url'),
+  hostedInvoiceUrl: text('hosted_invoice_url'),
+  periodStart: integer('period_start', { mode: 'timestamp' }),
+  periodEnd: integer('period_end', { mode: 'timestamp' }),
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
+}, (table) => [
+  index('idx_saas_invoices_tenant').on(table.tenantId),
+  index('idx_saas_invoices_status').on(table.status),
+]);
 
 // Courses Table (교육 과정)
 export const courses = sqliteTable('courses', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   title: text('title').notNull(),
   description: text('description').notNull(),
   type: text('type', { enum: ['online', 'offline', 'b2b'] }).notNull(),
@@ -12,31 +143,40 @@ export const courses = sqliteTable('courses', {
   externalLink: text('external_link'), // VOD 플랫폼 링크
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
   published: integer('published', { mode: 'boolean' }).default(true)
-});
+}, (table) => [
+  index('idx_courses_tenant').on(table.tenantId),
+]);
 
 // Posts Table (공지사항/소식)
 export const posts = sqliteTable('posts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   title: text('title').notNull(),
   content: text('content').notNull(),
   category: text('category', { enum: ['notice', 'review', 'media'] }).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
   published: integer('published', { mode: 'boolean' }).default(true)
-});
+}, (table) => [
+  index('idx_posts_tenant').on(table.tenantId),
+]);
 
 // Works Table (갤러리 & 언론 보도)
 export const works = sqliteTable('works', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   title: text('title').notNull(),
   description: text('description'),
   imageUrl: text('image_url').notNull(),
   category: text('category', { enum: ['gallery', 'press'] }).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_works_tenant').on(table.tenantId),
+]);
 
 // Inquiries Table (문의 사항)
 export const inquiries = sqliteTable('inquiries', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(),
   email: text('email').notNull(),
   phone: text('phone'),
@@ -44,22 +184,30 @@ export const inquiries = sqliteTable('inquiries', {
   type: text('type', { enum: ['b2b', 'contact'] }).notNull(),
   status: text('status', { enum: ['pending', 'contacted', 'closed'] }).default('pending'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_inquiries_tenant').on(table.tenantId),
+]);
 
 // Leads Table (뉴스레터 구독)
 export const leads = sqliteTable('leads', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  email: text('email').notNull().unique(),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
+  email: text('email').notNull(), // unique 제약 → (tenant_id, email) 복합 유니크로 변경
   subscribedAt: integer('subscribed_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  uniqueIndex('idx_leads_tenant_email').on(table.tenantId, table.email),
+]);
 
 // Settings Table (사이트 설정)
 export const settings = sqliteTable('settings', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  key: text('key').notNull().unique(),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
+  key: text('key').notNull(), // unique 제약 → (tenant_id, key) 복합 유니크로 변경
   value: text('value').notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  uniqueIndex('idx_settings_tenant_key').on(table.tenantId, table.key),
+]);
 
 // Admin Users Table (관리자 계정)
 export const adminUsers = sqliteTable('admin_users', {
@@ -74,6 +222,7 @@ export const adminUsers = sqliteTable('admin_users', {
 // SNS Accounts Table (SNS 계정 관리)
 export const snsAccounts = sqliteTable('sns_accounts', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   platform: text('platform', { enum: ['facebook', 'instagram', 'twitter', 'linkedin'] }).notNull(),
   accountName: text('account_name').notNull(),
   accountId: text('account_id'), // 플랫폼별 계정 ID
@@ -85,7 +234,9 @@ export const snsAccounts = sqliteTable('sns_accounts', {
   metadata: text('metadata'), // JSON 형태로 추가 정보 저장
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
-});
+}, (table) => [
+  index('idx_sns_accounts_tenant').on(table.tenantId),
+]);
 
 // SNS Scheduled Posts Table (예약된 SNS 포스팅)
 export const snsScheduledPosts = sqliteTable('sns_scheduled_posts', {
@@ -124,6 +275,7 @@ export const snsPostHistory = sqliteTable('sns_post_history', {
 // Hero Images Table (히어로 섹션 이미지)
 export const heroImages = sqliteTable('hero_images', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   filename: text('filename').notNull(),
   url: text('url').notNull(),
   altText: text('alt_text').notNull(),
@@ -133,13 +285,16 @@ export const heroImages = sqliteTable('hero_images', {
   uploadStatus: text('upload_status', { enum: ['pending', 'completed', 'failed'] }).default('pending').notNull(),
   uploadedAt: integer('uploaded_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   isActive: integer('is_active', { mode: 'boolean' }).default(false).notNull()
-});
+}, (table) => [
+  index('idx_hero_images_tenant').on(table.tenantId),
+]);
 
 // Distributors/Resellers Table (분양 수요자 관리)
 export const distributors = sqliteTable('distributors', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   name: text('name').notNull(), // 수요자 이름/기업명
-  email: text('email').notNull().unique(),
+  email: text('email').notNull(), // unique 제약 → (tenant_id, email) 복합 유니크로 변경
   phone: text('phone'),
   businessType: text('business_type', { enum: ['individual', 'company', 'organization'] }).notNull(),
   region: text('region'), // 지역
@@ -153,7 +308,10 @@ export const distributors = sqliteTable('distributors', {
   lastActivityAt: integer('last_activity_at', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  uniqueIndex('idx_distributors_tenant_email').on(table.tenantId, table.email),
+  index('idx_distributors_tenant').on(table.tenantId),
+]);
 
 // Distributor Activity Log (분양자 활동 로그)
 export const distributorActivityLog = sqliteTable('distributor_activity_log', {
@@ -232,6 +390,7 @@ export const invoices = sqliteTable('invoices', {
 // Kanban Projects (칸반 프로젝트)
 export const kanbanProjects = sqliteTable('kanban_projects', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   title: text('title').notNull(),
   description: text('description'),
   color: text('color').default('#3b82f6'), // 프로젝트 색상 (tailwind color)
@@ -240,7 +399,9 @@ export const kanbanProjects = sqliteTable('kanban_projects', {
   sortOrder: integer('sort_order').default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
-});
+}, (table) => [
+  index('idx_kanban_projects_tenant').on(table.tenantId),
+]);
 
 // Kanban Columns (칸반 컬럼/상태)
 export const kanbanColumns = sqliteTable('kanban_columns', {
@@ -751,6 +912,22 @@ export const rfmSegments = sqliteTable('rfm_segments', {
   totalRevenue: integer('total_revenue').default(0),
   calculatedAt: integer('calculated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
 });
+
+// ============================================================
+// TypeScript Types — SaaS 멀티테넌시
+// ============================================================
+
+export type Tenant = typeof tenants.$inferSelect;
+export type NewTenant = typeof tenants.$inferInsert;
+
+export type TenantMember = typeof tenantMembers.$inferSelect;
+export type NewTenantMember = typeof tenantMembers.$inferInsert;
+
+export type SaasSubscription = typeof saasSubscriptions.$inferSelect;
+export type NewSaasSubscription = typeof saasSubscriptions.$inferInsert;
+
+export type SaasInvoice = typeof saasInvoices.$inferSelect;
+export type NewSaasInvoice = typeof saasInvoices.$inferInsert;
 
 // TypeScript Types
 export type Course = typeof courses.$inferSelect;
