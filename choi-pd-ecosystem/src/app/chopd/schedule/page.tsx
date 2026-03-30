@@ -36,7 +36,7 @@ interface ScheduledPost {
   id: number;
   contentType: 'posts' | 'courses' | 'works';
   contentId: number;
-  platform: 'facebook' | 'instagram' | 'twitter' | 'linkedin';
+  platform: 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'naver-blog' | 'wordpress' | 'tistory' | 'brunch';
   accountId: number;
   message: string;
   imageUrl: string | null;
@@ -58,11 +58,15 @@ interface SnsAccount {
 }
 
 // ── Constants ───────────────────────────────────────────
-const CHANNEL_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
-  instagram: { label: '인스타그램', color: '#E4405F', icon: 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z' },
-  twitter:   { label: '트위터(X)', color: '#1DA1F2', icon: 'M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z' },
-  facebook:  { label: '카카오', color: '#FEE500', icon: 'M12 2C6.48 2 2 5.82 2 10.5c0 2.95 1.96 5.54 4.88 7.01l-.72 2.63c-.06.22.18.4.37.28l3.08-2.05c.78.12 1.57.18 2.39.18 5.52 0 10-3.82 10-8.55S17.52 2 12 2z' },
-  linkedin:  { label: '블로그', color: '#03C75A', icon: 'M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z' },
+const CHANNEL_CONFIG: Record<string, { label: string; color: string; icon: string; category?: string }> = {
+  instagram:    { label: '인스타그램', color: '#E4405F', category: 'SNS', icon: 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z' },
+  twitter:      { label: '트위터(X)', color: '#1DA1F2', category: 'SNS', icon: 'M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z' },
+  facebook:     { label: '카카오', color: '#FEE500', category: 'SNS', icon: 'M12 2C6.48 2 2 5.82 2 10.5c0 2.95 1.96 5.54 4.88 7.01l-.72 2.63c-.06.22.18.4.37.28l3.08-2.05c.78.12 1.57.18 2.39.18 5.52 0 10-3.82 10-8.55S17.52 2 12 2z' },
+  linkedin:     { label: '블로그', color: '#03C75A', category: '블로그', icon: 'M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z' },
+  'naver-blog': { label: '네이버 블로그', color: '#03C75A', category: '블로그', icon: 'M6 4v16M6 4l12 16M18 4v16' },
+  wordpress:    { label: '워드프레스', color: '#21759B', category: '블로그', icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zM6 6l4 12 2-6 2 6 4-12' },
+  tistory:      { label: '티스토리', color: '#FF5A00', category: '블로그', icon: 'M4 6h16M12 6v14M8 20h8' },
+  brunch:       { label: '브런치', color: '#000000', category: '블로그', icon: 'M17 8h1a4 4 0 010 8h-1M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8zM6 2v4M10 2v4M14 2v4' },
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -205,6 +209,19 @@ function ArrowLeftIcon({ className = 'h-5 w-5' }: { className?: string }) {
 function ChannelIcon({ platform, size = 16 }: { platform: string; size?: number }) {
   const cfg = CHANNEL_CONFIG[platform];
   if (!cfg) return null;
+
+  // 블로그 채널은 stroke 기반 아이콘 사용
+  const strokeChannels = ['naver-blog', 'wordpress', 'tistory', 'brunch'];
+  if (strokeChannels.includes(platform)) {
+    return (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={cfg.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+        {cfg.icon.split(/(?=[M])/).map((segment, i) => (
+          <path key={i} d={segment.trim()} />
+        ))}
+      </svg>
+    );
+  }
+
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={cfg.color} xmlns="http://www.w3.org/2000/svg">
       <path d={cfg.icon} />
@@ -264,8 +281,9 @@ export default function ScheduleDashboardPage() {
   const [weekBase, setWeekBase] = useState(() => new Date());
   const weekDates = useMemo(() => getWeekDates(weekBase), [weekBase]);
 
-  // Status filter
+  // Filters
   const [statusFilter, setStatusFilter] = useState('all');
+  const [channelFilter, setChannelFilter] = useState('all');
 
   // Add / detail dialog
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -276,7 +294,7 @@ export default function ScheduleDashboardPage() {
   const [form, setForm] = useState({
     contentType: 'posts' as 'posts' | 'courses' | 'works',
     contentId: '1',
-    platform: 'instagram' as 'facebook' | 'instagram' | 'twitter' | 'linkedin',
+    platform: 'instagram' as 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'naver-blog' | 'wordpress' | 'tistory' | 'brunch',
     accountId: '',
     message: '',
     imageUrl: '',
@@ -383,9 +401,15 @@ export default function ScheduleDashboardPage() {
 
   // ── Filtered Posts ──────────────────────────────────
   const filteredPosts = useMemo(() => {
-    if (statusFilter === 'all') return posts;
-    return posts.filter(p => p.status === statusFilter);
-  }, [posts, statusFilter]);
+    let result = posts;
+    if (statusFilter !== 'all') {
+      result = result.filter(p => p.status === statusFilter);
+    }
+    if (channelFilter !== 'all') {
+      result = result.filter(p => p.platform === channelFilter);
+    }
+    return result;
+  }, [posts, statusFilter, channelFilter]);
 
   // ── Posts grouped by day (for calendar) ─────────────
   const postsByDay = useMemo(() => {
@@ -461,6 +485,19 @@ export default function ScheduleDashboardPage() {
                 목록
               </button>
             </div>
+
+            {/* Channel filter */}
+            <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <SelectTrigger className="w-32 h-8 text-xs border-gray-300 bg-white">
+                <SelectValue placeholder="채널" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체 채널</SelectItem>
+                {Object.entries(CHANNEL_CONFIG).map(([key, cfg]) => (
+                  <SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             {/* Status filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -767,25 +804,37 @@ export default function ScheduleDashboardPage() {
             <DialogDescription>SNS 콘텐츠를 예약 발행합니다</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Channel Selection - Visual Cards */}
+            {/* Channel Selection - Visual Cards (카테고리별 그룹핑) */}
             <div>
               <Label className="block text-xs font-semibold text-gray-600 mb-1.5">채널 선택</Label>
-              <div className="grid grid-cols-4 gap-2">
-                {Object.entries(CHANNEL_CONFIG).map(([key, cfg]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, platform: key as typeof form.platform, accountId: '' }))}
-                    className={`flex flex-col items-center gap-1 p-2.5 rounded-lg border-2 transition-all ${
-                      form.platform === key
-                        ? 'border-[#00A1E0] bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <ChannelIcon platform={key} size={24} />
-                    <span className="text-[10px] font-semibold text-gray-600">{cfg.label}</span>
-                  </button>
-                ))}
+              <div className="space-y-3">
+                {['SNS', '블로그'].map((category) => {
+                  const channelEntries = Object.entries(CHANNEL_CONFIG).filter(([, cfg]) => cfg.category === category);
+                  if (channelEntries.length === 0) return null;
+                  return (
+                    <div key={category}>
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">{category}</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {channelEntries.map(([key, cfg]) => (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setForm(f => ({ ...f, platform: key as typeof form.platform, accountId: '' }))}
+                            className={`flex flex-col items-center gap-1 p-2.5 rounded-lg border-2 transition-all ${
+                              form.platform === key
+                                ? 'text-white border-transparent shadow-sm'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            style={form.platform === key ? { background: cfg.color, borderColor: cfg.color } : undefined}
+                          >
+                            <ChannelIcon platform={key} size={24} />
+                            <span className={`text-[10px] font-semibold ${form.platform === key ? 'text-white' : 'text-gray-600'}`}>{cfg.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

@@ -18,6 +18,10 @@ interface SocialMediaFormProps {
     twitter: string;
     blog: string;
     naver_blog: string;
+    wordpress: string;
+    tistory: string;
+    blogger: string;
+    brunch: string;
     facebook_password?: string;
     instagram_password?: string;
     youtube_password?: string;
@@ -25,6 +29,10 @@ interface SocialMediaFormProps {
     twitter_password?: string;
     blog_password?: string;
     naver_blog_password?: string;
+    wordpress_password?: string;
+    tistory_password?: string;
+    blogger_password?: string;
+    brunch_password?: string;
   };
 }
 
@@ -125,7 +133,44 @@ export function SocialMediaForm({ initialData }: SocialMediaFormProps) {
       icon: Globe,
       placeholder: 'https://blog.naver.com/your-id',
       description: '네이버 블로그 주소 (네이버 인물정보 연동)',
-      color: 'text-green-600'
+      color: 'text-green-600',
+      brandColor: '#03C75A'
+    },
+    {
+      key: 'wordpress',
+      label: '워드프레스',
+      icon: Globe,
+      placeholder: 'https://your-blog.wordpress.com',
+      description: '워드프레스 블로그 주소',
+      color: 'text-blue-600',
+      brandColor: '#21759B'
+    },
+    {
+      key: 'tistory',
+      label: '티스토리',
+      icon: Globe,
+      placeholder: 'https://your-id.tistory.com',
+      description: '티스토리 블로그 주소',
+      color: 'text-orange-500',
+      brandColor: '#FF5A00'
+    },
+    {
+      key: 'blogger',
+      label: '구글 블로거',
+      icon: Globe,
+      placeholder: 'https://your-blog.blogspot.com',
+      description: '구글 블로거 주소',
+      color: 'text-orange-600',
+      brandColor: '#FF6F00'
+    },
+    {
+      key: 'brunch',
+      label: '브런치',
+      icon: Globe,
+      placeholder: 'https://brunch.co.kr/@your-id',
+      description: '카카오 브런치 주소',
+      color: 'text-gray-900',
+      brandColor: '#000000'
     },
   ];
 

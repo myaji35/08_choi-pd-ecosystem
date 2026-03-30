@@ -65,6 +65,67 @@ ${text}
 
 JSON 형식으로 응답:
 { "content": "뉴스레터 본문" }`,
+
+  'naver-blog': (text) =>
+    `당신은 네이버 블로그 SEO 전문가입니다. 다음 텍스트를 기반으로 네이버 블로그 포스트를 작성하세요.
+- 네이버 검색 최적화를 위한 키워드 강조 (볼드, 키워드 반복)
+- SEO 친화적인 제목 (검색 키워드 포함)
+- 이미지 배치 가이드 포함 ([이미지: 설명] 형태로 위치 표시)
+- 소제목에 핵심 키워드 포함
+- 1000-1500자 분량
+- 마지막에 관련 태그 5-8개 제안
+
+원본 텍스트:
+${text}
+
+JSON 형식으로 응답:
+{ "content": "네이버 블로그 본문", "hashtags": ["#태그1", "#태그2"] }`,
+
+  wordpress: (text) =>
+    `당신은 워드프레스 블로그 전문가입니다. 다음 텍스트를 기반으로 워드프레스 포스트를 마크다운 형태로 작성하세요.
+- 마크다운 헤딩(##, ###) 활용
+- 카테고리 제안 (1-2개)
+- 태그 제안 (5-8개)
+- 서론-본론-결론 구조
+- SEO 메타 디스크립션 (160자 이내) 포함
+- 800-1200자 분량
+
+원본 텍스트:
+${text}
+
+JSON 형식으로 응답:
+{ "content": "워드프레스 마크다운 본문", "hashtags": ["태그1", "태그2"], "categories": ["카테고리1"] }`,
+
+  tistory: (text) =>
+    `당신은 티스토리 블로그 전문가입니다. 다음 텍스트를 기반으로 티스토리 포스트를 작성하세요.
+- HTML 태그 지원 (h2, h3, blockquote, strong 등 활용)
+- 상단에 목차(Table of Contents) 포함
+- 소제목으로 구조화
+- 핵심 내용은 blockquote로 강조
+- 1000-1500자 분량
+- 관련 태그 5-8개 제안
+
+원본 텍스트:
+${text}
+
+JSON 형식으로 응답:
+{ "content": "티스토리 HTML 본문", "hashtags": ["태그1", "태그2"] }`,
+
+  brunch: (text) =>
+    `당신은 브런치 에세이 작가입니다. 다음 텍스트를 기반으로 브런치 스타일의 에세이를 작성하세요.
+- 문학적이고 감성적인 문체
+- 개인적인 경험과 성찰을 담은 톤
+- 짧은 문장, 여백을 활용한 호흡
+- 은유와 비유 활용
+- 독자의 공감을 이끄는 서두
+- 여운을 남기는 마무리
+- 800-1200자 분량
+
+원본 텍스트:
+${text}
+
+JSON 형식으로 응답:
+{ "content": "브런치 에세이 본문" }`,
 };
 
 // ── Mock 응답 (OPENAI_API_KEY 없을 때) ─────────────────────
@@ -93,6 +154,25 @@ function generateMockResponse(text: string, channels: string[]) {
     newsletter: {
       channel: 'newsletter',
       content: `[이번 주 핵심 인사이트]\n\n안녕하세요, 구독자님!\n\n${text}\n\n이 내용이 도움이 되셨다면 주변 분들께도 공유해주세요.\n\n감사합니다.\n\n[더 알아보기 →]`,
+    },
+    'naver-blog': {
+      channel: 'naver-blog',
+      content: `${summary}\n\n[이미지: 대표 이미지 - 주제를 시각적으로 표현]\n\n안녕하세요! 오늘은 많은 분들이 궁금해하시는 주제에 대해 정리해보겠습니다.\n\n## 핵심 키워드로 알아보는 핵심 내용\n\n${text}\n\n## 실전에서 바로 적용하는 방법\n\n**첫 번째**, 현재 상황을 점검합니다.\n**두 번째**, 구체적인 목표를 설정합니다.\n**세 번째**, 작은 것부터 실행에 옮깁니다.\n\n[이미지: 단계별 프로세스 인포그래픽]\n\n## 마무리\n\n지금 바로 시작해보세요. 작은 변화가 큰 차이를 만들어냅니다.\n\n도움이 되셨다면 이웃추가와 공감 부탁드립니다!`,
+      hashtags: ['#창업', '#마케팅', '#스마트폰활용', '#1인기업', '#사이드프로젝트', '#네이버블로그'],
+    },
+    wordpress: {
+      channel: 'wordpress',
+      content: `## ${summary}\n\n이 주제에 대해 많은 분들이 관심을 가지고 계십니다.\n\n### 핵심 포인트\n\n${text}\n\n### 실전 적용 방법\n\n1. 먼저 현재 상황을 점검합니다\n2. 목표를 구체적으로 설정합니다\n3. 작은 것부터 실행에 옮깁니다\n\n### 마무리\n\n지금 바로 시작해보세요.\n\n---\n*메타 디스크립션: ${summary} - 실전 적용 방법을 단계별로 알아봅니다.*`,
+      hashtags: ['창업', '마케팅', '디지털전환', '1인기업', '사이드프로젝트'],
+    },
+    tistory: {
+      channel: 'tistory',
+      content: `<h2>목차</h2>\n<ul>\n<li><a href="#intro">들어가며</a></li>\n<li><a href="#main">핵심 내용</a></li>\n<li><a href="#howto">실전 적용</a></li>\n<li><a href="#conclusion">마무리</a></li>\n</ul>\n\n<h2 id="intro">들어가며</h2>\n<p>${summary}</p>\n\n<h2 id="main">핵심 내용</h2>\n<blockquote>${text}</blockquote>\n\n<h2 id="howto">실전 적용 방법</h2>\n<ol>\n<li><strong>현재 상황 점검</strong></li>\n<li><strong>목표 설정</strong></li>\n<li><strong>실행</strong></li>\n</ol>\n\n<h2 id="conclusion">마무리</h2>\n<p>지금 바로 시작해보세요. 작은 변화가 큰 차이를 만들어냅니다.</p>`,
+      hashtags: ['창업', '마케팅', '스마트폰활용', '1인기업', '사이드프로젝트'],
+    },
+    brunch: {
+      channel: 'brunch',
+      content: `어느 날 문득, 이런 생각이 들었다.\n\n${summary}\n\n우리는 매일 같은 하루를 살아가는 것 같지만, 사실 매 순간이 새로운 시작이다.\n\n${text}\n\n변화는 거창한 것에서 시작되지 않는다. 오늘 아침, 평소와 다른 길로 출근해보는 것. 늘 마시던 커피 대신 차 한 잔을 선택하는 것. 그런 작은 틈에서 새로운 가능성이 피어난다.\n\n결국 우리에게 필요한 건 완벽한 계획이 아니라, 불완전하더라도 시작하는 용기가 아닐까.\n\n오늘도, 한 걸음.`,
     },
   };
 
@@ -175,7 +255,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const validChannels = ['instagram', 'blog', 'twitter', 'kakao', 'newsletter'];
+    const validChannels = ['instagram', 'blog', 'twitter', 'kakao', 'newsletter', 'naver-blog', 'wordpress', 'tistory', 'brunch'];
     if (!channels || !Array.isArray(channels) || channels.length === 0) {
       return NextResponse.json(
         { success: false, error: '최소 1개 이상의 채널을 선택해주세요.' },

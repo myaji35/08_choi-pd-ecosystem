@@ -15,6 +15,10 @@ export default async function AdminSocialPage() {
         'social_twitter',
         'social_blog',
         'social_naver_blog',
+        'social_wordpress',
+        'social_tistory',
+        'social_blogger',
+        'social_brunch',
         'social_facebook_password',
         'social_instagram_password',
         'social_youtube_password',
@@ -22,6 +26,10 @@ export default async function AdminSocialPage() {
         'social_twitter_password',
         'social_blog_password',
         'social_naver_blog_password',
+        'social_wordpress_password',
+        'social_tistory_password',
+        'social_blogger_password',
+        'social_brunch_password',
       ])
   });
 
@@ -33,6 +41,10 @@ export default async function AdminSocialPage() {
     twitter: socialSettings.find(s => s.key === 'social_twitter')?.value || '',
     blog: socialSettings.find(s => s.key === 'social_blog')?.value || '',
     naver_blog: socialSettings.find(s => s.key === 'social_naver_blog')?.value || '',
+    wordpress: socialSettings.find(s => s.key === 'social_wordpress')?.value || '',
+    tistory: socialSettings.find(s => s.key === 'social_tistory')?.value || '',
+    blogger: socialSettings.find(s => s.key === 'social_blogger')?.value || '',
+    brunch: socialSettings.find(s => s.key === 'social_brunch')?.value || '',
     facebook_password: socialSettings.find(s => s.key === 'social_facebook_password')?.value
       ? decrypt(socialSettings.find(s => s.key === 'social_facebook_password')!.value) : '',
     instagram_password: socialSettings.find(s => s.key === 'social_instagram_password')?.value
@@ -47,6 +59,14 @@ export default async function AdminSocialPage() {
       ? decrypt(socialSettings.find(s => s.key === 'social_blog_password')!.value) : '',
     naver_blog_password: socialSettings.find(s => s.key === 'social_naver_blog_password')?.value
       ? decrypt(socialSettings.find(s => s.key === 'social_naver_blog_password')!.value) : '',
+    wordpress_password: socialSettings.find(s => s.key === 'social_wordpress_password')?.value
+      ? decrypt(socialSettings.find(s => s.key === 'social_wordpress_password')!.value) : '',
+    tistory_password: socialSettings.find(s => s.key === 'social_tistory_password')?.value
+      ? decrypt(socialSettings.find(s => s.key === 'social_tistory_password')!.value) : '',
+    blogger_password: socialSettings.find(s => s.key === 'social_blogger_password')?.value
+      ? decrypt(socialSettings.find(s => s.key === 'social_blogger_password')!.value) : '',
+    brunch_password: socialSettings.find(s => s.key === 'social_brunch_password')?.value
+      ? decrypt(socialSettings.find(s => s.key === 'social_brunch_password')!.value) : '',
   };
 
   return (

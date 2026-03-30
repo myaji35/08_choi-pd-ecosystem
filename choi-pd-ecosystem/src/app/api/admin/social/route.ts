@@ -15,6 +15,10 @@ const socialSchema = z.object({
   twitter: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
   blog: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
   naver_blog: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
+  wordpress: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
+  tistory: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
+  blogger: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
+  brunch: z.string().url('유효한 URL을 입력해주세요').or(z.literal('')),
   facebook_password: z.string().optional(),
   instagram_password: z.string().optional(),
   youtube_password: z.string().optional(),
@@ -22,6 +26,10 @@ const socialSchema = z.object({
   twitter_password: z.string().optional(),
   blog_password: z.string().optional(),
   naver_blog_password: z.string().optional(),
+  wordpress_password: z.string().optional(),
+  tistory_password: z.string().optional(),
+  blogger_password: z.string().optional(),
+  brunch_password: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -39,6 +47,10 @@ export async function POST(request: NextRequest) {
       { key: 'social_twitter', value: validatedData.twitter },
       { key: 'social_blog', value: validatedData.blog },
       { key: 'social_naver_blog', value: validatedData.naver_blog },
+      { key: 'social_wordpress', value: validatedData.wordpress },
+      { key: 'social_tistory', value: validatedData.tistory },
+      { key: 'social_blogger', value: validatedData.blogger },
+      { key: 'social_brunch', value: validatedData.brunch },
     ];
 
     // 비밀번호가 제공된 경우 암호화하여 저장
@@ -62,6 +74,18 @@ export async function POST(request: NextRequest) {
     }
     if (validatedData.naver_blog_password) {
       settingsToUpdate.push({ key: 'social_naver_blog_password', value: encrypt(validatedData.naver_blog_password) });
+    }
+    if (validatedData.wordpress_password) {
+      settingsToUpdate.push({ key: 'social_wordpress_password', value: encrypt(validatedData.wordpress_password) });
+    }
+    if (validatedData.tistory_password) {
+      settingsToUpdate.push({ key: 'social_tistory_password', value: encrypt(validatedData.tistory_password) });
+    }
+    if (validatedData.blogger_password) {
+      settingsToUpdate.push({ key: 'social_blogger_password', value: encrypt(validatedData.blogger_password) });
+    }
+    if (validatedData.brunch_password) {
+      settingsToUpdate.push({ key: 'social_brunch_password', value: encrypt(validatedData.brunch_password) });
     }
 
     for (const setting of settingsToUpdate) {
