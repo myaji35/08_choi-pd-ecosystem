@@ -1,10 +1,23 @@
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
-import { members } from '@/lib/db/schema';
+import { tenants, courses, snsAccounts, inquiries } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import Link from 'next/link';
+import { BrandPageContactForm } from './contact-form';
 
-// SNS 아이콘 매핑 (Feather-style SVG)
+// ---- 직업군 한글 라벨 + 배지 색상 ----
+
+const PROFESSION_LABELS: Record<string, { label: string; color: string }> = {
+  pd: { label: 'PD / 방송인', color: '#E4405F' },
+  shopowner: { label: '쇼핑몰 운영자', color: '#FF6B35' },
+  realtor: { label: '부동산 중개인', color: '#2EC4B6' },
+  educator: { label: '교육자 / 강사', color: '#00A1E0' },
+  insurance: { label: '보험 설계사', color: '#7B61FF' },
+  freelancer: { label: '프리랜서', color: '#16325C' },
+};
+
+// ---- SNS 아이콘 매핑 (Feather-style SVG) ----
+
 const SNS_ICONS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   instagram: {
     label: 'Instagram',
@@ -56,274 +69,296 @@ const SNS_ICONS: Record<string, { label: string; icon: React.ReactNode; color: s
       </svg>
     ),
   },
-  blog: {
-    label: 'Blog',
-    color: '#03C75A',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-      </svg>
-    ),
-  },
-  website: {
-    label: 'Website',
-    color: '#00A1E0',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="2" y1="12" x2="22" y2="12" />
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-      </svg>
-    ),
-  },
 };
 
-// 모듈 한글 라벨 매핑
-const MODULE_LABELS: Record<string, { label: string; icon: React.ReactNode }> = {
-  portfolio: {
-    label: '포트폴리오',
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-      </svg>
-    ),
-  },
-  services: {
-    label: '서비스',
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-        <line x1="7" y1="7" x2="7.01" y2="7" />
-      </svg>
-    ),
-  },
-  blog: {
-    label: '블로그',
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-      </svg>
-    ),
-  },
-  contact: {
-    label: '문의하기',
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-        <polyline points="22,6 12,13 2,6" />
-      </svg>
-    ),
-  },
-  reviews: {
-    label: '후기',
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-      </svg>
-    ),
-  },
-  booking: {
-    label: '예약',
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    ),
-  },
+// ---- 과정 타입 라벨 ----
+
+const COURSE_TYPE_LABELS: Record<string, { label: string; color: string }> = {
+  online: { label: '온라인', color: '#00A1E0' },
+  offline: { label: '오프라인', color: '#2EC4B6' },
+  b2b: { label: 'B2B', color: '#7B61FF' },
 };
 
-interface MemberPageProps {
+interface BrandPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default async function MemberPage({ params }: MemberPageProps) {
+export default async function BrandPage({ params }: BrandPageProps) {
   const { slug } = await params;
 
-  const result = await db
+  // 테넌트 조회
+  const tenantResult = await db
     .select()
-    .from(members)
-    .where(and(eq(members.slug, slug), eq(members.status, 'approved')))
+    .from(tenants)
+    .where(and(eq(tenants.slug, slug), eq(tenants.status, 'active')))
     .limit(1);
 
-  if (result.length === 0) {
+  if (tenantResult.length === 0) {
     notFound();
   }
 
-  const member = result[0];
-  const socialLinks: Record<string, string> = member.socialLinks
-    ? JSON.parse(member.socialLinks)
-    : {};
-  const enabledModules: string[] = member.enabledModules
-    ? JSON.parse(member.enabledModules)
-    : [];
-  const themeConfig = member.themeConfig
-    ? JSON.parse(member.themeConfig)
-    : {};
+  const tenant = tenantResult[0];
+  const primaryColor = tenant.primaryColor || '#3b82f6';
+  const secondaryColor = tenant.secondaryColor || '#8b5cf6';
+  const professionInfo = PROFESSION_LABELS[tenant.profession] || { label: tenant.profession, color: '#16325C' };
 
-  const accentColor = themeConfig.primaryColor || '#00A1E0';
+  // 설정 JSON 파싱
+  const tenantSettings = tenant.settings ? JSON.parse(tenant.settings) : {};
+  const tenantMetadata = tenant.metadata ? JSON.parse(tenant.metadata) : {};
+  const bio = tenantSettings.bio || tenantMetadata.bio || '';
+  const externalLinks: Array<{ label: string; url: string }> = tenantSettings.externalLinks || [];
+
+  // 해당 테넌트의 공개 교육 과정
+  const tenantCourses = await db
+    .select()
+    .from(courses)
+    .where(and(eq(courses.tenantId, tenant.id), eq(courses.published, true)));
+
+  // 해당 테넌트의 활성 SNS 계정
+  const tenantSns = await db
+    .select()
+    .from(snsAccounts)
+    .where(and(eq(snsAccounts.tenantId, tenant.id), eq(snsAccounts.isActive, true)));
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Cover Image */}
-      <div className="relative w-full h-[200px] bg-gradient-to-r from-[#16325C] to-[#00A1E0]">
-        {member.coverImage && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={member.coverImage}
-            alt={`${member.name} 커버 이미지`}
-            className="w-full h-full object-cover"
-          />
-        )}
-      </div>
+    <div className="min-h-screen bg-[#F3F2F2]">
+      {/* ---- 히어로 헤더 ---- */}
+      <header
+        className="relative w-full"
+        style={{
+          background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+        }}
+      >
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+          <div className="flex flex-col items-center text-center">
+            {/* 로고 또는 이니셜 */}
+            {tenant.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={tenant.logoUrl}
+                alt={`${tenant.name} 로고`}
+                className="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg object-cover mb-4"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full border-4 border-white/30 shadow-lg bg-white/20 flex items-center justify-center mb-4">
+                <span className="text-3xl font-bold text-white">
+                  {tenant.name.charAt(0)}
+                </span>
+              </div>
+            )}
 
-      {/* Profile Section */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        <div className="relative -mt-16 mb-6">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4">
-            {/* Profile Photo */}
-            <div className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden flex-shrink-0">
-              {member.profileImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={member.profileImage}
-                  alt={member.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                  <svg
-                    className="w-16 h-16 text-gray-300"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-              )}
-            </div>
+            {/* 테넌트 이름 */}
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+              {tenant.name}
+            </h1>
 
-            {/* Name & Bio */}
-            <div className="text-center sm:text-left pb-2">
-              <h1 className="text-2xl font-bold text-gray-900">{member.name}</h1>
-              {member.bio && (
-                <p className="mt-1 text-gray-600 text-sm leading-relaxed max-w-lg">
-                  {member.bio}
-                </p>
-              )}
-            </div>
+            {/* 직업군 배지 */}
+            <span
+              className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white mb-4"
+              style={{ background: professionInfo.color }}
+            >
+              {professionInfo.label}
+            </span>
+
+            {/* 소개 텍스트 */}
+            {bio && (
+              <p className="text-white/80 text-sm sm:text-base leading-relaxed max-w-lg">
+                {bio}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* SNS Links */}
-        {Object.keys(socialLinks).length > 0 && (
-          <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-6">
-            {Object.entries(socialLinks).map(([platform, url]) => {
-              if (!url) return null;
-              const snsInfo = SNS_ICONS[platform];
-              if (!snsInfo) return null;
+        {/* 하단 곡선 */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+            <path d="M0 60V30C360 0 720 0 1080 30L1440 60H0Z" fill="#F3F2F2" />
+          </svg>
+        </div>
+      </header>
 
-              return (
-                <a
-                  key={platform}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-sm transition-all text-sm"
-                  title={snsInfo.label}
-                >
-                  <span style={{ color: snsInfo.color }}>{snsInfo.icon}</span>
-                  <span className="hidden sm:inline">{snsInfo.label}</span>
-                </a>
-              );
-            })}
-          </div>
-        )}
+      {/* ---- 메인 콘텐츠 ---- */}
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 -mt-2">
 
-        {/* Module Tabs */}
-        {enabledModules.length > 0 && (
-          <div className="border-b border-gray-200 mb-6">
-            <nav className="flex gap-1 overflow-x-auto pb-px" aria-label="모듈 탭">
-              {enabledModules.map((mod: string, index: number) => {
-                const moduleInfo = MODULE_LABELS[mod];
-                if (!moduleInfo) return null;
+        {/* ---- SNS 링크 섹션 ---- */}
+        {tenantSns.length > 0 && (
+          <section className="mb-6">
+            <div className="flex flex-wrap justify-center gap-2">
+              {tenantSns.map((account) => {
+                const snsInfo = SNS_ICONS[account.platform];
+                if (!snsInfo) return null;
+                // SNS 계정의 metadata에서 profileUrl 가져오기
+                const meta = account.metadata ? JSON.parse(account.metadata) : {};
+                const url = meta.profileUrl || `#`;
 
                 return (
-                  <button
-                    key={mod}
-                    className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                      index === 0
-                        ? 'border-[#00A1E0] text-[#00A1E0]'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                    style={index === 0 ? { borderColor: accentColor, color: accentColor } : undefined}
+                  <a
+                    key={account.id}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:shadow-md transition-all text-sm font-medium"
                   >
-                    {moduleInfo.icon}
-                    {moduleInfo.label}
-                  </button>
+                    <span style={{ color: snsInfo.color }}>{snsInfo.icon}</span>
+                    <span>{account.accountName || snsInfo.label}</span>
+                  </a>
                 );
               })}
-            </nav>
-          </div>
+            </div>
+          </section>
         )}
 
-        {/* Module Content (placeholder) */}
-        <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
-          {enabledModules.length > 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-50 flex items-center justify-center">
-                <svg
-                  className="w-8 h-8 text-gray-300"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  viewBox="0 0 24 24"
+        {/* ---- 외부 링크 허브 (Linktree 대체) ---- */}
+        {externalLinks.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-bold text-[#16325C] mb-3 text-center">
+              <svg className="w-5 h-5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+              Links
+            </h2>
+            <div className="space-y-2">
+              {externalLinks.map((link, idx) => (
+                <a
+                  key={idx}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-lg border border-gray-200 bg-white text-[#16325C] font-medium hover:shadow-md hover:border-gray-300 transition-all text-sm"
+                  style={{
+                    borderLeftWidth: '4px',
+                    borderLeftColor: primaryColor,
+                  }}
                 >
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-              </div>
-              <p className="text-gray-500 text-sm font-medium">
-                콘텐츠를 준비 중입니다
-              </p>
-              <p className="text-gray-400 text-xs mt-1">
-                곧 새로운 콘텐츠가 업데이트될 예정입니다.
-              </p>
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                  {link.label}
+                </a>
+              ))}
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-sm">
-                아직 활성화된 모듈이 없습니다.
-              </p>
-            </div>
-          )}
-        </div>
+          </section>
+        )}
 
-        {/* Footer */}
-        <footer className="text-center py-8 border-t border-gray-100">
-          <p className="text-xs text-gray-400">
-            Powered by{' '}
+        {/* ---- 교육 과정 섹션 ---- */}
+        {tenantCourses.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-bold text-[#16325C] mb-3">
+              <svg className="w-5 h-5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg>
+              교육 과정
+            </h2>
+            <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+              {tenantCourses.map((course) => {
+                const typeInfo = COURSE_TYPE_LABELS[course.type] || { label: course.type, color: '#6b7280' };
+                return (
+                  <div
+                    key={course.id}
+                    className="flex-shrink-0 w-[260px] sm:w-[280px] snap-start"
+                  >
+                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                      {/* 썸네일 */}
+                      {course.thumbnailUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={course.thumbnailUrl}
+                          alt={course.title}
+                          className="w-full h-36 object-cover"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-36 flex items-center justify-center"
+                          style={{ background: `linear-gradient(135deg, ${primaryColor}20 0%, ${secondaryColor}20 100%)` }}
+                        >
+                          <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                          </svg>
+                        </div>
+                      )}
+
+                      <div className="p-4">
+                        {/* 타입 배지 */}
+                        <span
+                          className="inline-block px-2 py-0.5 rounded text-xs font-semibold text-white mb-2"
+                          style={{ background: typeInfo.color }}
+                        >
+                          {typeInfo.label}
+                        </span>
+
+                        <h3 className="font-semibold text-[#16325C] text-sm mb-1 line-clamp-2">
+                          {course.title}
+                        </h3>
+                        <p className="text-xs text-gray-500 line-clamp-2 mb-3">
+                          {course.description}
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold" style={{ color: primaryColor }}>
+                            {course.price ? `${course.price.toLocaleString()}원` : '무료'}
+                          </span>
+                          {course.externalLink && (
+                            <a
+                              href={course.externalLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs font-medium hover:underline"
+                              style={{ color: primaryColor }}
+                            >
+                              자세히 보기
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                <polyline points="9 18 15 12 9 6" />
+                              </svg>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* ---- 문의 폼 섹션 ---- */}
+        <section className="mb-8">
+          <h2 className="text-lg font-bold text-[#16325C] mb-3">
+            <svg className="w-5 h-5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+            문의하기
+          </h2>
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <BrandPageContactForm tenantId={tenant.id} primaryColor={primaryColor} />
+          </div>
+        </section>
+
+        {/* ---- 푸터 ---- */}
+        <footer className="text-center py-8 border-t border-gray-200">
+          <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
+            Powered by
             <Link
               href="https://impd.townin.net"
-              className="text-[#00A1E0] hover:underline"
+              className="inline-flex items-center gap-1 font-semibold hover:underline"
+              style={{ color: primaryColor }}
             >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                <polyline points="2 17 12 22 22 17" />
+                <polyline points="2 12 12 17 22 12" />
+              </svg>
               imPD
             </Link>
           </p>
         </footer>
-      </div>
+      </main>
     </div>
   );
 }

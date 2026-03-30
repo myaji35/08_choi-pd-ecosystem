@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { db } from '@/lib/db';
-import { members } from '@/lib/db/schema';
+import { tenants } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
-interface MemberLayoutProps {
+interface BrandPageLayoutProps {
   children: React.ReactNode;
   params: Promise<{ slug: string }>;
 }
@@ -15,41 +15,45 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
 
-  const member = await db
+  const result = await db
     .select({
-      name: members.name,
-      bio: members.bio,
-      profileImage: members.profileImage,
+      name: tenants.name,
+      profession: tenants.profession,
+      logoUrl: tenants.logoUrl,
+      settings: tenants.settings,
+      metadata: tenants.metadata,
     })
-    .from(members)
-    .where(and(eq(members.slug, slug), eq(members.status, 'approved')))
+    .from(tenants)
+    .where(and(eq(tenants.slug, slug), eq(tenants.status, 'active')))
     .limit(1);
 
-  if (member.length === 0) {
+  if (result.length === 0) {
     return {
-      title: '회원을 찾을 수 없습니다',
+      title: '페이지를 찾을 수 없습니다',
     };
   }
 
-  const m = member[0];
-  const description = m.bio || `${m.name}님의 개인 비즈니스 페이지`;
+  const t = result[0];
+  const settings = t.settings ? JSON.parse(t.settings) : {};
+  const meta = t.metadata ? JSON.parse(t.metadata) : {};
+  const bio = settings.bio || meta.bio || `${t.name}의 브랜드 페이지`;
 
   return {
-    title: `${m.name} | imPD`,
-    description,
+    title: `${t.name} | imPD`,
+    description: bio,
     openGraph: {
-      title: `${m.name} | imPD`,
-      description,
+      title: `${t.name} | imPD`,
+      description: bio,
       type: 'profile',
-      images: m.profileImage ? [{ url: m.profileImage }] : [],
+      images: t.logoUrl ? [{ url: t.logoUrl }] : [],
     },
   };
 }
 
-export default function MemberLayout({ children }: MemberLayoutProps) {
+export default function BrandPageLayout({ children }: BrandPageLayoutProps) {
   return (
     <html lang="ko">
-      <body className="bg-gray-50 text-gray-900 antialiased">
+      <body className="bg-[#F3F2F2] text-gray-900 antialiased">
         {children}
       </body>
     </html>

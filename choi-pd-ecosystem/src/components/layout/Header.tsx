@@ -23,6 +23,8 @@ export function Header() {
     { href: '/media', label: t('nav.media') },
     { href: '/works', label: t('nav.works') },
     { href: '/community', label: t('nav.community') },
+    { href: '/chopd/ai', label: 'AI 어시스턴트' },
+    { href: '/chopd/schedule', label: '예약 발행' },
   ];
 
   // Normalize pathname for matching (strip /chopd prefix)

@@ -7,7 +7,7 @@ import { useTenant } from '@/lib/tenant/useTenant';
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Image as ImageIcon, LogOut, User as UserIcon, Settings } from 'lucide-react';
+import { Upload, Image as ImageIcon, LogOut, User as UserIcon, Settings, Globe, Copy, ExternalLink, Check as CheckIcon } from 'lucide-react';
 import Image from 'next/image';
 import { ImageCropModal } from '@/components/admin/ImageCropModal';
 
@@ -87,6 +87,22 @@ export default function PDDashboard() {
     }
   };
 
+  const [copied, setCopied] = useState(false);
+  const brandPageUrl = tenant?.slug
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/p/${tenant.slug}`
+    : '';
+
+  const handleCopyUrl = async () => {
+    if (!brandPageUrl) return;
+    try {
+      await navigator.clipboard.writeText(brandPageUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50">
       {/* 헤더 */}
@@ -111,6 +127,66 @@ export default function PDDashboard() {
       {/* 메인 콘텐츠 */}
       <main className="container py-8">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* 내 브랜드 페이지 */}
+          {tenant?.slug && (
+            <Card className="border-2 border-[#00A1E0]/30 bg-gradient-to-br from-blue-50 to-white">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-[#00A1E0]" />
+                  내 브랜드 페이지
+                </CardTitle>
+                <CardDescription>
+                  공개 브랜드 페이지 URL을 공유하세요.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2.5">
+                  <span className="text-sm text-gray-700 truncate flex-1 font-mono">
+                    /p/{tenant.slug}
+                  </span>
+                  <button
+                    onClick={handleCopyUrl}
+                    className="flex-shrink-0 p-1.5 rounded-md hover:bg-gray-100 transition-colors"
+                    title="URL 복사"
+                  >
+                    {copied ? (
+                      <CheckIcon className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+                {copied && (
+                  <p className="text-xs text-green-600 font-medium">URL이 클립보드에 복사되었습니다.</p>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 border-gray-300"
+                    asChild
+                  >
+                    <a href={`/p/${tenant.slug}`} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                      페이지 보기
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 border-gray-300"
+                    asChild
+                  >
+                    <a href="/pd/settings">
+                      <Settings className="mr-1.5 h-3.5 w-3.5" />
+                      편집
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* 프로필 사진 관리 */}
           <Card>
             <CardHeader>

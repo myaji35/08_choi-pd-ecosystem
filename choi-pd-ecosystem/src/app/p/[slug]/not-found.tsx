@@ -1,10 +1,10 @@
 import Link from 'next/link';
 
-export default function MemberNotFound() {
+export default function BrandPageNotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#F3F2F2] px-4">
       <div className="text-center max-w-md">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
+        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-white flex items-center justify-center border border-gray-200">
           <svg
             className="w-10 h-10 text-gray-400"
             fill="none"
@@ -20,11 +20,11 @@ export default function MemberNotFound() {
             <line x1="15" y1="9" x2="15.01" y2="9" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          페이지를 찾을 수 없습니다
+        <h1 className="text-2xl font-bold text-[#16325C] mb-2">
+          브랜드 페이지를 찾을 수 없습니다
         </h1>
         <p className="text-gray-500 mb-8">
-          요청하신 회원 페이지가 존재하지 않거나,
+          요청하신 브랜드 페이지가 존재하지 않거나,
           <br />
           현재 비공개 상태입니다.
         </p>

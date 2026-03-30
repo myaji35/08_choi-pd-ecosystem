@@ -21,7 +21,7 @@ export function ServiceHubSection() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
           {/* Large featured card */}
           <Link
-            href="/chopd/education"
+            href="/chopd/ai"
             className="lg:col-span-3 group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-8 md:p-10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
           >
             <div className="relative z-10">

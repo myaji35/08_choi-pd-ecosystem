@@ -459,21 +459,34 @@ export default function OnboardingPage() {
               <Check className="h-8 w-8" />
             </div>
             <h2 className="text-2xl font-bold text-[#16325C] mb-2">
-              브랜드가 생성되었습니다!
+              축하합니다! 브랜드 페이지가 생성되었습니다
             </h2>
             <p className="text-sm text-gray-500 mb-2">
               <span className="font-semibold text-[#16325C]">{brandName}</span>의 브랜드 허브가 준비되었습니다.
             </p>
-            <p className="text-sm text-gray-400 mb-8">
-              https://{slug}.impd.io
-            </p>
+
+            {/* 브랜드 페이지 URL 카드 */}
+            <div className="inline-block bg-white border border-gray-200 rounded-lg px-6 py-4 mb-6 mt-2">
+              <p className="text-xs text-gray-500 mb-1">내 브랜드 페이지 주소</p>
+              <p className="text-sm font-semibold text-[#16325C]">
+                {typeof window !== 'undefined' ? window.location.origin : ''}/p/{slug}
+              </p>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
-                onClick={() => router.push('/pd/dashboard')}
+                onClick={() => router.push(`/p/${slug}`)}
                 className="bg-[#00A1E0] hover:bg-[#0090c8] text-white"
               >
-                대시보드로 이동
+                내 브랜드 페이지 보기
                 <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => router.push('/pd/dashboard')}
+                variant="outline"
+                className="border-gray-300 text-[#16325C]"
+              >
+                대시보드로 이동
               </Button>
               <Button
                 variant="outline"

@@ -13,6 +13,8 @@ export function MobileMenu() {
     { href: '/media', label: '미디어' },
     { href: '/works', label: '저작 및 활동' },
     { href: '/community', label: '커뮤니티' },
+    { href: '/chopd/ai', label: 'AI 어시스턴트' },
+    { href: '/chopd/schedule', label: '예약 발행' },
   ];
 
   return (
