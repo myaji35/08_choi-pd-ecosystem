@@ -5,8 +5,8 @@
 # =============================================================================
 # Stage 1: Dependencies - 의존성 설치
 # =============================================================================
-FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat curl
+FROM node:20-slim AS deps
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -19,8 +19,8 @@ RUN npm ci --legacy-peer-deps && npm cache clean --force
 # =============================================================================
 # Stage 2: Builder - 애플리케이션 빌드
 # =============================================================================
-FROM node:20-alpine AS builder
-RUN apk add --no-cache libc6-compat curl
+FROM node:20-slim AS builder
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -55,19 +55,16 @@ RUN test -d .next/static || (echo "ERROR: static files not found" && exit 1)
 # =============================================================================
 # Stage 3: Runner - 프로덕션 실행 환경
 # =============================================================================
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
 # Install runtime dependencies
-RUN apk add --no-cache \
-    curl \
-    dumb-init \
-    && rm -rf /var/cache/apk/*
+RUN apt-get update && apt-get install -y curl dumb-init && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Security: Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001 -G nodejs
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs -s /bin/sh nextjs
 
 # Set production environment
 ENV NODE_ENV=production
@@ -96,7 +93,7 @@ EXPOSE 3000
 
 # Health check - 안정적인 헬스체크 설정
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
+  CMD curl -f http://localhost:3000/ || exit 1
 
 # Use dumb-init for proper signal handling (graceful shutdown)
 ENTRYPOINT ["dumb-init", "--"]
