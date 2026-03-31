@@ -51,11 +51,5 @@ export async function generateMetadata({
 }
 
 export default function BrandPageLayout({ children }: BrandPageLayoutProps) {
-  return (
-    <html lang="ko">
-      <body className="bg-[#F3F2F2] text-gray-900 antialiased">
-        {children}
-      </body>
-    </html>
-  );
+  return <>{children}</>;
 }

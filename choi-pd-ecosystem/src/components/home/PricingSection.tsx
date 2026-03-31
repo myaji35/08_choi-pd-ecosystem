@@ -101,7 +101,7 @@ export function PricingSection() {
                 </div>
 
                 {/* Price */}
-                <div className="mb-6 pb-6 border-b border-gray-100">
+                <div className="mb-6 pb-6 border-b border-gray-200">
                   <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-bold" style={{ color: '#16325C' }}>{plan.price}</span>
                     <span className="text-sm text-gray-400">{plan.period}</span>
@@ -139,14 +139,32 @@ export function PricingSection() {
           ))}
         </div>
 
-        {/* FAQ teaser */}
-        <div className="mt-12 text-center">
+        {/* Trust badges */}
+        <div className="mt-12 text-center space-y-4">
           <p className="text-sm text-gray-500">
-            모든 플랜에 14일 무료 체험이 포함됩니다.{' '}
-            <Link href="/chopd/community" className="font-semibold underline underline-offset-2" style={{ color: '#00A1E0' }}>
-              자주 묻는 질문
-            </Link>
+            모든 플랜에 14일 무료 체험이 포함됩니다. 언제든 해지 가능합니다.
           </p>
+          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-gray-400">
+            <div className="flex items-center gap-1.5">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+              AES-256 암호화
+            </div>
+            <div className="w-px h-3 bg-gray-200" />
+            <div className="flex items-center gap-1.5">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+              데이터 한국 서버 보관
+            </div>
+            <div className="w-px h-3 bg-gray-200" />
+            <div className="flex items-center gap-1.5">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+              7일 이내 전액 환불
+            </div>
+            <div className="w-px h-3 bg-gray-200 hidden sm:block" />
+            <div className="hidden sm:flex items-center gap-1.5">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M2 12h20" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+              GDPR 준수
+            </div>
+          </div>
         </div>
       </div>
     </section>

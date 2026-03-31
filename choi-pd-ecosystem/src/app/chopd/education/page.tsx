@@ -44,7 +44,7 @@ export default async function EducationPage({ searchParams }: EducationPageProps
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-16 md:py-20" style={{ background: 'linear-gradient(135deg, #16325C 0%, #00A1E0 100%)' }}>
+      <section className="relative overflow-hidden py-16 md:py-20" style={{ background: 'linear-gradient(135deg, #060F1E 0%, #0E2340 35%, #16325C 60%, #0080B8 100%)' }}>
         {/* Grid pattern */}
         <div className="absolute inset-0 opacity-[0.04]" style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
@@ -52,7 +52,7 @@ export default async function EducationPage({ searchParams }: EducationPageProps
         }} />
         <div className="container relative z-10">
           <div className="mx-auto max-w-3xl text-center">
-            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium text-white/80 mb-6">
+            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium text-white/90 mb-6">
               <svg className="mr-2 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
               교육 프로그램
             </span>
@@ -60,7 +60,7 @@ export default async function EducationPage({ searchParams }: EducationPageProps
               AI 시대, 실전 교육으로
               <br />시작하세요
             </h1>
-            <p className="mt-5 text-lg text-white/70 leading-relaxed">
+            <p className="mt-5 text-lg text-white leading-relaxed" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}>
               1인 사업자와 소상공인을 위한 체계적인 교육 과정.
               <br className="hidden sm:block" />
               기초부터 실전까지, AI 도구 활용법을 배워보세요.

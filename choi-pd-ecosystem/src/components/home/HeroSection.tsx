@@ -19,7 +19,7 @@ export function HeroSection({
   }, []);
 
   return (
-    <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0A1628 0%, #16325C 40%, #00A1E0 100%)' }}>
+    <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #060F1E 0%, #0E2340 35%, #16325C 60%, #0080B8 100%)' }}>
       {/* Decorative grid pattern */}
       <div className="absolute inset-0 opacity-[0.04]" style={{
         backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
@@ -43,13 +43,19 @@ export function HeroSection({
               <span className="text-sm font-medium text-white/80">AI 브랜드 매니저 출시</span>
             </div>
 
-            <h1 className={`text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.15] transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <h1
+              className={`text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.15] transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              style={{ textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}
+            >
               AI가 당신의
               <br />
               <span style={{ color: '#00A1E0' }} className="drop-shadow-[0_0_24px_rgba(0,161,224,0.4)]">브랜드를 관리</span>합니다
             </h1>
 
-            <p className={`mt-6 text-lg md:text-xl text-white/70 leading-relaxed max-w-xl mx-auto lg:mx-0 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <p
+              className={`mt-6 text-lg md:text-xl text-white leading-relaxed max-w-xl mx-auto lg:mx-0 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              style={{ textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}
+            >
               블로그, SNS, 쇼핑몰을 하나로.
               <br className="hidden sm:block" />
               AI가 콘텐츠를 자동 생성하고 예약 발행합니다.
@@ -67,7 +73,7 @@ export function HeroSection({
               </Link>
               <Link
                 href="/chopd/education"
-                className="inline-flex items-center justify-center px-8 py-3.5 rounded-lg text-base font-semibold border-2 border-white/30 text-white transition-all duration-200 hover:bg-white/10 hover:border-white/50"
+                className="inline-flex items-center justify-center px-8 py-3.5 rounded-lg text-base font-semibold border-2 border-white/60 bg-white/10 text-white transition-all duration-200 hover:bg-white/20 hover:border-white/80"
               >
                 <svg className="mr-2 w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 데모 보기
@@ -75,7 +81,7 @@ export function HeroSection({
             </div>
 
             {/* Social proof */}
-            <div className={`mt-10 flex items-center gap-6 justify-center lg:justify-start text-white/50 text-sm transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <div className={`mt-10 flex items-center gap-6 justify-center lg:justify-start text-white/80 text-sm transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <div className="flex items-center gap-2">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span>500+ 사용자</span>
@@ -108,7 +114,7 @@ export function HeroSection({
                     <div className="w-3 h-3 rounded-full bg-yellow-400/70" />
                     <div className="w-3 h-3 rounded-full bg-green-400/70" />
                   </div>
-                  <div className="flex-1 mx-4 rounded-md bg-white/10 px-3 py-1 text-xs text-white/40 text-center">
+                  <div className="flex-1 mx-4 rounded-md bg-white/10 px-3 py-1 text-xs text-white/70 text-center">
                     app.impd.kr/dashboard
                   </div>
                 </div>
@@ -123,7 +129,7 @@ export function HeroSection({
                       { label: '신규 리드', value: '156', change: '+28%' },
                     ].map((stat) => (
                       <div key={stat.label} className="rounded-lg bg-white/5 border border-white/10 p-3">
-                        <p className="text-xs text-white/40">{stat.label}</p>
+                        <p className="text-xs text-white/70">{stat.label}</p>
                         <p className="text-lg font-bold text-white mt-0.5">{stat.value}</p>
                         <p className="text-xs text-green-400 mt-0.5">{stat.change}</p>
                       </div>
@@ -133,7 +139,7 @@ export function HeroSection({
                   {/* Content schedule */}
                   <div className="rounded-lg bg-white/5 border border-white/10 p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-sm font-medium text-white/70">AI 콘텐츠 스케줄</p>
+                      <p className="text-sm font-medium text-white/90">AI 콘텐츠 스케줄</p>
                       <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium" style={{ background: '#00A1E0' }}>자동</span>
                     </div>
                     <div className="space-y-2.5">
@@ -145,9 +151,9 @@ export function HeroSection({
                         <div key={item.title} className="flex items-center gap-3 rounded-md bg-white/5 px-3 py-2">
                           <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: item.color }} />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-white/80 truncate">{item.title}</p>
+                            <p className="text-sm text-white/90 truncate">{item.title}</p>
                           </div>
-                          <span className="text-xs text-white/40 shrink-0">{item.time}</span>
+                          <span className="text-xs text-white/70 shrink-0">{item.time}</span>
                         </div>
                       ))}
                     </div>
