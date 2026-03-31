@@ -51,6 +51,7 @@ export function GallerySection({ works }: GallerySectionProps) {
                   src={work.imageUrl}
                   alt={work.title}
                   fill
+                  unoptimized={work.imageUrl.startsWith('http')}
                   className="object-cover transition-opacity group-hover:opacity-90"
                   sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 />
@@ -80,6 +81,7 @@ export function GallerySection({ works }: GallerySectionProps) {
                     src={selectedWork.imageUrl}
                     alt={selectedWork.title}
                     fill
+                    unoptimized={selectedWork.imageUrl.startsWith('http')}
                     className="object-contain"
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
