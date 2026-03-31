@@ -1,0 +1,56 @@
+# macOS resource forks
+._*
+.DS_Store
+
+# Dependencies
+node_modules
+.npm
+
+# Build output
+.next
+out
+
+# Development
+*.log
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode
+.idea
+
+# Git
+.git
+.gitignore
+
+# Kamal
+.kamal
+
+# Tests
+e2e
+test-results
+coverage
+screenshots
+.playwright-mcp
+
+# Data (mount as volume)
+data
+
+# Docs
+docs
+specs
+_workspace
+*.md
+!README.md
+
+# Scripts
+scripts
+
+# Misc
+.claude
+.bkit
+.gstack
+.serena
+.specify
+.pdca.json

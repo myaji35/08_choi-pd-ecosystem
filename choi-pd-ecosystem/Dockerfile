@@ -40,6 +40,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV DOCKER_BUILD=true
 ENV NODE_ENV=production
 
+# Create empty SQLite DB for build-time page generation
+RUN mkdir -p data && touch data/database.db
+ENV DATABASE_URL=file:./data/database.db
+
 # Build the Next.js application with standalone output
 RUN npm run build
 

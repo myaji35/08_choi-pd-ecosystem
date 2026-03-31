@@ -1,0 +1,58 @@
+# imPD - Kamal Deploy Config
+# 서버: Vultr ICN (158.247.235.31)
+# 접속: http://impd.158.247.235.31.nip.io:3030
+# 업데이트: 2026-03-31
+
+service: impd
+
+image: myaji35/impd
+
+# ── 서버 설정 ──────────────────────────────
+servers:
+  web:
+    - 158.247.235.31
+
+# ── SSH 설정 ──────────────────────────────
+ssh:
+  user: root
+
+# ── Proxy 설정 (kamal-proxy via nip.io) ───
+proxy:
+  host: impd.158.247.235.31.nip.io
+  app_port: 3000
+
+# ── 레지스트리 (GitHub Container Registry) ──
+registry:
+  server: ghcr.io
+  username: myaji35
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+# ── 환경변수 ──────────────────────────────
+env:
+  secret:
+    - DATABASE_URL
+    - DATABASE_AUTH_TOKEN
+    - ENCRYPTION_KEY
+    - JWT_SECRET
+  clear:
+    NODE_ENV: production
+    PORT: "3000"
+    HOSTNAME: "0.0.0.0"
+    NEXT_PUBLIC_DEV_MODE: "false"
+    NEXT_TELEMETRY_DISABLED: "1"
+
+# ── 볼륨 (SQLite DB 영속성) ───────────────
+volumes:
+  - "impd_data:/app/data"
+  - "impd_uploads:/app/public/uploads"
+
+# ── 빌더 (서버에서 빌드) ──
+builder:
+  arch: amd64
+  remote: ssh://root@158.247.235.31
+
+# ── 별칭 ──────────────────────────────────
+aliases:
+  shell: app exec --interactive --reuse "sh"
+  logs: app logs -f
