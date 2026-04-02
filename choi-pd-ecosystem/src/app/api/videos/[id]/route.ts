@@ -4,6 +4,10 @@ import { videos } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter } from '@/lib/tenant/query-helpers';
+import { logger } from '@/lib/logger';
+import { Storage } from '@google-cloud/storage';
+import { unlink } from 'fs/promises';
+import path from 'path';
 
 /**
  * GET /api/videos/[id]
@@ -115,8 +119,50 @@ export async function PATCH(
 }
 
 /**
+ * Delete storage files associated with a video.
+ * Supports GCS (when GCS_BUCKET_NAME is set) and local public/ directory.
+ * Failures are logged as warnings — DB deletion proceeds regardless.
+ */
+async function deleteStorageFiles(fileUrls: (string | null)[]): Promise<void> {
+  const urls = fileUrls.filter((u): u is string => !!u);
+  if (urls.length === 0) return;
+
+  const gcsBucket = process.env.GCS_BUCKET_NAME;
+
+  for (const url of urls) {
+    try {
+      if (gcsBucket && url.includes('storage.googleapis.com')) {
+        // GCS file: extract object path from URL
+        // URL format: https://storage.googleapis.com/BUCKET/path/to/file
+        const gcsPrefix = `https://storage.googleapis.com/${gcsBucket}/`;
+        if (url.startsWith(gcsPrefix)) {
+          const objectPath = url.slice(gcsPrefix.length);
+          const storage = new Storage();
+          await storage.bucket(gcsBucket).file(objectPath).delete({ ignoreNotFound: true });
+          logger.info('GCS file deleted', { objectPath });
+        } else {
+          logger.warn('GCS URL does not match bucket, skipping', { url, gcsBucket });
+        }
+      } else if (url.startsWith('/')) {
+        // Local file in public/ directory
+        const filePath = path.join(process.cwd(), 'public', url);
+        await unlink(filePath);
+        logger.info('Local file deleted', { filePath });
+      } else {
+        logger.warn('Unknown storage URL scheme, skipping', { url });
+      }
+    } catch (err) {
+      logger.warn('Failed to delete storage file', {
+        url,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+}
+
+/**
  * DELETE /api/videos/[id]
- * Delete video
+ * Delete video and associated storage files
  */
 export async function DELETE(
   request: NextRequest,
@@ -124,13 +170,29 @@ export async function DELETE(
 ) {
   try {
     const tenantId = getTenantIdFromRequest(request);
-    const { id } = await params;    const videoId = parseInt(id);
+    const { id } = await params;
+    const videoId = parseInt(id);
 
-    // TODO: Delete actual video files from storage
-    // - HLS segments
-    // - DASH segments
-    // - MP4 file
-    // - Thumbnails
+    // Fetch video record to get file URLs before deletion
+    const [video] = await db
+      .select()
+      .from(videos)
+      .where(and(eq(videos.id, videoId), tenantFilter(videos.tenantId, tenantId)));
+
+    if (!video) {
+      return NextResponse.json(
+        { success: false, error: 'Video not found' },
+        { status: 404 }
+      );
+    }
+
+    // Delete storage files (best-effort, failures are logged as warnings)
+    await deleteStorageFiles([
+      video.hlsUrl,
+      video.dashUrl,
+      video.mp4Url,
+      video.thumbnailUrl,
+    ]);
 
     await db.delete(videos).where(and(eq(videos.id, videoId), tenantFilter(videos.tenantId, tenantId)));
 
@@ -139,7 +201,9 @@ export async function DELETE(
       message: 'Video deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting video:', error);
+    logger.error('Error deleting video', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(
       { success: false, error: 'Failed to delete video' },
       { status: 500 }
