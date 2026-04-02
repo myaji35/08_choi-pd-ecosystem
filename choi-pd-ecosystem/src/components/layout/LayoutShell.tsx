@@ -26,26 +26,6 @@ function needsSidebarLayout(pathname: string): boolean {
 
 const SIDEBAR_BREAKPOINT = 1024; // lg breakpoint
 
-/** 좁은 화면 전용 — 사이드바를 오버레이로 표시 */
-function SidebarOverlay() {
-  const { isSidebarOpen, setSidebarOpen } = useUIStore();
-
-  if (!isSidebarOpen) return null;
-
-  return (
-    <>
-      {/* 배경 딤 */}
-      <div
-        className="fixed inset-0 z-40 bg-black/30"
-        onClick={() => setSidebarOpen(false)}
-      />
-      {/* 사이드바 오버레이 */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl">
-        <NotionSidebar />
-      </div>
-    </>
-  );
-}
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -68,15 +48,9 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
   if (needsSidebarLayout(pathname)) {
     return (
-      <div className="flex h-screen bg-white relative">
-        {/* lg 이상: 사이드바가 flex 레이아웃에 포함 */}
-        <div className="hidden lg:block">
-          <NotionSidebar />
-        </div>
-        {/* lg 미만: 사이드바가 오버레이로 표시 */}
-        <div className="lg:hidden">
-          <SidebarOverlay />
-        </div>
+      <div className="flex h-screen bg-white">
+        {/* 사이드바: 모든 화면에서 표시. 좁은 화면에서는 접힌 상태(아이콘만) + hover 확장 */}
+        <NotionSidebar />
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           <NotionHeader />
           <main className="flex-1 overflow-y-auto mt-12 bg-white">

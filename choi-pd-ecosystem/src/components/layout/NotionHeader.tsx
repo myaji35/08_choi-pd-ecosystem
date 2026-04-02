@@ -77,7 +77,7 @@ export function NotionHeader() {
         <div className="flex items-center gap-1">
           <button
             onClick={toggleSidebar}
-            className="p-1.5 hover:bg-gray-100 rounded-md transition-colors lg:hidden"
+            className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
             aria-label="Menu"
           >
             <Menu className="w-5 h-5" />
