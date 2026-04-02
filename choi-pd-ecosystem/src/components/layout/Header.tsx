@@ -61,16 +61,17 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-1" aria-label="주 내비게이션">
           {menuItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`relative px-3.5 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+              className={`relative px-3.5 py-2 text-sm font-medium rounded-md transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00A1E0] focus-visible:ring-offset-2 ${
                 isActive(item.href)
                   ? 'text-[#16325C]'
                   : 'text-gray-500 hover:text-[#16325C] hover:bg-gray-50'
               }`}
+              aria-current={isActive(item.href) ? 'page' : undefined}
             >
               {item.label}
               {/* Active indicator */}
@@ -88,7 +89,7 @@ export function Header() {
         <div className="flex items-center gap-3">
           <Link
             href="/chopd/community"
-            className="hidden md:inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+            className="hidden md:inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00A1E0] focus-visible:ring-offset-2"
             style={{ background: '#00A1E0' }}
           >
             시작하기

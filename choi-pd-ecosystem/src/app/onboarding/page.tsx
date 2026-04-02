@@ -131,41 +131,47 @@ const STEPS = ['직업군 선택', '브랜드 정보', '플랜 선택', '완료'
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
-    <div className="flex items-center justify-center gap-2 mb-8">
-      {STEPS.map((label, index) => (
-        <div key={label} className="flex items-center gap-2">
-          <div
-            className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold transition-colors ${
-              index < currentStep
-                ? 'bg-[#00A1E0] text-white'
-                : index === currentStep
-                ? 'bg-[#16325C] text-white'
-                : 'bg-gray-200 text-gray-500'
-            }`}
-          >
-            {index < currentStep ? (
-              <Check className="h-4 w-4" />
-            ) : (
-              index + 1
-            )}
-          </div>
-          <span
-            className={`hidden sm:inline text-xs font-medium ${
-              index <= currentStep ? 'text-[#16325C]' : 'text-gray-400'
-            }`}
-          >
-            {label}
-          </span>
-          {index < STEPS.length - 1 && (
+    <nav aria-label={`온보딩 진행 단계: ${currentStep + 1}/${STEPS.length}`} className="flex items-center justify-center gap-2 mb-8">
+      <ol className="flex items-center gap-2" role="list">
+        {STEPS.map((label, index) => (
+          <li key={label} className="flex items-center gap-2">
             <div
-              className={`w-8 h-0.5 ${
-                index < currentStep ? 'bg-[#00A1E0]' : 'bg-gray-200'
+              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold transition-colors ${
+                index < currentStep
+                  ? 'bg-[#00A1E0] text-white'
+                  : index === currentStep
+                  ? 'bg-[#16325C] text-white'
+                  : 'bg-gray-200 text-gray-500'
               }`}
-            />
-          )}
-        </div>
-      ))}
-    </div>
+              aria-current={index === currentStep ? 'step' : undefined}
+              aria-label={`${label} ${index < currentStep ? '(완료)' : index === currentStep ? '(현재)' : ''}`}
+            >
+              {index < currentStep ? (
+                <Check className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                index + 1
+              )}
+            </div>
+            <span
+              className={`hidden sm:inline text-xs font-medium ${
+                index <= currentStep ? 'text-[#16325C]' : 'text-gray-400'
+              }`}
+              aria-hidden="true"
+            >
+              {label}
+            </span>
+            {index < STEPS.length - 1 && (
+              <div
+                className={`w-8 h-0.5 ${
+                  index < currentStep ? 'bg-[#00A1E0]' : 'bg-gray-200'
+                }`}
+                aria-hidden="true"
+              />
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
   );
 }
 
@@ -307,16 +313,25 @@ export default function OnboardingPage() {
             <p className="text-sm text-gray-500 text-center mb-8">
               선택한 직업군에 맞게 용어와 UI가 자동 커스터마이징됩니다.
             </p>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label="직업군 선택">
               {PROFESSIONS.map((p) => (
                 <Card
                   key={p.id}
-                  className={`cursor-pointer transition-all hover:shadow-md border-2 ${
+                  role="radio"
+                  aria-checked={profession === p.id}
+                  tabIndex={0}
+                  className={`cursor-pointer transition-all hover:shadow-md border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00A1E0] focus-visible:ring-offset-2 ${
                     profession === p.id
                       ? 'border-[#00A1E0] bg-blue-50/50 shadow-md'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                   onClick={() => setProfession(p.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setProfession(p.id);
+                    }
+                  }}
                 >
                   <CardContent className="flex flex-col items-center text-center p-6">
                     <div
@@ -325,6 +340,7 @@ export default function OnboardingPage() {
                           ? 'bg-[#00A1E0] text-white'
                           : 'bg-gray-100 text-gray-600'
                       }`}
+                      aria-hidden="true"
                     >
                       {p.icon}
                     </div>
@@ -350,10 +366,12 @@ export default function OnboardingPage() {
               <CardContent className="p-6 space-y-6">
                 {/* 브랜드 이름 */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                    브랜드 이름 <span className="text-red-500">*</span>
+                  <label htmlFor="brandName" className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    브랜드 이름 <span className="text-red-500" aria-hidden="true">*</span>
+                    <span className="sr-only">(필수)</span>
                   </label>
                   <input
+                    id="brandName"
                     type="text"
                     value={brandName}
                     onChange={(e) => {
@@ -368,61 +386,69 @@ export default function OnboardingPage() {
                       }
                     }}
                     placeholder="예: 김부동산, 맛있는빵집"
-                    className={`w-full px-3 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 ${
+                    aria-required="true"
+                    aria-invalid={!!fieldErrors.brandName}
+                    aria-describedby={fieldErrors.brandName ? 'brandName-error' : undefined}
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus-visible:ring-2 focus-visible:ring-offset-2 ${
                       fieldErrors.brandName
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : 'border-gray-300 focus:border-[#00A1E0] focus:ring-[#00A1E0]'
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500 focus-visible:ring-red-500'
+                        : 'border-gray-300 focus:border-[#00A1E0] focus:ring-[#00A1E0] focus-visible:ring-[#00A1E0]'
                     }`}
                   />
-                  {fieldErrors.brandName && <p className="mt-1 text-xs text-red-600">{fieldErrors.brandName}</p>}
+                  {fieldErrors.brandName && <p id="brandName-error" role="alert" className="mt-1 text-xs text-red-600">{fieldErrors.brandName}</p>}
                 </div>
 
                 {/* 슬러그 (URL) */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                    URL 슬러그 <span className="text-red-500">*</span>
+                  <label htmlFor="slug" className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    URL 슬러그 <span className="text-red-500" aria-hidden="true">*</span>
+                    <span className="sr-only">(필수)</span>
                   </label>
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center bg-gray-50 border border-gray-300 rounded-lg px-3 py-2.5">
+                    <div className="flex items-center bg-gray-50 border border-gray-300 rounded-lg px-3 py-2.5" aria-hidden="true">
                       <span className="text-sm text-gray-500 whitespace-nowrap">
                         https://
                       </span>
                     </div>
                     <input
+                      id="slug"
                       type="text"
                       value={slug}
                       onChange={(e) => handleSlugChange(e.target.value)}
                       placeholder="my-brand"
-                      className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+                      aria-required="true"
+                      aria-invalid={slugStatus === 'taken' || !!fieldErrors.slug}
+                      aria-describedby="slug-status slug-error"
+                      className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0] focus-visible:ring-2 focus-visible:ring-[#00A1E0] focus-visible:ring-offset-2"
                     />
-                    <div className="flex items-center bg-gray-50 border border-gray-300 rounded-lg px-3 py-2.5">
+                    <div className="flex items-center bg-gray-50 border border-gray-300 rounded-lg px-3 py-2.5" aria-hidden="true">
                       <span className="text-sm text-gray-500 whitespace-nowrap">
                         .impd.io
                       </span>
                     </div>
                   </div>
                   {/* slug 상태 표시 */}
-                  <div className="mt-1.5 h-5">
+                  <div id="slug-status" className="mt-1.5 h-5" aria-live="polite">
                     {slugStatus === 'checking' && (
                       <span className="text-xs text-gray-400 flex items-center gap-1">
-                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
                         확인 중...
                       </span>
                     )}
                     {slugStatus === 'available' && (
                       <span className="text-xs text-green-600 flex items-center gap-1">
-                        <Check className="h-3 w-3" />
+                        <Check className="h-3 w-3" aria-hidden="true" />
                         사용 가능한 주소입니다.
                       </span>
                     )}
                     {slugStatus === 'taken' && (
-                      <span className="text-xs text-red-600">
+                      <span className="text-xs text-red-600" role="alert">
                         이미 사용 중인 주소입니다. 다른 주소를 입력하세요.
                       </span>
                     )}
                   </div>
                   {fieldErrors.slug && slugStatus !== 'taken' && (
-                    <p className="mt-1 text-xs text-red-600">{fieldErrors.slug}</p>
+                    <p id="slug-error" role="alert" className="mt-1 text-xs text-red-600">{fieldErrors.slug}</p>
                   )}
                 </div>
               </CardContent>
@@ -439,16 +465,25 @@ export default function OnboardingPage() {
             <p className="text-sm text-gray-500 text-center mb-8">
               무료 플랜으로 시작하고 언제든 업그레이드할 수 있습니다.
             </p>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-3" role="radiogroup" aria-label="플랜 선택">
               {PLANS.map((p) => (
                 <Card
                   key={p.id}
-                  className={`cursor-pointer transition-all hover:shadow-md border-2 relative ${
+                  role="radio"
+                  aria-checked={plan === p.id}
+                  tabIndex={0}
+                  className={`cursor-pointer transition-all hover:shadow-md border-2 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00A1E0] focus-visible:ring-offset-2 ${
                     plan === p.id
                       ? 'border-[#00A1E0] shadow-md'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                   onClick={() => setPlan(p.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setPlan(p.id);
+                    }
+                  }}
                 >
                   {p.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">

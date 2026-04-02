@@ -80,7 +80,7 @@ export function InquiryForm({ type = 'contact' }: InquiryFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" aria-label={type === 'b2b' ? 'B2B 문의 양식' : '문의 양식'}>
         <FormField
           control={form.control}
           name="name"
@@ -88,7 +88,7 @@ export function InquiryForm({ type = 'contact' }: InquiryFormProps) {
             <FormItem>
               <FormLabel>이름 *</FormLabel>
               <FormControl>
-                <Input placeholder="홍길동" {...field} />
+                <Input placeholder="홍길동" aria-required="true" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -102,7 +102,7 @@ export function InquiryForm({ type = 'contact' }: InquiryFormProps) {
             <FormItem>
               <FormLabel>이메일 *</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="example@email.com" {...field} />
+                <Input type="email" placeholder="example@email.com" aria-required="true" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -133,6 +133,7 @@ export function InquiryForm({ type = 'contact' }: InquiryFormProps) {
                 <Textarea
                   placeholder="문의하실 내용을 입력해주세요"
                   rows={5}
+                  aria-required="true"
                   {...field}
                 />
               </FormControl>
@@ -141,7 +142,7 @@ export function InquiryForm({ type = 'contact' }: InquiryFormProps) {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full focus-visible:ring-2 focus-visible:ring-[#00A1E0] focus-visible:ring-offset-2" disabled={isLoading} aria-busy={isLoading}>
           {isLoading ? '전송 중...' : '문의하기'}
         </Button>
       </form>
