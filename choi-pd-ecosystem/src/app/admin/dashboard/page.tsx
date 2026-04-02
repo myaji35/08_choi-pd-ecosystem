@@ -17,7 +17,10 @@ import {
   XCircle,
   UserPlus,
   CreditCard,
-  Receipt
+  Receipt,
+  AlertTriangle,
+  RefreshCw,
+  Inbox,
 } from 'lucide-react';
 
 interface DistributorStats {
@@ -28,35 +31,55 @@ interface DistributorStats {
   recentActivities: number;
 }
 
+function KpiSkeleton() {
+  return (
+    <Card className="border-gray-200">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="h-4 w-20 animate-pulse bg-gray-200 rounded" />
+        <div className="h-4 w-4 animate-pulse bg-gray-200 rounded" />
+      </CardHeader>
+      <CardContent>
+        <div className="h-7 w-16 animate-pulse bg-gray-200 rounded mb-2" />
+        <div className="h-3 w-32 animate-pulse bg-gray-200 rounded" />
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function AdminDistributorDashboard() {
   const router = useRouter();
   const { user, logout } = useSession();
-  const [stats, setStats] = useState<DistributorStats>({
-    totalDistributors: 0,
-    activeDistributors: 0,
-    pendingDistributors: 0,
-    totalRevenue: 0,
-    recentActivities: 0,
-  });
+  const [stats, setStats] = useState<DistributorStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogout = async () => {
     await logout();
   };
 
-  useEffect(() => {
-    // TODO: Fetch distributor stats from API
-    // Placeholder data for now
+  const fetchStats = () => {
+    setIsLoading(true);
+    setError(null);
+    // TODO: Replace with real API call (fetch('/api/admin/stats'))
     setTimeout(() => {
-      setStats({
-        totalDistributors: 12,
-        activeDistributors: 8,
-        pendingDistributors: 4,
-        totalRevenue: 45000000,
-        recentActivities: 23,
-      });
-      setIsLoading(false);
+      try {
+        setStats({
+          totalDistributors: 12,
+          activeDistributors: 8,
+          pendingDistributors: 4,
+          totalRevenue: 45000000,
+          recentActivities: 23,
+        });
+        setIsLoading(false);
+      } catch {
+        setError('통계 데이터를 불러오는 데 실패했습니다.');
+        setIsLoading(false);
+      }
     }, 500);
+  };
+
+  useEffect(() => {
+    fetchStats();
   }, []);
 
   const formatCurrency = (amount: number) => {
@@ -65,6 +88,8 @@ export default function AdminDistributorDashboard() {
       currency: 'KRW',
     }).format(amount);
   };
+
+  const isEmpty = stats && stats.totalDistributors === 0 && stats.totalRevenue === 0;
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -87,64 +112,105 @@ export default function AdminDistributorDashboard() {
         </div>
       </div>
 
+      {/* 에러 상태 */}
+      {error && (
+        <div className="mb-6 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <div className="flex items-center gap-2 text-red-700">
+            <AlertTriangle className="h-5 w-5" />
+            <span className="text-sm font-medium">{error}</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={fetchStats} className="border-red-300 text-red-700 hover:bg-red-100">
+            <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+            다시 시도
+          </Button>
+        </div>
+      )}
+
       {/* 메인 콘텐츠 */}
       <div>
-        {/* 통계 카드 */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">전체 수요자</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalDistributors}</div>
-              <p className="text-xs text-muted-foreground">
-                전체 등록된 분양 수요자 수
-              </p>
-            </CardContent>
-          </Card>
+        {/* 통계 카드 — 로딩 스켈레톤 */}
+        {isLoading && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            <KpiSkeleton />
+            <KpiSkeleton />
+            <KpiSkeleton />
+            <KpiSkeleton />
+          </div>
+        )}
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">활성 수요자</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.activeDistributors}</div>
-              <p className="text-xs text-muted-foreground">
-                현재 활동 중인 수요자
-              </p>
-            </CardContent>
-          </Card>
+        {/* 통계 카드 — empty state */}
+        {!isLoading && !error && isEmpty && (
+          <div className="mb-8 flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white py-16 px-4">
+            <Inbox className="h-12 w-12 text-gray-300 mb-4" strokeWidth={1.5} />
+            <p className="text-base font-semibold text-gray-700 mb-1">아직 등록된 수요자가 없습니다</p>
+            <p className="text-sm text-gray-500 mb-4">첫 번째 수요자를 등록하여 대시보드를 활성화하세요.</p>
+            <Button asChild>
+              <a href="/admin/distributors/new">
+                <UserPlus className="mr-2 h-4 w-4" />
+                수요자 등록하기
+              </a>
+            </Button>
+          </div>
+        )}
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">대기 중</CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{stats.pendingDistributors}</div>
-              <p className="text-xs text-muted-foreground">
-                승인 대기 중인 신청
-              </p>
-            </CardContent>
-          </Card>
+        {/* 통계 카드 — 데이터 표시 */}
+        {!isLoading && !error && stats && !isEmpty && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            <Card className="border-gray-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">전체 수요자</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalDistributors}</div>
+                <p className="text-xs text-muted-foreground">
+                  전체 등록된 분양 수요자 수
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">총 매출</CardTitle>
-              <TrendingUp className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {formatCurrency(stats.totalRevenue)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                누적 매출액
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="border-gray-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">활성 수요자</CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">{stats.activeDistributors}</div>
+                <p className="text-xs text-muted-foreground">
+                  현재 활동 중인 수요자
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-gray-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">대기 중</CardTitle>
+                <Clock className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">{stats.pendingDistributors}</div>
+                <p className="text-xs text-muted-foreground">
+                  승인 대기 중인 신청
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-gray-200">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">총 매출</CardTitle>
+                <TrendingUp className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {formatCurrency(stats.totalRevenue)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  누적 매출액
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* 주요 기능 카드 */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -169,7 +235,7 @@ export default function AdminDistributorDashboard() {
               <Button variant="outline" className="w-full justify-start" asChild>
                 <a href="/admin/distributors/pending">
                   <Clock className="mr-2 h-4 w-4" />
-                  승인 대기 ({stats.pendingDistributors})
+                  승인 대기 ({stats?.pendingDistributors ?? 0})
                 </a>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>

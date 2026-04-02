@@ -35,6 +35,9 @@ import {
   Activity,
   Calendar,
   DollarSign,
+  AlertTriangle,
+  RefreshCw,
+  BarChart3,
 } from 'lucide-react';
 
 interface Analytics {
@@ -58,6 +61,7 @@ export default function AnalyticsPage() {
   const router = useRouter();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState('30');
 
   useEffect(() => {
@@ -67,14 +71,20 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await fetch(`/api/admin/analytics?period=${period}`);
+      if (!response.ok) {
+        throw new Error(`서버 오류 (${response.status})`);
+      }
       const data = await response.json();
 
       if (data.success) {
         setAnalytics(data.analytics);
+      } else {
+        setError(data.error || '분석 데이터를 불러올 수 없습니다.');
       }
-    } catch (error) {
-      console.error('Failed to fetch analytics:', error);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '네트워크 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -89,11 +99,73 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+        <header className="border-b bg-white/80 backdrop-blur">
+          <div className="container flex h-16 items-center gap-4">
+            <div className="h-8 w-8 animate-pulse bg-gray-200 rounded" />
+            <div>
+              <div className="h-5 w-32 animate-pulse bg-gray-200 rounded mb-1" />
+              <div className="h-3 w-48 animate-pulse bg-gray-200 rounded" />
+            </div>
+          </div>
+        </header>
+        <main className="container py-8">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="border-gray-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div className="h-4 w-20 animate-pulse bg-gray-200 rounded" />
+                  <div className="h-4 w-4 animate-pulse bg-gray-200 rounded" />
+                </CardHeader>
+                <CardContent>
+                  <div className="h-7 w-16 animate-pulse bg-gray-200 rounded mb-2" />
+                  <div className="h-3 w-32 animate-pulse bg-gray-200 rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="border-gray-200">
+                <CardHeader>
+                  <div className="h-5 w-36 animate-pulse bg-gray-200 rounded mb-1" />
+                  <div className="h-3 w-48 animate-pulse bg-gray-200 rounded" />
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px] animate-pulse bg-gray-200 rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">분석 데이터 로딩 중...</p>
-        </div>
+        <Card className="max-w-md border-gray-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-700">
+              <AlertTriangle className="h-5 w-5" />
+              데이터 로드 실패
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={fetchAnalytics} className="border-gray-300">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                다시 시도
+              </Button>
+              <Button variant="outline" onClick={() => router.push('/admin/dashboard')} className="border-gray-300">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                대시보드로
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -101,16 +173,23 @@ export default function AnalyticsPage() {
   if (!analytics) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>데이터 없음</CardTitle>
+        <Card className="max-w-md border-gray-200">
+          <CardHeader className="items-center text-center">
+            <BarChart3 className="h-12 w-12 text-gray-300 mb-2" strokeWidth={1.5} />
+            <CardTitle>분석 데이터 없음</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">분석 데이터를 불러올 수 없습니다.</p>
-            <Button onClick={() => router.push('/admin/dashboard')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              대시보드로
-            </Button>
+          <CardContent className="text-center">
+            <p className="text-gray-600 mb-4">선택한 기간에 해당하는 분석 데이터가 없습니다.</p>
+            <div className="flex gap-2 justify-center">
+              <Button variant="outline" onClick={fetchAnalytics} className="border-gray-300">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                새로고침
+              </Button>
+              <Button onClick={() => router.push('/admin/dashboard')}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                대시보드로
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -357,7 +436,7 @@ export default function AnalyticsPage() {
                   className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
                 >
                   <div className="flex items-center gap-3">
-                    <Badge className="bg-blue-100 text-blue-800 text-sm">#{index + 1}</Badge>
+                    <Badge style={{ background: '#3b82f6', color: 'white' }} className="text-sm">#{index + 1}</Badge>
                     <div>
                       <div className="font-medium">{resource.title}</div>
                       <div className="text-xs text-gray-500">{resource.category}</div>

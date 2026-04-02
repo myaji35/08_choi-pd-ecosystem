@@ -7,7 +7,7 @@ import { useTenant } from '@/lib/tenant/useTenant';
 import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Image as ImageIcon, LogOut, User as UserIcon, Settings, Globe, Copy, ExternalLink, Check as CheckIcon } from 'lucide-react';
+import { Upload, Image as ImageIcon, LogOut, User as UserIcon, Settings, Globe, Copy, ExternalLink, Check as CheckIcon, AlertTriangle, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
 import { ImageCropModal } from '@/components/admin/ImageCropModal';
 
@@ -188,7 +188,7 @@ export default function PDDashboard() {
           )}
 
           {/* 프로필 사진 관리 */}
-          <Card>
+          <Card className="border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ImageIcon className="h-5 w-5" />
@@ -254,7 +254,7 @@ export default function PDDashboard() {
           </Card>
 
           {/* 빠른 링크 */}
-          <Card>
+          <Card className="border-gray-200">
             <CardHeader>
               <CardTitle>빠른 링크</CardTitle>
               <CardDescription>주요 관리 페이지로 이동</CardDescription>
@@ -306,7 +306,7 @@ export default function PDDashboard() {
           </Card>
 
           {/* 계정 정보 */}
-          <Card>
+          <Card className="border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <UserIcon className="h-5 w-5" />
@@ -337,7 +337,14 @@ export default function PDDashboard() {
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-gray-500">사용자 정보 불러오는 중...</p>
+                <div className="space-y-3">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i}>
+                      <div className="h-3.5 w-12 animate-pulse bg-gray-200 rounded mb-1.5" />
+                      <div className="h-3.5 w-32 animate-pulse bg-gray-200 rounded" />
+                    </div>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
