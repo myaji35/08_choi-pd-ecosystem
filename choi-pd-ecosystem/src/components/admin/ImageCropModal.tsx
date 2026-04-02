@@ -154,14 +154,16 @@ export function ImageCropModal({
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">확대/축소</label>
+            <label htmlFor="zoom-slider" className="text-sm font-medium">확대/축소</label>
             <Slider
+              id="zoom-slider"
               value={[zoom]}
               onValueChange={([value]) => setZoom(value)}
               min={1}
               max={3}
               step={0.1}
               className="w-full"
+              aria-label={`확대/축소: ${zoom.toFixed(1)}배`}
             />
           </div>
         </div>

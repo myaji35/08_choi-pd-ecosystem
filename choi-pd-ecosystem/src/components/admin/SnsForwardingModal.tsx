@@ -191,7 +191,7 @@ export function SnsForwardingModal({
         <div className="space-y-6 py-4">
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 text-red-800 border border-red-200 rounded-lg p-3 text-sm">
+            <div role="alert" aria-live="assertive" className="bg-red-50 text-red-800 border border-red-200 rounded-lg p-3 text-sm">
               {error}
             </div>
           )}
@@ -219,12 +219,22 @@ export function SnsForwardingModal({
                   return (
                     <div
                       key={account.id}
-                      className={`flex items-center gap-3 border rounded-lg p-3 cursor-pointer transition-colors ${
+                      role="checkbox"
+                      aria-checked={isSelected}
+                      aria-label={`${platformNames[account.platform]} - ${account.accountName}`}
+                      tabIndex={0}
+                      className={`flex items-center gap-3 border rounded-lg p-3 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00A1E0] focus-visible:ring-offset-2 ${
                         isSelected
                           ? 'border-purple-500 bg-purple-50'
                           : 'border-gray-200 hover:bg-gray-50'
                       }`}
                       onClick={() => toggleAccount(account.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          toggleAccount(account.id);
+                        }
+                      }}
                     >
                       <Checkbox checked={isSelected} />
                       <Icon className={`h-5 w-5 ${platformColors[account.platform]}`} />
