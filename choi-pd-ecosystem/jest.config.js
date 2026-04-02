@@ -19,6 +19,7 @@ const customJestConfig = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '/\\.next/',
+    '/e2e/',
     '\\._',  // macOS metadata files
   ],
   collectCoverageFrom: [
