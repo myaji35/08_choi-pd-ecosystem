@@ -280,7 +280,7 @@ export const snsScheduledPosts = sqliteTable('sns_scheduled_posts', {
   imageUrl: text('image_url'), // 포스팅에 첨부할 이미지
   link: text('link'), // 포스팅에 첨부할 링크
   scheduledAt: integer('scheduled_at', { mode: 'timestamp' }).notNull(),
-  status: text('status', { enum: ['pending', 'publishing', 'published', 'failed', 'cancelled'] }).default('pending'),
+  status: text('status', { enum: ['pending', 'publishing', 'published', 'failed', 'cancelled', 'permanently_failed'] }).default('pending'),
   publishedAt: integer('published_at', { mode: 'timestamp' }),
   externalPostId: text('external_post_id'), // SNS 플랫폼에서 반환된 포스트 ID
   error: text('error'), // 에러 메시지 (실패 시)
