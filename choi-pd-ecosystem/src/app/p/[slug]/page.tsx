@@ -1,8 +1,12 @@
+export const dynamic = 'force-dynamic';
+
 import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
 import { db } from '@/lib/db';
 import { tenants, courses, snsAccounts, inquiries } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import Link from 'next/link';
+import { StructuredData } from '@/components/seo/StructuredData';
 import { BrandPageContactForm } from './contact-form';
 
 // ---- 직업군 한글 라벨 + 배지 색상 ----

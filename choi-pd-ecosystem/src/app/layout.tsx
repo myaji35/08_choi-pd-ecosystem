@@ -1,4 +1,6 @@
-import type { Metadata } from 'next';
+export const dynamic = 'force-dynamic';
+
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { LayoutShell } from '@/components/layout/LayoutShell';
 import { StructuredData } from '@/components/seo/StructuredData';
@@ -23,7 +25,6 @@ export const metadata: Metadata = {
   publisher: 'imPD',
   robots: 'index,follow',
   manifest: '/manifest.json',
-  themeColor: '#2563eb',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -62,6 +63,10 @@ export const metadata: Metadata = {
       'naver-site-verification': process.env.NAVER_SITE_VERIFICATION || '',
     },
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#2563eb',
 };
 
 export const revalidate = 3600; // 1시간마다 소셜 링크 갱신

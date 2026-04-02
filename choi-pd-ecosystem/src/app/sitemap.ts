@@ -4,6 +4,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://impd.com'; // 프로덕션 URL로 변경 필요
 
   return [
+    // 메인 랜딩
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -16,12 +17,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    // 핵심 제품 페이지
     {
-      url: `${baseUrl}/pd`,
+      url: `${baseUrl}/chopd/ai`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/onboarding`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    // 콘텐츠 섹션
     {
       url: `${baseUrl}/chopd/education`,
       lastModified: new Date(),
@@ -46,30 +55,38 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 0.7,
     },
+    // 법적 페이지
     {
-      url: `${baseUrl}/pd/education`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/pd/media`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/pd/media/greeting`,
+      url: `${baseUrl}/legal/privacy`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.6,
+      priority: 0.3,
     },
     {
-      url: `${baseUrl}/pd/works`,
+      url: `${baseUrl}/legal/terms`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
+      changeFrequency: 'monthly',
+      priority: 0.3,
     },
-    // Admin routes는 noindex이므로 sitemap에서 제외
+    {
+      url: `${baseUrl}/legal/refund`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
+    },
+    // GEO: AI 크롤러용 텍스트 파일
+    {
+      url: `${baseUrl}/llms.txt`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.2,
+    },
+    {
+      url: `${baseUrl}/ai.txt`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.2,
+    },
+    // Admin/PD routes는 noindex이므로 sitemap에서 제외
   ];
 }
