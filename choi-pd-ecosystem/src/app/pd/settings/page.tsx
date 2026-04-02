@@ -6,6 +6,13 @@ import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
   Palette,
   Globe,
   Type,
@@ -14,8 +21,11 @@ import {
   ExternalLink,
   Crown,
   Lock,
+  Check,
+  Zap,
+  Building2,
 } from 'lucide-react';
-import type { TenantBranding } from '@/lib/tenant/types';
+import type { TenantBranding, PlanType } from '@/lib/tenant/types';
 
 // ---- 프리셋 컬러 ----
 
@@ -38,11 +48,79 @@ const FONT_OPTIONS = [
   'IBM Plex Sans KR',
 ];
 
+// ---- 플랜 정의 ----
+
+interface PlanInfo {
+  key: PlanType;
+  name: string;
+  price: string;
+  priceNote: string;
+  color: string;
+  icon: typeof Crown;
+  features: string[];
+  cta: string;
+}
+
+const PLANS: PlanInfo[] = [
+  {
+    key: 'free',
+    name: 'Free',
+    price: '₩0',
+    priceNote: '무료',
+    color: '#6b7280',
+    icon: Crown,
+    features: [
+      'SNS 계정 2개 연동',
+      '스토리지 500MB',
+      '팀원 1명',
+      '강의 5개',
+      '유통사 3개',
+    ],
+    cta: '현재 플랜',
+  },
+  {
+    key: 'pro',
+    name: 'Pro',
+    price: '₩29,000',
+    priceNote: '/ 월',
+    color: '#00A1E0',
+    icon: Zap,
+    features: [
+      'SNS 계정 10개 연동',
+      '스토리지 10GB',
+      '팀원 5명',
+      '강의 무제한',
+      '유통사 50개',
+      '커스텀 도메인',
+    ],
+    cta: '업그레이드',
+  },
+  {
+    key: 'enterprise',
+    name: 'Enterprise',
+    price: '₩99,000',
+    priceNote: '/ 월',
+    color: '#7c3aed',
+    icon: Building2,
+    features: [
+      'SNS 계정 무제한',
+      '스토리지 100GB',
+      '팀원 무제한',
+      '강의 무제한',
+      '유통사 무제한',
+      '커스텀 도메인',
+      '전담 지원',
+    ],
+    cta: '업그레이드',
+  },
+];
+
 export default function TenantSettingsPage() {
   const { tenant, canUseFeature, refresh } = useTenant();
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
   // 브랜딩 폼 상태
   const [branding, setBranding] = useState<TenantBranding>({
@@ -296,7 +374,7 @@ export default function TenantSettingsPage() {
             <Button
               variant="outline"
               className="mt-3 border-[#00A1E0] text-[#00A1E0] hover:bg-blue-50"
-              onClick={() => {/* TODO: 플랜 업그레이드 모달 */}}
+              onClick={() => setIsUpgradeModalOpen(true)}
             >
               <ExternalLink className="mr-2 h-4 w-4" />
               플랜 업그레이드
@@ -336,6 +414,140 @@ export default function TenantSettingsPage() {
           )}
         </Button>
       </div>
+
+      {/* 플랜 업그레이드 모달 */}
+      <Dialog open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle className="text-xl font-bold text-[#16325C] flex items-center gap-2">
+              <Crown className="h-5 w-5" />
+              플랜 업그레이드
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-500">
+              비즈니스에 맞는 플랜을 선택하세요. 언제든 변경할 수 있습니다.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="px-6 pb-6">
+            {/* 현재 플랜 안내 */}
+            {tenant && (
+              <div className="mb-4 flex items-center gap-2 text-sm text-gray-600">
+                현재 플랜:
+                <span
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold text-white"
+                  style={{
+                    background:
+                      tenant.plan === 'enterprise'
+                        ? '#7c3aed'
+                        : tenant.plan === 'pro'
+                          ? '#00A1E0'
+                          : '#6b7280',
+                  }}
+                >
+                  {t(`plan.${tenant.plan}`)}
+                </span>
+              </div>
+            )}
+
+            {/* 플랜 카드 그리드 */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {PLANS.map((plan) => {
+                const isCurrent = tenant?.plan === plan.key;
+                const isDowngrade =
+                  (tenant?.plan === 'enterprise' && plan.key !== 'enterprise') ||
+                  (tenant?.plan === 'pro' && plan.key === 'free');
+                const PlanIcon = plan.icon;
+
+                return (
+                  <div
+                    key={plan.key}
+                    className={`relative rounded-lg border-2 p-5 transition-all ${
+                      isCurrent
+                        ? 'border-[#16325C] shadow-md'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {/* 현재 플랜 라벨 */}
+                    {isCurrent && (
+                      <div
+                        className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-semibold text-white"
+                        style={{ background: plan.color }}
+                      >
+                        현재 플랜
+                      </div>
+                    )}
+
+                    {/* 플랜 헤더 */}
+                    <div className="text-center mb-4">
+                      <div
+                        className="inline-flex items-center justify-center w-10 h-10 rounded-full mb-2"
+                        style={{ background: plan.color }}
+                      >
+                        <PlanIcon className="h-5 w-5 text-white" />
+                      </div>
+                      <h3 className="text-lg font-bold text-[#16325C]">
+                        {plan.name}
+                      </h3>
+                      <div className="mt-1">
+                        <span className="text-2xl font-bold text-[#16325C]">
+                          {plan.price}
+                        </span>
+                        <span className="text-sm text-gray-500 ml-1">
+                          {plan.priceNote}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 기능 목록 */}
+                    <ul className="space-y-2 mb-5">
+                      {plan.features.map((feature) => (
+                        <li
+                          key={feature}
+                          className="flex items-start gap-2 text-sm text-gray-700"
+                        >
+                          <Check
+                            className="h-4 w-4 mt-0.5 flex-shrink-0"
+                            style={{ color: plan.color }}
+                          />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* CTA 버튼 */}
+                    <Button
+                      className="w-full text-white font-semibold"
+                      style={{
+                        background: isCurrent ? '#9ca3af' : plan.color,
+                        cursor: isCurrent || isDowngrade ? 'default' : 'pointer',
+                      }}
+                      disabled={isCurrent || isDowngrade}
+                      onClick={() => {
+                        // Stripe Checkout 연동 (ISS-010 참조)
+                        window.open(
+                          `/api/stripe/checkout?plan=${plan.key}`,
+                          '_blank'
+                        );
+                      }}
+                    >
+                      {isCurrent
+                        ? '사용 중'
+                        : isDowngrade
+                          ? '다운그레이드 불가'
+                          : plan.cta}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 하단 안내 */}
+            <p className="mt-4 text-center text-xs text-gray-400">
+              결제는 Stripe를 통해 안전하게 처리됩니다. 연간 결제 시 20% 할인이 적용됩니다.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
