@@ -104,14 +104,14 @@ export default function PDDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50">
+    <div className="min-h-screen bg-[#F3F2F2]">
       {/* 헤더 */}
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold">{tenant?.name || 'PD'} {t('dashboard.title')}</h1>
             {user ? (
-              <div className="flex items-center gap-2 text-sm text-purple-600">
+              <div className="flex items-center gap-2 text-sm text-[#00A1E0]">
                 <UserIcon className="h-4 w-4" />
                 <span>{user.email || user.name}</span>
               </div>
@@ -200,7 +200,7 @@ export default function PDDashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-center">
-                <div className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-purple-200 shadow-lg">
+                <div className="relative h-40 w-40 overflow-hidden rounded-full border-4 border-gray-200 shadow-lg">
                   <Image
                     src={profileImage}
                     alt="현재 프로필 사진"
@@ -242,7 +242,7 @@ export default function PDDashboard() {
                 </p>
               )}
 
-              <div className="rounded-lg bg-purple-50 p-3 text-xs text-purple-900">
+              <div className="rounded-lg bg-blue-50 p-3 text-xs text-[#16325C]">
                 <p className="font-semibold">업로드 안내:</p>
                 <ul className="mt-1 list-inside list-disc space-y-1">
                   <li>JPG, PNG, GIF 형식 지원</li>
@@ -253,55 +253,75 @@ export default function PDDashboard() {
             </CardContent>
           </Card>
 
-          {/* 빠른 링크 */}
+          {/* 빠른 링크 — 콘텐츠 관리 */}
           <Card className="border-gray-200">
             <CardHeader>
               <CardTitle>빠른 링크</CardTitle>
               <CardDescription>주요 관리 페이지로 이동</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/settings">
-                  <Settings className="mr-2 h-4 w-4" />
-                  {t('nav.settings')} (브랜딩/도메인)
-                </a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/dashboard/profile">{t('dashboard.profile')}</a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/sns-accounts">SNS 계정 관리</a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/scheduled-posts">예약 포스트</a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/dashboard/hero-images">Hero 이미지</a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/dashboard/kanban">칸반 보드</a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/newsletter">뉴스레터 구독자</a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/inquiries">문의 관리</a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/pd/notifications">알림 테스트</a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/dashboard">분양 관리 대시보드</a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/">홈페이지 보기</a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/education">교육 페이지</a>
-              </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/media">미디어 페이지</a>
-              </Button>
+            <CardContent className="space-y-4">
+              {/* 콘텐츠 관리 */}
+              <div>
+                <p className="text-xs font-semibold text-[#16325C] mb-2">콘텐츠 관리</p>
+                <div className="space-y-1.5">
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/pd/dashboard/profile">{t('dashboard.profile')}</a>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/pd/dashboard/hero-images">Hero 이미지</a>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/pd/dashboard/kanban">칸반 보드</a>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/pd/inquiries">문의 관리</a>
+                  </Button>
+                </div>
+              </div>
+
+              {/* SNS / 마케팅 */}
+              <div>
+                <p className="text-xs font-semibold text-[#16325C] mb-2">SNS / 마케팅</p>
+                <div className="space-y-1.5">
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/pd/sns-accounts">SNS 계정 관리</a>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/pd/scheduled-posts">예약 포스트</a>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/pd/newsletter">뉴스레터 구독자</a>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/pd/notifications">알림 테스트</a>
+                  </Button>
+                </div>
+              </div>
+
+              {/* 사이트 관리 */}
+              <div>
+                <p className="text-xs font-semibold text-[#16325C] mb-2">사이트 관리</p>
+                <div className="space-y-1.5">
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/pd/settings">
+                      <Settings className="mr-2 h-4 w-4" />
+                      {t('nav.settings')} (브랜딩/도메인)
+                    </a>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/admin/dashboard">분양 관리 대시보드</a>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/">홈페이지 보기</a>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/education">교육 페이지</a>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
+                    <a href="/media">미디어 페이지</a>
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -320,20 +340,20 @@ export default function PDDashboard() {
               {user ? (
                 <>
                   <div>
-                    <p className="text-sm font-medium text-purple-900">이름</p>
-                    <p className="text-sm text-purple-600">{user.name || 'N/A'}</p>
+                    <p className="text-sm font-medium text-[#16325C]">이름</p>
+                    <p className="text-sm text-[#00A1E0]">{user.name || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-purple-900">이메일</p>
-                    <p className="text-sm text-purple-600">{user.email || 'N/A'}</p>
+                    <p className="text-sm font-medium text-[#16325C]">이메일</p>
+                    <p className="text-sm text-[#00A1E0]">{user.email || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-purple-900">역할</p>
-                    <p className="text-sm text-purple-600">{user.role === 'admin' ? '관리자' : '회원'}</p>
+                    <p className="text-sm font-medium text-[#16325C]">역할</p>
+                    <p className="text-sm text-[#00A1E0]">{user.role === 'admin' ? '관리자' : '회원'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-purple-900">로그인 방식</p>
-                    <p className="text-sm text-purple-600">{user.provider === 'google' ? 'Google' : 'TowninGraph'}</p>
+                    <p className="text-sm font-medium text-[#16325C]">로그인 방식</p>
+                    <p className="text-sm text-[#00A1E0]">{user.provider === 'google' ? 'Google' : 'TowninGraph'}</p>
                   </div>
                 </>
               ) : (
