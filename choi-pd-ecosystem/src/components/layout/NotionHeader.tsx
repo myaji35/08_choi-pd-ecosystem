@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 
 export function NotionHeader() {
-  const { toggleMobileMenu } = useUIStore();
+  const { toggleSidebar } = useUIStore();
   const { user } = useSession();
   const pathname = usePathname();
   const userName = user?.name || '최범희';
@@ -76,8 +76,8 @@ export function NotionHeader() {
         {/* Left Section: Breadcrumb */}
         <div className="flex items-center gap-1">
           <button
-            onClick={toggleMobileMenu}
-            className="p-1.5 hover:bg-gray-100 rounded-md transition-colors md:hidden"
+            onClick={toggleSidebar}
+            className="p-1.5 hover:bg-gray-100 rounded-md transition-colors lg:hidden"
             aria-label="Menu"
           >
             <Menu className="w-5 h-5" />
