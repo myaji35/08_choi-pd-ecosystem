@@ -45,7 +45,7 @@ export function HeroSection({
 
             <h1
               className={`text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.15] transition-all duration-700 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-              style={{ textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}
+              style={{ textShadow: '0 2px 16px rgba(0,0,0,0.5), 0 0 40px rgba(0,0,0,0.3)' }}
             >
               AI가 당신의
               <br />
@@ -54,7 +54,7 @@ export function HeroSection({
 
             <p
               className={`mt-6 text-lg md:text-xl text-white leading-relaxed max-w-xl mx-auto lg:mx-0 transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-              style={{ textShadow: '0 1px 8px rgba(0,0,0,0.3)' }}
+              style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5), 0 0 24px rgba(0,0,0,0.3)' }}
             >
               블로그, SNS, 쇼핑몰을 하나로.
               <br className="hidden sm:block" />
@@ -62,10 +62,10 @@ export function HeroSection({
             </p>
 
             {/* CTA Buttons */}
-            <div className={`mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <div className={`mt-10 flex flex-col sm:flex-row gap-4 items-center sm:items-start justify-center lg:justify-start transition-all duration-700 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
               <Link
                 href="/onboarding"
-                className="inline-flex items-center justify-center px-8 py-3.5 rounded-lg text-base font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
+                className="inline-flex items-center justify-center px-8 py-3.5 rounded-lg text-base font-semibold text-white shadow-lg shadow-[#00A1E0]/30 transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 w-auto"
                 style={{ background: '#00A1E0' }}
               >
                 무료로 시작하기
@@ -73,7 +73,7 @@ export function HeroSection({
               </Link>
               <Link
                 href="/chopd/education"
-                className="inline-flex items-center justify-center px-8 py-3.5 rounded-lg text-base font-semibold border-2 border-white/60 bg-white/10 text-white transition-all duration-200 hover:bg-white/20 hover:border-white/80"
+                className="inline-flex items-center justify-center px-8 py-3.5 rounded-lg text-base font-semibold border-2 border-white bg-white/20 text-white transition-all duration-200 hover:bg-white/30 backdrop-blur-sm"
               >
                 <svg className="mr-2 w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 데모 보기
@@ -81,7 +81,7 @@ export function HeroSection({
             </div>
 
             {/* Social proof */}
-            <div className={`mt-10 flex items-center gap-6 justify-center lg:justify-start text-white/80 text-sm transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <div className={`mt-10 flex items-center gap-6 justify-center lg:justify-start text-white text-sm font-medium transition-all duration-700 delay-400 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
               <div className="flex items-center gap-2">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span>500+ 사용자</span>
