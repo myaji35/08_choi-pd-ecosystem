@@ -67,32 +67,28 @@ export default function AdminDistributorDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
-      {/* 헤더 */}
-      <header className="border-b bg-white/80 backdrop-blur">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-bold">imPD 분양 관리 대시보드</h1>
-            {user ? (
-              <div className="flex items-center gap-2 text-sm text-blue-600">
-                <span>{user.email || user.name}</span>
-              </div>
-            ) : null}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => router.push('/pd/dashboard')} variant="outline" size="sm">
-              PD 대시보드
-            </Button>
-            <Button onClick={handleLogout} variant="outline" size="sm">
-              <LogOut className="mr-2 h-4 w-4" />
-              로그아웃
-            </Button>
-          </div>
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* 페이지 헤더 */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">분양 관리 대시보드</h1>
+          {user && (
+            <p className="text-sm text-gray-500 mt-1">{user.email || user.name}</p>
+          )}
         </div>
-      </header>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => router.push('/pd/dashboard')} variant="outline" size="sm">
+            PD 대시보드
+          </Button>
+          <Button onClick={handleLogout} variant="outline" size="sm">
+            <LogOut className="mr-2 h-4 w-4" />
+            로그아웃
+          </Button>
+        </div>
+      </div>
 
       {/* 메인 콘텐츠 */}
-      <main className="container py-8">
+      <div>
         {/* 통계 카드 */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card>
@@ -310,7 +306,7 @@ export default function AdminDistributorDashboard() {
             </div>
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
   );
 }

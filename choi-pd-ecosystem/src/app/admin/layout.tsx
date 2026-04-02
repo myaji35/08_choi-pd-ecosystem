@@ -3,9 +3,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="container mx-auto py-8">
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 }
