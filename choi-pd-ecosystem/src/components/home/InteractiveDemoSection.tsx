@@ -64,19 +64,19 @@ export function InteractiveDemoSection() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-10">
-            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-1.5 mb-4">
-              <span className="text-sm font-medium text-white/90">30초 체험</span>
+            <span className="inline-flex items-center rounded-full border border-white/30 bg-white/15 backdrop-blur-sm px-4 py-1.5 mb-4">
+              <span className="text-sm font-semibold text-white">30초 체험</span>
             </span>
-            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight drop-shadow-md">
               지금 바로 AI 콘텐츠 생성을 체험하세요
             </h2>
-            <p className="mt-3 text-base text-white/85">
+            <p className="mt-3 text-base text-white/90 drop-shadow-sm">
               텍스트를 입력하면 여러 채널에 맞는 콘텐츠가 자동으로 생성됩니다.
             </p>
           </div>
 
           {/* Demo area */}
-          <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 md:p-8">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 md:p-8 shadow-xl">
             {/* Input */}
             <div className="mb-6">
               <textarea
@@ -84,14 +84,14 @@ export function InteractiveDemoSection() {
                 onChange={(e) => setText(e.target.value)}
                 placeholder={placeholder}
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/60 text-sm focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 resize-none"
+                className="w-full px-4 py-3 rounded-xl bg-white/15 border border-white/30 text-white placeholder-white/70 text-sm focus:outline-none focus:border-white/50 focus:ring-1 focus:ring-white/30 resize-none"
               />
               <div className="flex items-center justify-between mt-3">
-                <p className="text-xs text-white/65">{text.length}자 입력됨</p>
+                <p className="text-xs text-white/80">{text.length}자 입력됨</p>
                 <button
                   onClick={handleGenerate}
                   disabled={!text.trim() || isGenerating}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-white transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold text-white transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 shadow-md"
                   style={{ background: '#00A1E0' }}
                 >
                   {isGenerating ? (
@@ -126,7 +126,7 @@ export function InteractiveDemoSection() {
                       className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                         activeTab === i
                           ? 'border-white text-white'
-                          : 'border-transparent text-white/65 hover:text-white/90'
+                          : 'border-transparent text-white/80 hover:text-white'
                       }`}
                     >
                       <span className="w-2 h-2 rounded-full" style={{ background: r.color }} />
@@ -166,7 +166,7 @@ export function InteractiveDemoSection() {
                 무료로 시작하기 - 전체 기능 체험
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
               </Link>
-              <p className="mt-3 text-xs text-white/65">
+              <p className="mt-3 text-sm text-white/80">
                 신용카드 없이 무료 시작 &middot; 언제든 해지 가능
               </p>
             </div>
