@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev -p 3011",
     "build": "next build --webpack",
+    "analyze": "ANALYZE=true next build --webpack",
     "build:prod": "NEXT_TYPESCRIPT_TSLINT_IGNORE=true next build --webpack",
     "start": "next start -p 3011",
     "lint": "next lint",
@@ -68,6 +69,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
     "@ducanh2912/next-pwa": "^10.2.9",
+    "@next/bundle-analyzer": "^16.2.2",
     "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.1.17",
     "@testing-library/jest-dom": "^6.9.1",
