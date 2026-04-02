@@ -74,7 +74,10 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object;
-        const subscriptionId = invoice.subscription as string;
+        const subDetails = invoice.parent?.subscription_details;
+        const subscriptionId = (typeof subDetails?.subscription === 'string'
+          ? subDetails.subscription
+          : subDetails?.subscription?.id) as string | undefined;
 
         if (subscriptionId) {
           await db
@@ -93,7 +96,10 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_failed': {
         const failedInvoice = event.data.object;
-        const failedSubId = failedInvoice.subscription as string;
+        const failedSubDetails = failedInvoice.parent?.subscription_details;
+        const failedSubId = (typeof failedSubDetails?.subscription === 'string'
+          ? failedSubDetails.subscription
+          : failedSubDetails?.subscription?.id) as string | undefined;
 
         if (failedSubId) {
           await db
