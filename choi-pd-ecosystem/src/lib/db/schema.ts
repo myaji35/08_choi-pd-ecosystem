@@ -2,19 +2,33 @@ import { sqliteTable, text, integer, uniqueIndex, index, type AnySQLiteColumn } 
 import { sql } from 'drizzle-orm';
 
 // ============================================================
-// 스키마 현황 (2026-04-02 GH_Harness P2 분석)
-// 총 71개 테이블 | ACTIVE: 49 | LOW-USE: 25 | UNUSED: 9
+// 스키마 현황 (2026-04-02 GH_Harness ISS-002 분석)
+// 총 83개 테이블 | ACTIVE: 49 | LOW-USE: 25 | UNUSED: 9
+//
+// LOW-USE 판정 (1파일에서만 사용 — 해당 lib/route와 1:1 매핑):
+//
+// [유지] 핵심 인프라 lib (해당 lib 자체가 기능 모듈):
+//   security.ts    → auditLogs, twoFactorAuth, loginAttempts
+//   enterprise.ts  → supportTicketComments, slaMetrics
+//   workflows.ts   → webhookLogs, automationTemplates
+//   video.ts       → videoComments
+//   ai.ts          → aiRecommendations, contentEmbeddings, chatbotConversations,
+//                    aiGeneratedContent, contentQualityScores, imageAutoTags, userActivityPatterns
+//   backup.ts      → snsPostHistory
+//
+// [유지] 독립 API route (CRUD 진입점이 단일 route인 정상 패턴):
+//   analytics/*    → analyticsEvents, funnels, customReports, rfmSegments
+//   gdpr/*         → dataDeletionRequests
+//   kanban/*       → kanbanProjects, kanbanTasks
+//   subscriptions  → saasSubscriptions
+//   chat/upload    → memberUploads
+//
+// [결론] 25개 모두 유지 — 각각 전담 lib/route에서 정상 사용 중
 //
 // UNUSED 테이블 (코드에서 미사용 — 향후 기능 확장용 유지):
-// - saasInvoices: Stripe 결제 연동 미구현
-// - passwordHistory: 비밀번호 재사용 방지 미구현
-// - abTestParticipants: A/B 테스트 참가자 미구현
-// - memberPortfolioItems: 회원 포트폴리오 미구현
-// - memberServices: 회원 서비스/상품 미구현
-// - memberPosts: 회원 블로그 미구현
-// - memberInquiries: 회원 문의 미구현
-// - memberReviews: 회원 리뷰 미구현
-// - memberBookings: 회원 예약 미구현
+// - saasInvoices, passwordHistory, abTestParticipants
+// - memberPortfolioItems, memberServices, memberPosts
+// - memberInquiries, memberReviews, memberBookings
 // ============================================================
 
 // ============================================================
