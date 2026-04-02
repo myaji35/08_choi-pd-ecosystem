@@ -1,6 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { z } from 'zod';
+
+const contactFormSchema = z.object({
+  name: z.string().min(1, '이름을 입력해주세요').min(2, '이름은 2자 이상 입력해주세요'),
+  email: z.string().min(1, '이메일을 입력해주세요').email('올바른 이메일 형식을 입력해주세요'),
+  message: z.string().min(1, '문의 내용을 입력해주세요').min(5, '문의 내용은 5자 이상 입력해주세요'),
+});
+
+type FieldErrors = Partial<Record<'name' | 'email' | 'message', string>>;
 
 interface BrandPageContactFormProps {
   tenantId: number;
@@ -13,11 +22,31 @@ export function BrandPageContactForm({ tenantId, primaryColor }: BrandPageContac
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<'success' | 'error' | null>(null);
+  const [errors, setErrors] = useState<FieldErrors>({});
+
+  const validateField = (field: 'name' | 'email' | 'message', value: string) => {
+    const result = contactFormSchema.shape[field].safeParse(value);
+    setErrors((prev) => ({
+      ...prev,
+      [field]: result.success ? undefined : result.error.issues[0]?.message,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !message.trim()) return;
 
+    const validation = contactFormSchema.safeParse({ name, email, message });
+    if (!validation.success) {
+      const fieldErrors: FieldErrors = {};
+      validation.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof FieldErrors;
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
     setIsSubmitting(true);
     setResult(null);
 
@@ -70,78 +99,100 @@ export function BrandPageContactForm({ tenantId, primaryColor }: BrandPageContac
     );
   }
 
+  const inputBaseClass = "w-full px-3 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1";
+
+  const getInputClass = (field: keyof FieldErrors) =>
+    `${inputBaseClass} ${
+      errors[field]
+        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+        : 'border-gray-300'
+    }`;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-            이름
+            이름 <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="홍길동"
-            required
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1"
-            style={{
-              // @ts-expect-error CSS custom property
-              '--tw-ring-color': primaryColor,
-              borderColor: undefined,
+            onChange={(e) => {
+              setName(e.target.value);
+              if (errors.name) validateField('name', e.target.value);
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = primaryColor;
-              e.currentTarget.style.boxShadow = `0 0 0 1px ${primaryColor}`;
+              if (!errors.name) {
+                e.currentTarget.style.borderColor = primaryColor;
+                e.currentTarget.style.boxShadow = `0 0 0 1px ${primaryColor}`;
+              }
             }}
             onBlur={(e) => {
+              validateField('name', e.target.value);
               e.currentTarget.style.borderColor = '#d1d5db';
               e.currentTarget.style.boxShadow = 'none';
             }}
+            placeholder="홍길동"
+            className={getInputClass('name')}
           />
+          {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
         </div>
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-            이메일
+            이메일 <span className="text-red-500">*</span>
           </label>
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="example@email.com"
-            required
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1"
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (errors.email) validateField('email', e.target.value);
+            }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = primaryColor;
-              e.currentTarget.style.boxShadow = `0 0 0 1px ${primaryColor}`;
+              if (!errors.email) {
+                e.currentTarget.style.borderColor = primaryColor;
+                e.currentTarget.style.boxShadow = `0 0 0 1px ${primaryColor}`;
+              }
             }}
             onBlur={(e) => {
+              validateField('email', e.target.value);
               e.currentTarget.style.borderColor = '#d1d5db';
               e.currentTarget.style.boxShadow = 'none';
             }}
+            placeholder="example@email.com"
+            className={getInputClass('email')}
           />
+          {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
         </div>
       </div>
 
       <div>
         <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-          문의 내용
+          문의 내용 <span className="text-red-500">*</span>
         </label>
         <textarea
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="문의 내용을 입력해주세요."
-          required
-          rows={4}
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 resize-none"
+          onChange={(e) => {
+            setMessage(e.target.value);
+            if (errors.message) validateField('message', e.target.value);
+          }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = primaryColor;
-            e.currentTarget.style.boxShadow = `0 0 0 1px ${primaryColor}`;
+            if (!errors.message) {
+              e.currentTarget.style.borderColor = primaryColor;
+              e.currentTarget.style.boxShadow = `0 0 0 1px ${primaryColor}`;
+            }
           }}
           onBlur={(e) => {
+            validateField('message', e.target.value);
             e.currentTarget.style.borderColor = '#d1d5db';
             e.currentTarget.style.boxShadow = 'none';
           }}
+          placeholder="문의 내용을 입력해주세요."
+          rows={4}
+          className={`${getInputClass('message')} resize-none`}
         />
+        {errors.message && <p className="mt-1 text-xs text-red-600">{errors.message}</p>}
       </div>
 
       {result === 'error' && (
@@ -152,7 +203,7 @@ export function BrandPageContactForm({ tenantId, primaryColor }: BrandPageContac
 
       <button
         type="submit"
-        disabled={isSubmitting || !name.trim() || !email.trim() || !message.trim()}
+        disabled={isSubmitting}
         className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-opacity disabled:opacity-50"
         style={{ background: primaryColor }}
       >

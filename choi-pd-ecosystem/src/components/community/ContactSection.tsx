@@ -1,8 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { Mail, Send, CheckCircle2 } from 'lucide-react';
+
+const contactSchema = z.object({
+  name: z.string().min(1, '이름을 입력해주세요').min(2, '이름은 2자 이상 입력해주세요'),
+  email: z.string().min(1, '이메일을 입력해주세요').email('올바른 이메일 형식을 입력해주세요'),
+  phone: z.string().optional(),
+  message: z.string().min(1, '문의 내용을 입력해주세요').min(10, '문의 내용은 10자 이상 입력해주세요'),
+});
+
+type FieldErrors = Partial<Record<keyof z.infer<typeof contactSchema>, string>>;
 
 export function ContactSection() {
   const [formData, setFormData] = useState({
@@ -13,10 +23,33 @@ export function ContactSection() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
   const { toast } = useToast();
+
+  const validateField = (field: keyof typeof formData, value: string) => {
+    const shape = contactSchema.shape[field];
+    const result = shape.safeParse(value);
+    setErrors((prev) => ({
+      ...prev,
+      [field]: result.success ? undefined : result.error.issues[0]?.message,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const result = contactSchema.safeParse(formData);
+    if (!result.success) {
+      const fieldErrors: FieldErrors = {};
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof typeof formData;
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
     setIsLoading(true);
     setIsSuccess(false);
 
@@ -32,10 +65,10 @@ export function ContactSection() {
         }),
       });
 
-      const result = await response.json();
+      const res = await response.json();
 
-      if (!result.success) {
-        throw new Error(result.error);
+      if (!res.success) {
+        throw new Error(res.error);
       }
 
       setIsSuccess(true);
@@ -62,11 +95,19 @@ export function ContactSection() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (errors[name as keyof FieldErrors]) {
+      validateField(name as keyof typeof formData, value);
+    }
   };
+
+  const inputClass = (field: keyof typeof formData) =>
+    `w-full px-3 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-colors ${
+      errors[field]
+        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+        : 'border-gray-300 focus:border-[#00A1E0] focus:ring-[#00A1E0]'
+    }`;
 
   return (
     <section className="py-16 bg-white">
@@ -84,32 +125,34 @@ export function ContactSection() {
           <div className="p-8">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="name" className="block text-xs font-semibold text-gray-600 mb-1.5">이름 *</label>
+                <label htmlFor="name" className="block text-xs font-semibold text-gray-600 mb-1.5">이름 <span className="text-red-500">*</span></label>
                 <input
                   id="name"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  required
+                  onBlur={(e) => validateField('name', e.target.value)}
                   disabled={isLoading}
                   placeholder="홍길동"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0] transition-colors"
+                  className={inputClass('name')}
                 />
+                {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-xs font-semibold text-gray-600 mb-1.5">이메일 *</label>
+                <label htmlFor="email" className="block text-xs font-semibold text-gray-600 mb-1.5">이메일 <span className="text-red-500">*</span></label>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  required
+                  onBlur={(e) => validateField('email', e.target.value)}
                   disabled={isLoading}
                   placeholder="example@email.com"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0] transition-colors"
+                  className={inputClass('email')}
                 />
+                {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
               </div>
 
               <div>
@@ -122,23 +165,24 @@ export function ContactSection() {
                   onChange={handleChange}
                   disabled={isLoading}
                   placeholder="010-1234-5678"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0] transition-colors"
+                  className={inputClass('phone')}
                 />
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-xs font-semibold text-gray-600 mb-1.5">문의 내용 *</label>
+                <label htmlFor="message" className="block text-xs font-semibold text-gray-600 mb-1.5">문의 내용 <span className="text-red-500">*</span></label>
                 <textarea
                   id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  required
+                  onBlur={(e) => validateField('message', e.target.value)}
                   disabled={isLoading}
                   placeholder="문의하실 내용을 입력해주세요"
                   rows={6}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0] transition-colors resize-none"
+                  className={`${inputClass('message')} resize-none`}
                 />
+                {errors.message && <p className="mt-1 text-xs text-red-600">{errors.message}</p>}
               </div>
 
               {isSuccess && (

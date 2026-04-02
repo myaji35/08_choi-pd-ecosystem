@@ -7,19 +7,24 @@ import { useToast } from '@/hooks/use-toast';
 export function NewsletterSection() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
   const { toast } = useToast();
+
+  const validateEmail = (value: string): string => {
+    if (!value) return '이메일을 입력해주세요';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return '올바른 이메일 형식을 입력해주세요';
+    return '';
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email) {
-      toast({
-        title: '오류',
-        description: '이메일을 입력해주세요',
-        variant: 'destructive',
-      });
+    const error = validateEmail(email);
+    if (error) {
+      setEmailError(error);
       return;
     }
+    setEmailError('');
 
     setIsLoading(true);
 
@@ -75,10 +80,24 @@ export function NewsletterSection() {
                   type="email"
                   placeholder="이메일 주소를 입력하세요"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (emailError) {
+                      const err = validateEmail(e.target.value);
+                      setEmailError(err);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (email) setEmailError(validateEmail(email));
+                  }}
                   disabled={isLoading}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0] transition-colors"
+                  className={`w-full px-3 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 transition-colors ${
+                    emailError
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:border-[#00A1E0] focus:ring-[#00A1E0]'
+                  }`}
                 />
+                {emailError && <p className="mt-1 text-xs text-red-600">{emailError}</p>}
               </div>
               <button
                 type="submit"

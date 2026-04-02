@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,11 +15,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, UserPlus, Loader2 } from 'lucide-react';
+import { ArrowLeft, UserPlus, Loader2, XCircle } from 'lucide-react';
+
+const distributorSchema = z.object({
+  name: z.string().min(1, '이름 또는 기업명을 입력해주세요'),
+  email: z.string().min(1, '이메일을 입력해주세요').email('올바른 이메일 형식을 입력해주세요'),
+  phone: z.string().optional(),
+  businessType: z.enum(['individual', 'company', 'organization']),
+  region: z.string().optional(),
+  subscriptionPlan: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+type FieldErrors = Partial<Record<string, string>>;
 
 export default function NewDistributorPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [submitError, setSubmitError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,8 +44,33 @@ export default function NewDistributorPage() {
     notes: '',
   });
 
+  const validateField = (field: string, value: string) => {
+    if (field in distributorSchema.shape) {
+      const shape = (distributorSchema.shape as Record<string, z.ZodTypeAny>)[field];
+      const result = shape.safeParse(value);
+      setErrors((prev) => ({
+        ...prev,
+        [field]: result.success ? undefined : result.error.issues[0]?.message,
+      }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError('');
+
+    const result = distributorSchema.safeParse(formData);
+    if (!result.success) {
+      const fieldErrors: FieldErrors = {};
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as string;
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setErrors({});
     setIsSubmitting(true);
 
     try {
@@ -44,15 +84,14 @@ export default function NewDistributorPage() {
       });
 
       if (response.ok) {
-        alert('수요자가 등록되었습니다');
         router.push('/admin/distributors');
       } else {
         const error = await response.json();
-        alert(error.error || '등록에 실패했습니다');
+        setSubmitError(error.error || '등록에 실패했습니다');
       }
     } catch (error) {
       console.error('Failed to create distributor:', error);
-      alert('오류가 발생했습니다');
+      setSubmitError('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
     }
@@ -60,6 +99,9 @@ export default function NewDistributorPage() {
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      validateField(field, value);
+    }
   };
 
   return (
@@ -92,6 +134,14 @@ export default function NewDistributorPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Submit Error */}
+                {submitError && (
+                  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <p className="text-sm text-red-700">{submitError}</p>
+                  </div>
+                )}
+
                 {/* 이름 */}
                 <div className="space-y-2">
                   <Label htmlFor="name">
@@ -101,9 +151,11 @@ export default function NewDistributorPage() {
                     id="name"
                     value={formData.name}
                     onChange={(e) => handleChange('name', e.target.value)}
+                    onBlur={(e) => validateField('name', e.target.value)}
                     placeholder="홍길동 / (주)최PD컴퍼니"
-                    required
+                    className={errors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}
                   />
+                  {errors.name && <p className="text-xs text-red-600">{errors.name}</p>}
                 </div>
 
                 {/* 이메일 */}
@@ -116,9 +168,11 @@ export default function NewDistributorPage() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleChange('email', e.target.value)}
+                    onBlur={(e) => validateField('email', e.target.value)}
                     placeholder="example@email.com"
-                    required
+                    className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
                   />
+                  {errors.email && <p className="text-xs text-red-600">{errors.email}</p>}
                 </div>
 
                 {/* 연락처 */}

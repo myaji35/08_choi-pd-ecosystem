@@ -16,6 +16,7 @@ import {
   Check,
   Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import type { Profession, PlanType } from '@/lib/tenant/types';
 
 // ---- 직업군 데이터 ----
@@ -181,6 +182,7 @@ export default function OnboardingPage() {
   const [brandName, setBrandName] = useState('');
   const [slug, setSlug] = useState('');
   const [plan, setPlan] = useState<PlanType>('free');
+  const [fieldErrors, setFieldErrors] = useState<{ brandName?: string; slug?: string }>({});
 
   // slug 유효성 체크
   const checkSlug = useCallback(async (value: string) => {
@@ -248,16 +250,34 @@ export default function OnboardingPage() {
         setStep(3); // 완료 스텝으로 이동
       } else {
         const data = await res.json();
-        alert(data.error || '테넌트 생성에 실패했습니다.');
+        toast.error(data.error || '테넌트 생성에 실패했습니다.');
       }
     } catch {
-      alert('네트워크 오류가 발생했습니다.');
+      toast.error('네트워크 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleNext = () => {
+    // Step 1 validation
+    if (step === 1) {
+      const newErrors: { brandName?: string; slug?: string } = {};
+      if (brandName.trim().length < 2) {
+        newErrors.brandName = '브랜드 이름은 2자 이상 입력해주세요';
+      }
+      if (slug.length < 2) {
+        newErrors.slug = 'URL 슬러그는 2자 이상 입력해주세요';
+      } else if (slugStatus === 'taken') {
+        newErrors.slug = '이미 사용 중인 주소입니다. 다른 주소를 입력하세요.';
+      }
+      if (Object.keys(newErrors).length > 0) {
+        setFieldErrors(newErrors);
+        return;
+      }
+      setFieldErrors({});
+    }
+
     if (step === 2) {
       handleSubmit();
     } else {
@@ -331,21 +351,36 @@ export default function OnboardingPage() {
                 {/* 브랜드 이름 */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                    브랜드 이름
+                    브랜드 이름 <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={brandName}
-                    onChange={(e) => setBrandName(e.target.value)}
+                    onChange={(e) => {
+                      setBrandName(e.target.value);
+                      if (fieldErrors.brandName && e.target.value.trim().length >= 2) {
+                        setFieldErrors((prev) => ({ ...prev, brandName: undefined }));
+                      }
+                    }}
+                    onBlur={() => {
+                      if (brandName.trim().length > 0 && brandName.trim().length < 2) {
+                        setFieldErrors((prev) => ({ ...prev, brandName: '브랜드 이름은 2자 이상 입력해주세요' }));
+                      }
+                    }}
                     placeholder="예: 김부동산, 맛있는빵집"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 ${
+                      fieldErrors.brandName
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-gray-300 focus:border-[#00A1E0] focus:ring-[#00A1E0]'
+                    }`}
                   />
+                  {fieldErrors.brandName && <p className="mt-1 text-xs text-red-600">{fieldErrors.brandName}</p>}
                 </div>
 
                 {/* 슬러그 (URL) */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-                    URL 슬러그
+                    URL 슬러그 <span className="text-red-500">*</span>
                   </label>
                   <div className="flex items-center gap-2">
                     <div className="flex items-center bg-gray-50 border border-gray-300 rounded-lg px-3 py-2.5">
@@ -386,6 +421,9 @@ export default function OnboardingPage() {
                       </span>
                     )}
                   </div>
+                  {fieldErrors.slug && slugStatus !== 'taken' && (
+                    <p className="mt-1 text-xs text-red-600">{fieldErrors.slug}</p>
+                  )}
                 </div>
               </CardContent>
             </Card>

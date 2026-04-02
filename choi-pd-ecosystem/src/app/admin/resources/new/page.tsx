@@ -20,6 +20,7 @@ export default function NewResourcePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
     title: '',
@@ -35,10 +36,14 @@ export default function NewResourcePage() {
     e.preventDefault();
     setError('');
 
-    if (!formData.title || !formData.fileUrl || !formData.fileType || !formData.category) {
-      setError('필수 항목을 모두 입력해주세요');
+    const newFieldErrors: Record<string, string> = {};
+    if (!formData.title) newFieldErrors.title = '제목을 입력해주세요';
+    if (!formData.fileUrl) newFieldErrors.fileUrl = '파일 URL을 입력해주세요';
+    if (Object.keys(newFieldErrors).length > 0) {
+      setFieldErrors(newFieldErrors);
       return;
     }
+    setFieldErrors({});
 
     try {
       setIsSubmitting(true);
@@ -100,14 +105,18 @@ export default function NewResourcePage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="title">제목 *</Label>
+                  <Label htmlFor="title">제목 <span className="text-red-500">*</span></Label>
                   <Input
                     id="title"
                     value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, title: e.target.value });
+                      if (fieldErrors.title && e.target.value) setFieldErrors((prev) => ({ ...prev, title: '' }));
+                    }}
                     placeholder="예: 마케팅 브로셔 템플릿"
-                    required
+                    className={fieldErrors.title ? 'border-red-500 focus-visible:ring-red-500' : ''}
                   />
+                  {fieldErrors.title && <p className="text-xs text-red-600 mt-1">{fieldErrors.title}</p>}
                 </div>
 
                 <div>
@@ -122,14 +131,18 @@ export default function NewResourcePage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="fileUrl">파일 URL *</Label>
+                  <Label htmlFor="fileUrl">파일 URL <span className="text-red-500">*</span></Label>
                   <Input
                     id="fileUrl"
                     value={formData.fileUrl}
-                    onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, fileUrl: e.target.value });
+                      if (fieldErrors.fileUrl && e.target.value) setFieldErrors((prev) => ({ ...prev, fileUrl: '' }));
+                    }}
                     placeholder="https://example.com/file.pdf"
-                    required
+                    className={fieldErrors.fileUrl ? 'border-red-500 focus-visible:ring-red-500' : ''}
                   />
+                  {fieldErrors.fileUrl && <p className="text-xs text-red-600 mt-1">{fieldErrors.fileUrl}</p>}
                   <p className="text-xs text-gray-500 mt-1">
                     파일이 호스팅된 URL을 입력하세요 (향후 업로드 기능 추가 예정)
                   </p>
