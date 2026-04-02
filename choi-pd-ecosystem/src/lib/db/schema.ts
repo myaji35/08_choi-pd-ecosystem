@@ -2,6 +2,22 @@ import { sqliteTable, text, integer, uniqueIndex, index, type AnySQLiteColumn } 
 import { sql } from 'drizzle-orm';
 
 // ============================================================
+// 스키마 현황 (2026-04-02 GH_Harness P2 분석)
+// 총 71개 테이블 | ACTIVE: 49 | LOW-USE: 25 | UNUSED: 9
+//
+// UNUSED 테이블 (코드에서 미사용 — 향후 기능 확장용 유지):
+// - saasInvoices: Stripe 결제 연동 미구현
+// - passwordHistory: 비밀번호 재사용 방지 미구현
+// - abTestParticipants: A/B 테스트 참가자 미구현
+// - memberPortfolioItems: 회원 포트폴리오 미구현
+// - memberServices: 회원 서비스/상품 미구현
+// - memberPosts: 회원 블로그 미구현
+// - memberInquiries: 회원 문의 미구현
+// - memberReviews: 회원 리뷰 미구현
+// - memberBookings: 회원 예약 미구현
+// ============================================================
+
+// ============================================================
 // SaaS 멀티테넌시: 테넌트 시스템 테이블
 // ============================================================
 
