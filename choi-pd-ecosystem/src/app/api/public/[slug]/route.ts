@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { tenants, courses } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 export async function GET(
   request: NextRequest,
@@ -41,9 +41,9 @@ export async function GET(
       );
     }
 
-    // 공개 과정 조회
+    // 공개 과정 조회 (tenantId 필터로 데이터 격리)
     const publicCourses = await db.query.courses.findMany({
-      where: eq(courses.published, true),
+      where: and(eq(courses.published, true), eq(courses.tenantId, tenant.id)),
       columns: {
         id: true,
         title: true,
