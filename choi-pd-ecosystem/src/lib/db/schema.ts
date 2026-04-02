@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, uniqueIndex, index, type AnySQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 // ============================================================
@@ -692,7 +692,7 @@ export const teams = sqliteTable('teams', {
   organizationId: integer('organization_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   description: text('description'),
-  parentTeamId: integer('parent_team_id').references(() => teams.id, { onDelete: 'set null' }), // 상위 팀 (계층 구조)
+  parentTeamId: integer('parent_team_id').references((): AnySQLiteColumn => teams.id, { onDelete: 'set null' }), // 상위 팀 (계층 구조)
   teamLead: text('team_lead'), // 팀 리더 user ID
   color: text('color').default('#3b82f6'), // 팀 색상
   icon: text('icon').default('users'), // Lucide 아이콘
@@ -1640,7 +1640,7 @@ export const videoComments = sqliteTable('video_comments', {
   userName: text('user_name').notNull(),
   comment: text('comment').notNull(),
   timestamp: integer('timestamp'), // 댓글이 달린 비디오 시간 (초)
-  parentCommentId: integer('parent_comment_id').references(() => videoComments.id, { onDelete: 'cascade' }),
+  parentCommentId: integer('parent_comment_id').references((): AnySQLiteColumn => videoComments.id, { onDelete: 'cascade' }),
   likeCount: integer('like_count').default(0).notNull(),
   isEdited: integer('is_edited', { mode: 'boolean' }).default(false),
   isPinned: integer('is_pinned', { mode: 'boolean' }).default(false),

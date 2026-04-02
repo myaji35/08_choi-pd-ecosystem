@@ -320,21 +320,17 @@ export async function getOrganizationMembers(organizationId: number, filters?: {
   role?: string;
   status?: string;
 }) {
-  let query = db
-    .select()
-    .from(organizationMembers)
-    .where(eq(organizationMembers.organizationId, organizationId));
+  const conditions = [eq(organizationMembers.organizationId, organizationId)];
 
   if (filters?.teamId) {
-    query = query.where(
-      and(
-        eq(organizationMembers.organizationId, organizationId),
-        eq(organizationMembers.teamId, filters.teamId)
-      )
-    ) as any;
+    conditions.push(eq(organizationMembers.teamId, filters.teamId));
   }
 
-  return await query.orderBy(desc(organizationMembers.createdAt));
+  return await db
+    .select()
+    .from(organizationMembers)
+    .where(and(...conditions))
+    .orderBy(desc(organizationMembers.createdAt));
 }
 
 // ============================================
@@ -486,21 +482,17 @@ export async function getSupportTickets(organizationId: number, filters?: {
   priority?: string;
   category?: string;
 }) {
-  let query = db
-    .select()
-    .from(supportTickets)
-    .where(eq(supportTickets.organizationId, organizationId));
+  const conditions = [eq(supportTickets.organizationId, organizationId)];
 
   if (filters?.status) {
-    query = query.where(
-      and(
-        eq(supportTickets.organizationId, organizationId),
-        eq(supportTickets.status, filters.status as any)
-      )
-    ) as any;
+    conditions.push(eq(supportTickets.status, filters.status as any));
   }
 
-  return await query.orderBy(desc(supportTickets.createdAt));
+  return await db
+    .select()
+    .from(supportTickets)
+    .where(and(...conditions))
+    .orderBy(desc(supportTickets.createdAt));
 }
 
 /**

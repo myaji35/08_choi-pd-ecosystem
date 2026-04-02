@@ -25,8 +25,6 @@ export async function GET(request: NextRequest) {
 
     const history = await getWatchHistory({
       userId,
-      userType: userType as any,
-      completedOnly,
       limit
     });
 

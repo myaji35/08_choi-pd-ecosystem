@@ -59,7 +59,7 @@ export async function POST(
       resource: {
         id: resource.id,
         fileUrl: resource.fileUrl,
-        filename: resource.filename,
+        filename: resource.title,
       },
     });
   } catch (error) {

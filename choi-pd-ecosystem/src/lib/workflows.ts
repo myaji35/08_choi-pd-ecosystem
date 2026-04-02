@@ -213,8 +213,9 @@ async function createNotificationAction(config: any, context: any): Promise<any>
 
   await db.insert(notifications).values({
     userId: config.userId,
-    userType: config.userType,
-    type: config.type,
+    userType: config.userType ?? 'admin',
+    type: config.type ?? 'info',
+    category: config.category ?? 'system',
     title: config.title,
     message: config.message,
     isRead: false
@@ -258,7 +259,7 @@ async function evaluateCondition(config: any, context: any, previousSteps: any[]
   const { condition, ifTrue, ifFalse } = config;
 
   // Simple condition evaluation
-  const result = eval(condition.replace(/\{(\w+)\}/g, (_, key) => JSON.stringify(context[key])));
+  const result = eval(condition.replace(/\{(\w+)\}/g, (_: string, key: string) => JSON.stringify(context[key])));
 
   return { conditionMet: result, branch: result ? 'true' : 'false' };
 }
@@ -526,17 +527,18 @@ export async function getAutomationTemplates(params?: {
 }): Promise<any[]> {
   const { category, difficulty, limit = 20 } = params || {};
 
-  let query = db.select().from(automationTemplates).where(eq(automationTemplates.isPublic, true));
+  const conditions = [eq(automationTemplates.isPublic, true)];
 
   if (category) {
-    query = query.where(eq(automationTemplates.category, category as any)) as any;
+    conditions.push(eq(automationTemplates.category, category as any));
   }
 
   if (difficulty) {
-    query = query.where(eq(automationTemplates.difficulty, difficulty)) as any;
+    conditions.push(eq(automationTemplates.difficulty, difficulty));
   }
 
-  const templates = await query
+  const templates = await db.select().from(automationTemplates)
+    .where(and(...conditions))
     .orderBy(desc(automationTemplates.popularity))
     .limit(limit);
 

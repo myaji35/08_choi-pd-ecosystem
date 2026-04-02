@@ -3,7 +3,14 @@
 import { useState, useCallback } from 'react';
 
 // ── 채널 설정 (카테고리별 그룹핑) ──────────────────────────────
-const CHANNEL_CATEGORIES = [
+interface ChannelMeta {
+  id: string;
+  label: string;
+  icon: React.ReactElement;
+  color: string;
+}
+
+const CHANNEL_CATEGORIES: { category: string; channels: ChannelMeta[] }[] = [
   {
     category: 'SNS',
     channels: [
@@ -111,12 +118,12 @@ const CHANNEL_CATEGORIES = [
       },
     ],
   },
-] as const;
+];
 
 // 전체 채널 flat 배열 (기존 호환)
 const CHANNELS = CHANNEL_CATEGORIES.flatMap((cat) => cat.channels);
 
-type ChannelId = (typeof CHANNELS)[number]['id'];
+type ChannelId = string;
 
 interface GeneratedResult {
   channel: string;
@@ -262,18 +269,62 @@ export default function AiContentPage() {
           </div>
           {/* 사용량 표시 */}
           {remaining !== null && remaining >= 0 && (
-            <div className="mt-3 inline-flex items-center gap-2 text-sm">
-              <span
-                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold text-white"
-                style={{ background: remaining > 0 ? '#00A1E0' : '#EF4444' }}
+            <div className="mt-3 space-y-3">
+              <div className="inline-flex items-center gap-2 text-sm">
+                <span
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold text-white"
+                  style={{ background: remaining > 0 ? '#00A1E0' : '#EF4444' }}
+                >
+                  {meta.plan === 'free' ? `Free` : 'Pro'}
+                </span>
+                <span className="text-gray-600">
+                  {remaining > 0
+                    ? `월 5회 중 ${remaining}회 남음`
+                    : '이번 달 무료 횟수를 모두 사용했습니다'}
+                </span>
+              </div>
+
+              {/* Usage gauge bar */}
+              {meta.plan === 'free' && (
+                <div className="max-w-sm">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${((5 - (remaining ?? 0)) / 5) * 100}%`,
+                        background: remaining === 0 ? '#EF4444' : '#00A1E0',
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Pro upgrade banner */}
+          {remaining !== null && remaining <= 2 && meta.plan === 'free' && (
+            <div className="mt-4 rounded-xl border-2 p-4 flex items-center gap-4" style={{ borderColor: '#00A1E0', background: '#F0F9FF' }}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg shrink-0" style={{ background: '#00A1E0' }}>
+                <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold" style={{ color: '#16325C' }}>
+                  {remaining === 0 ? '무료 횟수를 모두 사용했습니다' : `무료 횟수가 ${remaining}회 남았습니다`}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Pro로 업그레이드하면 AI 콘텐츠 생성이 무제한! SNS 5개 채널 + 예약 발행까지.
+                </p>
+              </div>
+              <a
+                href="/onboarding?plan=pro"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white shrink-0 transition-all hover:shadow-md"
+                style={{ background: '#00A1E0' }}
               >
-                {meta.plan === 'free' ? `Free` : 'Pro'}
-              </span>
-              <span className="text-gray-600">
-                {remaining > 0
-                  ? `월 5회 중 ${remaining}회 남음`
-                  : '이번 달 무료 횟수를 모두 사용했습니다'}
-              </span>
+                Pro 시작하기
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+              </a>
             </div>
           )}
         </div>

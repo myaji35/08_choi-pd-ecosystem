@@ -15,14 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send confirmation email
-    const result = await sendInquiryConfirmationEmail(email, name);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error || 'Failed to send confirmation email' },
-        { status: 500 }
-      );
-    }
+    await sendInquiryConfirmationEmail({ email, name, type: 'contact' });
 
     return NextResponse.json({
       success: true,

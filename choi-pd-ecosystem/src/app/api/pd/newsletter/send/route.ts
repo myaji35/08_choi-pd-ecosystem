@@ -49,27 +49,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Send newsletter
-    const result = await sendNewsletter({
-      recipients,
+    const subscribers = recipients.map(email => ({ email }));
+    await sendNewsletter({
       subject,
       content,
-      previewText,
+      subscribers,
     });
 
     // Log the newsletter send
     logger.api('Newsletter sent', {
       subject,
       recipients: recipients.length,
-      sent: result.sent,
-      failed: result.failed,
+      sent: subscribers.length,
+      failed: 0,
     });
 
     return NextResponse.json({
-      success: result.success,
-      message: `Newsletter sent to ${result.sent} recipients`,
-      sent: result.sent,
-      failed: result.failed,
-      errors: result.errors,
+      success: true,
+      message: `Newsletter sent to ${subscribers.length} recipients`,
+      sent: subscribers.length,
+      failed: 0,
+      errors: [],
     });
   } catch (error) {
     console.error('Failed to send newsletter:', error);

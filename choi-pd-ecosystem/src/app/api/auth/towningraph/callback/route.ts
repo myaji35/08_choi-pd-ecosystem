@@ -22,12 +22,7 @@ export async function GET(request: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const schema = await import('@/lib/db/schema');
       if ('members' in schema) {
-        const members = schema.members as import('drizzle-orm/sqlite-core').SQLiteTableWithColumns<{
-          name: 'members';
-          schema: undefined;
-          columns: Record<string, import('drizzle-orm/sqlite-core').SQLiteColumn>;
-          dialect: 'sqlite';
-        }>;
+        const members = (schema as any).members;
         const results = await db
           .select()
           .from(members)

@@ -45,9 +45,14 @@ export async function POST(
  * DELETE /api/playlists/[id]/videos
  * Remove a video from a playlist
  */
-export async function DELETE(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = await params;    const { searchParams } = new URL(request.url);
+    const { id } = await params;
+    const playlistId = parseInt(id);
+    const { searchParams } = new URL(request.url);
     const videoId = searchParams.get('videoId');
 
     if (!videoId) {
@@ -57,9 +62,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const playlistVideoId = parseInt(videoId);
+    const parsedVideoId = parseInt(videoId);
 
-    await removeVideoFromPlaylist(playlistVideoId);
+    await removeVideoFromPlaylist(playlistId, parsedVideoId);
 
     return NextResponse.json({
       success: true,

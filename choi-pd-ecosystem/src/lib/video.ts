@@ -601,7 +601,7 @@ export async function updateLiveViewers(streamId: number, currentViewers: number
 
   if (!stream) return;
 
-  const peakViewers = Math.max(stream.peakViewers, currentViewers);
+  const peakViewers = Math.max(stream.peakViewers ?? 0, currentViewers);
 
   await db.update(liveStreams)
     .set({
@@ -775,11 +775,11 @@ export async function removeVideoFromPlaylist(
 ): Promise<boolean> {
   try {
     await db
-      .delete(videoPlaylistItems)
+      .delete(playlistVideos)
       .where(
         and(
-          eq(videoPlaylistItems.playlistId, playlistId),
-          eq(videoPlaylistItems.videoId, videoId)
+          eq(playlistVideos.playlistId, playlistId),
+          eq(playlistVideos.videoId, videoId)
         )
       );
     return true;

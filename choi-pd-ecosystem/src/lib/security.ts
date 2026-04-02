@@ -150,19 +150,17 @@ export async function logSecurityEvent(params: SecurityEventParams) {
  * 미해결 보안 이벤트 조회
  */
 export async function getUnresolvedSecurityEvents(severity?: 'low' | 'medium' | 'high' | 'critical') {
-  let query = db
-    .select()
-    .from(securityEvents)
-    .where(eq(securityEvents.isResolved, false));
+  const conditions = [eq(securityEvents.isResolved, false)];
 
   if (severity) {
-    query = query.where(and(
-      eq(securityEvents.isResolved, false),
-      eq(securityEvents.severity, severity)
-    )) as any;
+    conditions.push(eq(securityEvents.severity, severity));
   }
 
-  return await query.orderBy(desc(securityEvents.createdAt));
+  return await db
+    .select()
+    .from(securityEvents)
+    .where(and(...conditions))
+    .orderBy(desc(securityEvents.createdAt));
 }
 
 // ============================================

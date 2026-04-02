@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const requests = await query;
 
     // Parse metadata
-    const parsedRequests = requests.map((req) => ({
+    const parsedRequests = requests.map((req: any) => ({
       ...req,
       metadata: req.metadata ? JSON.parse(req.metadata) : null,
     }));

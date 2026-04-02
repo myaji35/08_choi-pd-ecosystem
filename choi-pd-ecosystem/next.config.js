@@ -43,11 +43,7 @@ const nextConfig = {
   // 서브도메인 라우팅은 middleware.ts에서 처리
   allowedDevOrigins: ['*.impd.158.247.235.31.nip.io'],
   typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   // 환경변수를 런타임에 사용 가능하게 (서버사이드)
   serverRuntimeConfig: {
