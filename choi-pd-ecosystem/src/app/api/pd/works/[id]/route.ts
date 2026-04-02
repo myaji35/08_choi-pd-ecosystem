@@ -11,7 +11,7 @@ const updateWorkSchema = z.object({
   description: z.string().nullable().optional(),
   imageUrl: z.string().url('유효한 URL이어야 합니다').optional(),
   category: z.enum(['gallery', 'press'], {
-    errorMap: () => ({ message: "category는 'gallery' 또는 'press'여야 합니다" }),
+    message: "category는 'gallery' 또는 'press'여야 합니다",
   }).optional(),
 });
 
@@ -81,14 +81,14 @@ export async function PUT(
     // Zod 검증
     const parsed = updateWorkSchema.safeParse(body);
     if (!parsed.success) {
-      const firstError = parsed.error.errors[0];
+      const firstError = parsed.error.issues[0];
       return NextResponse.json(
         {
           success: false,
           error: {
             code: 'VALIDATION_ERROR',
             message: firstError.message,
-            details: parsed.error.errors,
+            details: parsed.error.issues,
           },
         },
         { status: 400 }
