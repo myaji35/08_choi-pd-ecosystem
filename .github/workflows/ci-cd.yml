@@ -44,7 +44,6 @@ jobs:
       - name: Type checking
         working-directory: ./choi-pd-ecosystem
         run: npx tsc --noEmit
-        continue-on-error: true
 
   # 테스트 실행
   test:
@@ -69,14 +68,13 @@ jobs:
 
       - name: Run unit tests
         working-directory: ./choi-pd-ecosystem
-        run: npm test -- --passWithNoTests || true
-        continue-on-error: true
+        run: npm test -- --passWithNoTests --testPathIgnorePatterns='\\._|e2e'
         env:
           CI: true
 
       - name: Generate coverage report
         working-directory: ./choi-pd-ecosystem
-        run: npm run test:coverage -- --passWithNoTests || true
+        run: npm run test:coverage -- --passWithNoTests --testPathIgnorePatterns='\\._|e2e'
         continue-on-error: true
 
       # E2E 테스트 (선택사항)
