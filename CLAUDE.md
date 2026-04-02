@@ -125,9 +125,36 @@ Use minimal, focused stores:
 - **Phase 2**: Self-hosted VOD payment system, student-only community area
 - **Phase 3**: Korean Environmental Journal RSS/API integration
 
-## Harness 운영 규칙 (GH_Harness 패턴 적용)
+## Harness 운영 규칙 (GH_Harness v2 엔진)
 
-GH_Harness의 실전 패턴을 이 프로젝트에 맞게 적용한다.
+GH_Harness v2 Hook 기반 엔진을 이 프로젝트에 적용한다.
+
+### 0. 에이전트 모델 배치 (비용 효율화)
+
+```
+Opus:   agent-harness (코드생성), meta-agent (관찰/진화)
+Sonnet: ux-harness (UX검증), test-harness, eval-harness, cicd-harness, qa-reviewer
+Haiku:  hook-router (이슈 라우팅)
+```
+
+### 0-1. UX 도메인 (ux-harness 자동 감지)
+
+이 프로젝트의 UX 검증 도메인: **어드민/대시보드, 비즈니스 앱, 소셜/커뮤니티, 학습/교육**
+- 어드민: KPI 로딩 상태, 카드 계층, 필터 접근성
+- 비즈니스 앱: 폼 에러 메시지, 온보딩 스텝, CRUD 피드백
+- 소셜: SNS 연동 상태, 예약 타임라인, 접근성
+- 학습: 강의 필터링, 미디어 재생, AI 콘텐츠 로딩
+
+### 0-2. 결과 기반 Plan 엔진 (on_complete.sh)
+
+```
+코드 생성 완료 → RUN_TESTS + UI_REVIEW (UI파일 있으면)
+테스트 실패   → FIX_BUG (실패 목록 포함)
+테스트 통과   → SCORE (커버리지 < 80%이면 IMPROVE_COVERAGE도)
+점수 ≥ 70    → DEPLOY_READY
+점수 < 70    → QUALITY_IMPROVEMENT
+UX fail      → UX_FIX
+```
 
 ### 1. Progressive Disclosure (컨텍스트 절약)
 
