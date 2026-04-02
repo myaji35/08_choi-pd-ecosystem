@@ -5,16 +5,8 @@ import { settings } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { HeroSection } from '@/components/home/HeroSection';
 import { WhyImpdSection } from '@/components/home/WhyImpdSection';
-import nextDynamic from 'next/dynamic';
-
-const InteractiveDemoSection = nextDynamic(
-  () => import('@/components/home/InteractiveDemoSection').then(mod => ({ default: mod.InteractiveDemoSection })),
-  { ssr: false }
-);
-const SocialProofSection = nextDynamic(
-  () => import('@/components/home/SocialProofSection').then(mod => ({ default: mod.SocialProofSection })),
-  { ssr: false }
-);
+import { InteractiveDemoSection } from '@/components/home/InteractiveDemoSection';
+import { SocialProofSection } from '@/components/home/SocialProofSection';
 import { CTABandSection } from '@/components/home/CTABandSection';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { getSocialLinks } from '@/lib/db/queries/socialLinks';
