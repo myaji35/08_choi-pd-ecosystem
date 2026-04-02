@@ -113,6 +113,75 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      case 'customer.subscription.updated': {
+        const updatedSub = event.data.object;
+        const updatedTenantId = parseInt(updatedSub.metadata?.tenantId || '0');
+
+        if (updatedSub.id) {
+          // 플랜 결정: metadata 우선, 없으면 price에서 추론
+          type SaasPlan = 'free' | 'pro' | 'enterprise';
+          const planFromMeta = updatedSub.metadata?.planId as SaasPlan | undefined;
+
+          // 구독 상태 매핑
+          const statusMap: Record<string, string> = {
+            active: 'active',
+            past_due: 'past_due',
+            canceled: 'canceled',
+            trialing: 'trialing',
+            unpaid: 'unpaid',
+          };
+          const mappedStatus = (statusMap[updatedSub.status] || 'active') as 'active' | 'past_due' | 'canceled' | 'trialing' | 'unpaid';
+
+          // 결제 주기 결정
+          const interval = updatedSub.items?.data?.[0]?.price?.recurring?.interval;
+          const billingPeriod: 'monthly' | 'yearly' = interval === 'year' ? 'yearly' : 'monthly';
+
+          const updateData: Record<string, unknown> = {
+            status: mappedStatus,
+            billingPeriod,
+            cancelAtPeriodEnd: updatedSub.cancel_at_period_end,
+            currentPeriodStart: (updatedSub as unknown as Record<string, number>).current_period_start
+              ? new Date((updatedSub as unknown as Record<string, number>).current_period_start * 1000)
+              : undefined,
+            currentPeriodEnd: (updatedSub as unknown as Record<string, number>).current_period_end
+              ? new Date((updatedSub as unknown as Record<string, number>).current_period_end * 1000)
+              : undefined,
+            updatedAt: new Date(),
+          };
+
+          // 새 price ID가 있으면 업데이트
+          const newPriceId = updatedSub.items?.data?.[0]?.price?.id;
+          if (newPriceId) {
+            updateData.stripePriceId = newPriceId;
+          }
+
+          if (planFromMeta) {
+            updateData.plan = planFromMeta;
+          }
+
+          await db
+            .update(saasSubscriptions)
+            .set(updateData)
+            .where(eq(saasSubscriptions.stripeSubscriptionId, updatedSub.id));
+
+          // 테넌트 플랜 업데이트 (planFromMeta가 있을 때만)
+          if (planFromMeta && updatedTenantId) {
+            await db
+              .update(tenants)
+              .set({ plan: planFromMeta })
+              .where(eq(tenants.id, updatedTenantId));
+          }
+
+          logger.info('Stripe subscription updated', {
+            subscriptionId: updatedSub.id,
+            plan: planFromMeta,
+            status: mappedStatus,
+            billingPeriod,
+          });
+        }
+        break;
+      }
+
       case 'customer.subscription.deleted': {
         const deletedSub = event.data.object;
 
