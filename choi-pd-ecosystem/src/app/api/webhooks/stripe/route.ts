@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { saasSubscriptions, tenants } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
             })
             .where(eq(tenants.id, tenantId));
 
-          console.log(`[Stripe] Subscription created: tenant=${tenantId} plan=${planId}`);
+          logger.info('Stripe subscription created', { tenantId, planId });
         }
         break;
       }
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
             })
             .where(eq(saasSubscriptions.stripeSubscriptionId, subscriptionId));
 
-          console.log(`[Stripe] Payment succeeded: subscription=${subscriptionId}`);
+          logger.info('Stripe payment succeeded', { subscriptionId });
         }
         break;
       }
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
             .set({ status: 'past_due' })
             .where(eq(saasSubscriptions.stripeSubscriptionId, failedSubId));
 
-          console.log(`[Stripe] Payment failed: subscription=${failedSubId}`);
+          logger.info('Stripe payment failed', { subscriptionId: failedSubId });
         }
         break;
       }
@@ -134,12 +135,12 @@ export async function POST(request: NextRequest) {
             .where(eq(tenants.id, subRecord.tenantId));
         }
 
-        console.log(`[Stripe] Subscription canceled: ${deletedSub.id}`);
+        logger.info('Stripe subscription canceled', { subscriptionId: deletedSub.id });
         break;
       }
 
       default:
-        console.log(`[Stripe] Unhandled event: ${event.type}`);
+        logger.info('Stripe unhandled event', { eventType: event.type });
     }
 
     return NextResponse.json({ received: true });

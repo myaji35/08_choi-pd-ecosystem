@@ -8,6 +8,7 @@
  */
 
 import { db } from './db';
+import { logger } from './logger';
 import {
   videos,
   videoChapters,
@@ -135,7 +136,7 @@ export async function generateHlsPlaylist(videoId: number, inputFile: string): P
   // This would use FFmpeg to transcode video to HLS format
   // ffmpeg -i input.mp4 -codec: copy -start_number 0 -hls_time 10 -hls_list_size 0 -f hls output.m3u8
 
-  console.log(`Generating HLS playlist for video ${videoId} from ${inputFile}`);
+  logger.info('Generating HLS playlist', { videoId, inputFile });
 
   // Placeholder implementation
   const hlsUrl = `/streams/${videoId}/master.m3u8`;
@@ -157,7 +158,7 @@ export async function generateThumbnail(videoId: number, inputFile: string, time
   // This would use FFmpeg to extract thumbnail
   // ffmpeg -i input.mp4 -ss 00:00:05 -vframes 1 thumbnail.jpg
 
-  console.log(`Generating thumbnail for video ${videoId} at ${timestamp}s`);
+  logger.info('Generating thumbnail', { videoId, timestamp });
 
   const thumbnailUrl = `/thumbnails/${videoId}.jpg`;
 

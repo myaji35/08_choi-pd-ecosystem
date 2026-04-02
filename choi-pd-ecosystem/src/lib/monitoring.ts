@@ -3,6 +3,8 @@
  * Tracks system health, performance, and errors
  */
 
+import { logger as structuredLogger } from './logger';
+
 export interface SystemLog {
   id: string;
   timestamp: Date;
@@ -151,8 +153,13 @@ export function log(
   }
 
   // Also log to console
-  const logMethod = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
-  logMethod(`[${level.toUpperCase()}] [${category}] ${message}`, metadata || '');
+  if (level === 'error') {
+    console.error(`[${level.toUpperCase()}] [${category}] ${message}`, metadata || '');
+  } else if (level === 'warn') {
+    console.warn(`[${level.toUpperCase()}] [${category}] ${message}`, metadata || '');
+  } else {
+    structuredLogger.info(`[${category}] ${message}`, metadata ? { metadata } : undefined);
+  }
 }
 
 /**

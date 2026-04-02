@@ -7,6 +7,7 @@
  */
 
 import { Resend } from 'resend';
+import { logger } from './logger';
 
 const IS_DEV_MODE = process.env.NODE_ENV === 'development';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -38,9 +39,9 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     // Dev mode 또는 API Key 미설정 → 콘솔 로그
     if (IS_DEV_MODE || !RESEND_API_KEY) {
       const reason = IS_DEV_MODE ? 'DEV MODE' : 'RESEND_API_KEY 미설정';
-      console.log(`[Email][${reason}] To: ${options.to} | Subject: ${options.subject}`);
+      logger.info('Email skipped', { reason, to: options.to, subject: options.subject });
       if (IS_DEV_MODE) {
-        console.log('[Email] HTML:', options.html.slice(0, 200), '...');
+        logger.debug('Email HTML preview', { htmlPreview: options.html.slice(0, 200) });
       }
       return true;
     }

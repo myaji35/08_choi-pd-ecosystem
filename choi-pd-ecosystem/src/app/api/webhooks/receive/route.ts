@@ -3,6 +3,7 @@ import { verifyWebhookSignature } from '@/lib/workflows';
 import { db } from '@/lib/db';
 import { webhooks } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { logger } from '@/lib/logger';
 
 /**
  * POST /api/webhooks/receive
@@ -74,10 +75,9 @@ export async function POST(request: NextRequest) {
 
     // Process webhook event
     // This could trigger workflows, send notifications, etc.
-    console.log('Webhook received:', {
+    logger.info('Webhook received', {
       webhookId,
       event: payload.event,
-      data: payload.data
     });
 
     // TODO: Implement actual webhook processing logic

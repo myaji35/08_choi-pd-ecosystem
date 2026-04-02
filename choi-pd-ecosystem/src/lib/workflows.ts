@@ -7,6 +7,7 @@
  */
 
 import { db } from './db';
+import { logger } from './logger';
 import {
   workflows,
   workflowExecutions,
@@ -182,7 +183,7 @@ async function executeAction(
  */
 async function sendEmailAction(config: any, context: any): Promise<any> {
   // Placeholder - integrate with actual email service
-  console.log('Sending email:', config);
+  logger.debug('Sending email', { to: config.to, subject: config.subject });
   return { sent: true, to: config.to, subject: config.subject };
 }
 
@@ -203,7 +204,7 @@ async function sendSlackMessage(config: any, context: any): Promise<any> {
   const credentials = JSON.parse(slackIntegration.credentials);
 
   // Placeholder - integrate with Slack API
-  console.log('Sending Slack message:', config.message);
+  logger.debug('Sending Slack message', { channel: config.channel });
   return { sent: true, channel: config.channel };
 }
 
@@ -229,7 +230,7 @@ async function updateDatabaseAction(config: any, context: any): Promise<any> {
   const { table, id, data } = config;
 
   // Placeholder - implement table-specific updates
-  console.log('Updating database:', { table, id, data });
+  logger.debug('Updating database', { table, id });
   return { updated: true };
 }
 

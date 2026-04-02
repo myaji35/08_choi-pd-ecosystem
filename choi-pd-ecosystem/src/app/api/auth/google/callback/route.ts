@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exchangeGoogleCode, getGoogleUserInfo, isAdminEmail } from '@/lib/auth/oauth';
 import { createSession } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code');
@@ -12,9 +13,11 @@ export async function GET(request: NextRequest) {
     const tokenData = await exchangeGoogleCode(code);
     const userInfo = await getGoogleUserInfo(tokenData.access_token);
 
-    console.log('[Google OAuth] userInfo:', JSON.stringify(userInfo));
-    console.log('[Google OAuth] ADMIN_ALLOWED_EMAILS:', process.env.ADMIN_ALLOWED_EMAILS);
-    console.log('[Google OAuth] isAdmin:', isAdminEmail(userInfo.email));
+    logger.info('Google OAuth callback', {
+      userEmail: userInfo.email,
+      adminAllowedEmails: process.env.ADMIN_ALLOWED_EMAILS,
+      isAdmin: isAdminEmail(userInfo.email),
+    });
 
     if (!isAdminEmail(userInfo.email)) {
       return NextResponse.redirect(new URL('/login?error=not_admin', request.url));
