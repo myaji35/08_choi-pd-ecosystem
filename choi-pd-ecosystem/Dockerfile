@@ -57,8 +57,8 @@ RUN test -d .next/static || (echo "ERROR: static files not found" && exit 1)
 # =============================================================================
 FROM node:20-slim AS runner
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y curl dumb-init && rm -rf /var/lib/apt/lists/*
+# Install runtime dependencies (wget for healthcheck, dumb-init for signal handling)
+RUN apt-get update && apt-get install -y wget dumb-init && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -91,9 +91,9 @@ USER nextjs
 # Expose port
 EXPOSE 3000
 
-# Health check - 안정적인 헬스체크 설정
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
-  CMD curl -f http://localhost:3000/ || exit 1
+# Health check - /api/health endpoint 연동 (ISS-023 실구현 활용)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD wget -qO- http://localhost:3000/api/health?type=live || exit 1
 
 # Use dumb-init for proper signal handling (graceful shutdown)
 ENTRYPOINT ["dumb-init", "--"]
