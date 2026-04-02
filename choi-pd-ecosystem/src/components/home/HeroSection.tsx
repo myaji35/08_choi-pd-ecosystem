@@ -24,12 +24,12 @@ export function HeroSection({
       <div className="absolute inset-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1920&q=80&auto=format&fit=crop"
+          src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&q=85&auto=format&fit=crop"
           alt=""
           className="w-full h-full object-cover"
         />
-        {/* 밝은 오버레이 — 텍스트 가독성 확보 */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(240,249,255,0.88) 40%, rgba(255,255,255,0.75) 100%)' }} />
+        {/* 오버레이 — 왼쪽 텍스트 영역만 밝게, 오른쪽은 이미지 살림 */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.75) 45%, rgba(255,255,255,0.35) 100%)' }} />
       </div>
 
       {/* 장식용 블루 블러 */}
