@@ -9,7 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Image as ImageIcon, LogOut, User as UserIcon, Settings, Globe, Copy, ExternalLink, Check as CheckIcon, AlertTriangle, RefreshCw } from 'lucide-react';
 import Image from 'next/image';
-import { ImageCropModal } from '@/components/admin/ImageCropModal';
+import dynamic from 'next/dynamic';
+
+const ImageCropModal = dynamic(
+  () => import('@/components/admin/ImageCropModal').then(mod => ({ default: mod.ImageCropModal })),
+  { ssr: false }
+);
 
 export default function PDDashboard() {
   const router = useRouter();
