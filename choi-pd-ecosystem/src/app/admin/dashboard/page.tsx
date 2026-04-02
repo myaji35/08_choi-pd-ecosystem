@@ -57,25 +57,32 @@ export default function AdminDistributorDashboard() {
     await logout();
   };
 
-  const fetchStats = () => {
+  const fetchStats = async () => {
     setIsLoading(true);
     setError(null);
-    // TODO: Replace with real API call (fetch('/api/admin/stats'))
-    setTimeout(() => {
-      try {
-        setStats({
-          totalDistributors: 12,
-          activeDistributors: 8,
-          pendingDistributors: 4,
-          totalRevenue: 45000000,
-          recentActivities: 23,
-        });
-        setIsLoading(false);
-      } catch {
-        setError('통계 데이터를 불러오는 데 실패했습니다.');
-        setIsLoading(false);
+    try {
+      const res = await fetch('/api/admin/analytics');
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
       }
-    }, 500);
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.error || '통계 조회 실패');
+      }
+      const { distributorStats, totalRevenue, activityStats } = data.analytics;
+      setStats({
+        totalDistributors: distributorStats.total,
+        activeDistributors: distributorStats.active,
+        pendingDistributors: distributorStats.pending,
+        totalRevenue: totalRevenue,
+        recentActivities: activityStats.total,
+      });
+    } catch (err) {
+      setError('통계 데이터를 불러오는 데 실패했습니다.');
+      console.error('Dashboard stats fetch error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
