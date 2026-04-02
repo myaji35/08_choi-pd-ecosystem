@@ -120,8 +120,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Stripe Checkout 세션 생성 (실제 Stripe 연동 시 활성화)
-    // 현재는 placeholder 응답
     const priceId = STRIPE_PRICE_IDS[planId]?.[billingPeriod];
 
     if (!priceId) {
@@ -131,21 +129,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: 실제 Stripe 연동
-    // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-    // const session = await stripe.checkout.sessions.create({
-    //   customer: tenant.stripeCustomerId || undefined,
-    //   line_items: [{ price: priceId, quantity: 1 }],
-    //   mode: 'subscription',
-    //   success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=success`,
-    //   cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?checkout=cancel`,
-    //   metadata: { tenantId: tenantId.toString() },
-    // });
+    // Stripe 연동: 환경변수가 설정된 경우 실제 Checkout 세션 생성
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3011';
 
+    if (stripeSecretKey && !stripeSecretKey.startsWith('price_')) {
+      const Stripe = (await import('stripe')).default;
+      const stripe = new Stripe(stripeSecretKey);
+
+      // 기존 Stripe Customer가 없으면 생성
+      let customerId = tenant.stripeCustomerId;
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          name: tenant.name,
+          metadata: { tenantId: tenantId.toString(), slug: tenant.slug },
+        });
+        customerId = customer.id;
+
+        // 테넌트에 stripeCustomerId 저장
+        await db
+          .update(tenants)
+          .set({ stripeCustomerId: customerId })
+          .where(eq(tenants.id, tenantId));
+      }
+
+      // Checkout 세션 생성
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [{ price: priceId, quantity: 1 }],
+        mode: 'subscription',
+        success_url: `${appUrl}/pd/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${appUrl}/pd/dashboard?checkout=cancel`,
+        metadata: { tenantId: tenantId.toString(), planId, billingPeriod },
+        subscription_data: {
+          metadata: { tenantId: tenantId.toString(), planId },
+        },
+      });
+
+      return NextResponse.json({
+        checkoutUrl: session.url,
+        sessionId: session.id,
+        planId,
+        billingPeriod,
+      });
+    }
+
+    // Stripe 미설정 시 placeholder 응답 (개발 모드)
     return NextResponse.json({
-      message: 'Stripe 연동 준비 중. 현재는 placeholder입니다.',
-      checkoutUrl: `https://checkout.stripe.com/placeholder?plan=${planId}&period=${billingPeriod}`,
-      sessionId: `cs_placeholder_${tenantId}_${planId}_${billingPeriod}`,
+      message: 'Stripe 미설정 — STRIPE_SECRET_KEY 환경변수를 설정하세요.',
+      checkoutUrl: null,
+      sessionId: `dev_${tenantId}_${planId}_${billingPeriod}`,
       planId,
       billingPeriod,
       priceId,
