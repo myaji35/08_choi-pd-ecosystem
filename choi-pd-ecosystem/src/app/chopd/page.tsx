@@ -4,16 +4,10 @@ import { db } from '@/lib/db';
 import { courses, posts, settings } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { HeroSection } from '@/components/home/HeroSection';
-import { ServiceHubSection } from '@/components/home/ServiceHubSection';
 import { LatestCoursesSection } from '@/components/home/LatestCoursesSection';
-import { WhyImpdSection } from '@/components/home/WhyImpdSection';
-import { PricingSection } from '@/components/home/PricingSection';
-import { SocialProofSection } from '@/components/home/SocialProofSection';
 import { FAQSection } from '@/components/home/FAQSection';
-import { CostCalculatorSection } from '@/components/home/CostCalculatorSection';
 import { InteractiveDemoSection } from '@/components/home/InteractiveDemoSection';
 import { CTABandSection } from '@/components/home/CTABandSection';
-import { StickyMobileCTA } from '@/components/home/StickyMobileCTA';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { getSocialLinks } from '@/lib/db/queries/socialLinks';
 import { generatePersonSchema, generateOrganizationSchema } from '@/lib/seo';
@@ -94,15 +88,9 @@ export default async function HomePage() {
         heroImages={heroImages}
       />
       <InteractiveDemoSection />
-      <ServiceHubSection />
-      <WhyImpdSection />
-      <SocialProofSection />
       <LatestCoursesSection courses={latestCourses} />
-      <CostCalculatorSection />
-      <PricingSection />
       <FAQSection />
       <CTABandSection />
-      <StickyMobileCTA />
     </>
   );
 }
