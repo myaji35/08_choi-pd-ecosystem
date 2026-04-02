@@ -25,6 +25,24 @@ import {
 import { eq, and, gte, desc, sql } from 'drizzle-orm';
 import crypto from 'crypto';
 
+// ── TOTP Base32 (RFC 4648) ──────────────────────
+const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+function b32Decode(s: string): Buffer {
+  const clean = s.replace(/=+$/, '').toUpperCase();
+  let bits = '';
+  for (const c of clean) { const v = B32.indexOf(c); if (v >= 0) bits += v.toString(2).padStart(5, '0'); }
+  const bytes: number[] = [];
+  for (let i = 0; i + 8 <= bits.length; i += 8) bytes.push(parseInt(bits.slice(i, i + 8), 2));
+  return Buffer.from(bytes);
+}
+function b32Encode(buf: Buffer): string {
+  let bits = '';
+  for (const b of buf) bits += b.toString(2).padStart(8, '0');
+  let out = '';
+  for (let i = 0; i < bits.length; i += 5) out += B32[parseInt(bits.slice(i, i + 5).padEnd(5, '0'), 2)];
+  return out;
+}
+
 // ============================================
 // Audit Logging
 // ============================================
@@ -303,10 +321,11 @@ export async function isIpWhitelisted(ipAddress: string, context: 'all' | 'admin
 // ============================================
 
 /**
- * TOTP 시크릿 생성
+ * TOTP 시크릿 생성 (Base32 인코딩된 20바이트 랜덤)
  */
 export function generateTotpSecret(): string {
-  return crypto.randomBytes(20).toString('hex');
+  const secret = crypto.randomBytes(20);
+  return b32Encode(secret);
 }
 
 /**
@@ -322,21 +341,42 @@ export function generateBackupCodes(): string[] {
 }
 
 /**
- * TOTP 코드 검증 (간단한 구현 - 프로덕션에서는 speakeasy 라이브러리 사용 권장)
+ * TOTP 코드 생성 (RFC 6238)
+ */
+function generateTotpCode(secret: string, timeStep: number = 30, digits: number = 6): string {
+  const key = b32Decode(secret);
+  const counter = Math.floor(Date.now() / 1000 / timeStep);
+  const counterBuf = Buffer.alloc(8);
+  counterBuf.writeUInt32BE(Math.floor(counter / 0x100000000), 0);
+  counterBuf.writeUInt32BE(counter >>> 0, 4);
+  const hmac = crypto.createHmac('sha1', key).update(counterBuf).digest();
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  const code = ((hmac[offset] & 0x7f) << 24 | hmac[offset + 1] << 16 | hmac[offset + 2] << 8 | hmac[offset + 3]) % (10 ** digits);
+  return code.toString().padStart(digits, '0');
+}
+
+/**
+ * TOTP 코드 검증 (±1 window, 총 ±30초 허용)
  */
 export function verifyTotpCode(secret: string, token: string): boolean {
-  // 실제 프로덕션에서는 speakeasy 또는 otplib 라이브러리 사용
-  // 여기서는 간단한 예시만 제공
-
-  // TODO: speakeasy.verify() 또는 otplib 사용
-  // const verified = speakeasy.totp.verify({
-  //   secret,
-  //   encoding: 'hex',
-  //   token,
-  //   window: 1
-  // });
-
-  return true; // 임시
+  try {
+    const timeStep = 30;
+    const now = Math.floor(Date.now() / 1000);
+    for (let i = -1; i <= 1; i++) {
+      const key = b32Decode(secret);
+      const counter = Math.floor(now / timeStep) + i;
+      const counterBuf = Buffer.alloc(8);
+      counterBuf.writeUInt32BE(Math.floor(counter / 0x100000000), 0);
+      counterBuf.writeUInt32BE(counter >>> 0, 4);
+      const hmac = crypto.createHmac('sha1', key).update(counterBuf).digest();
+      const offset = hmac[hmac.length - 1] & 0x0f;
+      const code = ((hmac[offset] & 0x7f) << 24 | hmac[offset + 1] << 16 | hmac[offset + 2] << 8 | hmac[offset + 3]) % (10 ** 6);
+      if (code.toString().padStart(6, '0') === token) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -346,13 +386,16 @@ export async function enable2FA(userId: string, userType: 'admin' | 'pd' | 'dist
   const secret = generateTotpSecret();
   const backupCodes = generateBackupCodes();
 
-  // TODO: 실제로는 백업 코드를 암호화해서 저장해야 함
+  // secret과 backupCodes를 AES-256-GCM으로 암호화하여 저장
+  const encryptedSecret = encryptData(secret);
+  const encryptedBackupCodes = encryptData(JSON.stringify(backupCodes));
+
   await db.insert(twoFactorAuth).values({
     userId,
     userType,
     method,
-    secret, // TODO: 암호화 필요
-    backupCodes: JSON.stringify(backupCodes), // TODO: 암호화 필요
+    secret: encryptedSecret,
+    backupCodes: encryptedBackupCodes,
     isEnabled: true,
   });
 
@@ -363,7 +406,51 @@ export async function enable2FA(userId: string, userType: 'admin' | 'pd' | 'dist
     description: `2FA enabled for user ${userId} using ${method}`,
   });
 
+  // 원본은 사용자에게만 반환 (1회성)
   return { secret, backupCodes };
+}
+
+/**
+ * 2FA 코드 검증 (DB에서 암호화된 secret을 복호화하여 검증)
+ */
+export async function verify2FA(userId: string, token: string): Promise<boolean> {
+  const record = await db
+    .select()
+    .from(twoFactorAuth)
+    .where(and(eq(twoFactorAuth.userId, userId), eq(twoFactorAuth.isEnabled, true)))
+    .get();
+
+  if (!record) return false;
+
+  const secret = decryptData(record.secret);
+  return verifyTotpCode(secret, token);
+}
+
+/**
+ * 백업 코드로 2FA 검증 (사용된 코드는 제거)
+ */
+export async function verifyBackupCode(userId: string, code: string): Promise<boolean> {
+  const record = await db
+    .select()
+    .from(twoFactorAuth)
+    .where(and(eq(twoFactorAuth.userId, userId), eq(twoFactorAuth.isEnabled, true)))
+    .get();
+
+  if (!record || !record.backupCodes) return false;
+
+  const codes: string[] = JSON.parse(decryptData(record.backupCodes));
+  const index = codes.indexOf(code);
+
+  if (index === -1) return false;
+
+  // 사용된 코드 제거 후 재암호화 저장
+  codes.splice(index, 1);
+  await db
+    .update(twoFactorAuth)
+    .set({ backupCodes: encryptData(JSON.stringify(codes)) })
+    .where(eq(twoFactorAuth.userId, userId));
+
+  return true;
 }
 
 /**
