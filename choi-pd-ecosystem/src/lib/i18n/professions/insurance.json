@@ -1,0 +1,34 @@
+{
+  "nav": {
+    "education": "보험 교육",
+    "media": "업계 소식",
+    "works": "설계 포트폴리오"
+  },
+  "dashboard": {
+    "courses": "보험 교육",
+    "inquiries": "보험 상담 문의",
+    "subscribers": "고객 명부",
+    "heroImages": "메인 배너",
+    "snsAccounts": "영업 채널",
+    "scheduledPosts": "예약 홍보",
+    "newsletter": "보험 소식지"
+  },
+  "distributor": {
+    "title": "제휴 대리점",
+    "singular": "제휴 대리점",
+    "plural": "제휴 대리점 목록",
+    "pending": "제휴 심사 중",
+    "approved": "제휴 완료",
+    "resources": "영업 자료실"
+  },
+  "content": {
+    "courses": "보험 상품 교육",
+    "posts": "보험 뉴스",
+    "gallery": "설계 사례",
+    "press": "언론 보도",
+    "works": "설계 포트폴리오"
+  },
+  "common": {
+    "create": "상담 등록"
+  }
+}

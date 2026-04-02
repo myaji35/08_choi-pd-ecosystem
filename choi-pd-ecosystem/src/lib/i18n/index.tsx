@@ -15,6 +15,8 @@ import pdLabels from './professions/pd.json';
 import shopownerLabels from './professions/shopowner.json';
 import realtorLabels from './professions/realtor.json';
 import educatorLabels from './professions/educator.json';
+import insuranceLabels from './professions/insurance.json';
+import freelancerLabels from './professions/freelancer.json';
 
 // ---- 타입 정의 ----
 
@@ -35,8 +37,8 @@ const professionMap: Record<Profession, Record<string, unknown>> = {
   shopowner: shopownerLabels,
   realtor: realtorLabels,
   educator: educatorLabels,
-  insurance: {},     // TODO: insurance.json 추가 시 교체
-  freelancer: {},    // TODO: freelancer.json 추가 시 교체
+  insurance: insuranceLabels,
+  freelancer: freelancerLabels,
 };
 
 // ---- 유틸리티 함수 ----
