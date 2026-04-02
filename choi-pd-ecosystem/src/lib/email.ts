@@ -1,12 +1,27 @@
 /**
  * Email Utility for imPD Platform
  *
- * This module provides email sending functionality.
- * For production, integrate with Resend or SendGrid.
- * For development, logs emails to console.
+ * Resend SDK를 사용한 이메일 발송.
+ * - Production: Resend API로 실제 발송
+ * - Development / API Key 미설정: 콘솔 로그로 대체
  */
 
+import { Resend } from 'resend';
+
 const IS_DEV_MODE = process.env.NODE_ENV === 'development';
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'noreply@impd.com';
+const FROM_NAME = process.env.RESEND_FROM_NAME || 'imPD';
+
+/** Lazy-init: API Key가 있을 때만 Resend 클라이언트 생성 */
+let _resend: Resend | null = null;
+function getResendClient(): Resend | null {
+  if (!RESEND_API_KEY) return null;
+  if (!_resend) {
+    _resend = new Resend(RESEND_API_KEY);
+  }
+  return _resend;
+}
 
 interface EmailOptions {
   to: string;
@@ -20,35 +35,33 @@ interface EmailOptions {
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    if (IS_DEV_MODE) {
-      // Development mode: Log email to console
-      console.log('📧 [DEV MODE] Email would be sent:');
-      console.log('To:', options.to);
-      console.log('Subject:', options.subject);
-      console.log('HTML:', options.html);
+    // Dev mode 또는 API Key 미설정 → 콘솔 로그
+    if (IS_DEV_MODE || !RESEND_API_KEY) {
+      const reason = IS_DEV_MODE ? 'DEV MODE' : 'RESEND_API_KEY 미설정';
+      console.log(`[Email][${reason}] To: ${options.to} | Subject: ${options.subject}`);
+      if (IS_DEV_MODE) {
+        console.log('[Email] HTML:', options.html.slice(0, 200), '...');
+      }
       return true;
     }
 
-    // Production mode: Use Resend or SendGrid
-    // TODO: Implement actual email sending with Resend
-    // const response = await fetch('https://api.resend.com/emails', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     from: 'noreply@impd.com',
-    //     to: options.to,
-    //     subject: options.subject,
-    //     html: options.html,
-    //   }),
-    // });
+    const resend = getResendClient()!;
+    const { error } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      ...(options.text ? { text: options.text } : {}),
+    });
 
-    console.warn('⚠️ Email sending not configured for production. Set up Resend or SendGrid.');
-    return false;
+    if (error) {
+      console.error('[Email] Resend API error:', error);
+      return false;
+    }
+
+    return true;
   } catch (error) {
-    console.error('Failed to send email:', error);
+    console.error('[Email] Failed to send:', error);
     return false;
   }
 }
@@ -276,57 +289,137 @@ export async function sendInquiryConfirmationEmail(data: {
 
 /**
  * Send newsletter to subscribers
+ * Resend Batch API 사용 (최대 100건/배치), fallback으로 개별 발송
  */
 export async function sendNewsletter(data: {
   subject: string;
   content: string;
   subscribers: { email: string; id?: string }[];
 }): Promise<void> {
-  // Send to all subscribers in batches
+  const buildHtml = (subscriberEmail: string) => `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #1a73e8; color: white; padding: 20px; }
+        .content { padding: 20px; background: white; }
+        .footer { padding: 10px; text-align: center; color: #666; }
+        .unsubscribe { color: #1a73e8; text-decoration: none; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>${data.subject}</h1>
+        </div>
+        <div class="content">
+          ${data.content}
+        </div>
+        <div class="footer">
+          <p>이 이메일을 원하지 않으시면 <a href="#" class="unsubscribe">구독 취소</a>를 클릭하세요.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const resend = getResendClient();
+  const from = `${FROM_NAME} <${FROM_EMAIL}>`;
+
+  // Resend Batch API 사용 가능 시 (최대 100건/배치)
+  if (resend && !IS_DEV_MODE) {
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < data.subscribers.length; i += BATCH_SIZE) {
+      const batch = data.subscribers.slice(i, i + BATCH_SIZE);
+      const emails = batch.map(sub => ({
+        from,
+        to: sub.email,
+        subject: data.subject,
+        html: buildHtml(sub.email),
+      }));
+
+      try {
+        await resend.batch.send(emails);
+      } catch (error) {
+        console.error(`[Email] Batch send failed (offset ${i}):`, error);
+        // Fallback: 개별 발송
+        for (const email of emails) {
+          await sendEmail({ to: email.to, subject: email.subject, html: email.html });
+        }
+      }
+
+      // Rate limit 보호: 배치 간 1초 대기
+      if (i + BATCH_SIZE < data.subscribers.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    return;
+  }
+
+  // Dev mode / API Key 미설정: 개별 sendEmail (콘솔 로그)
   const batchSize = 50;
   for (let i = 0; i < data.subscribers.length; i += batchSize) {
     const batch = data.subscribers.slice(i, i + batchSize);
-
     await Promise.all(
       batch.map(subscriber =>
         sendEmail({
           to: subscriber.email,
           subject: data.subject,
-          html: `
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <style>
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: #1a73e8; color: white; padding: 20px; }
-                .content { padding: 20px; background: white; }
-                .footer { padding: 10px; text-align: center; color: #666; }
-                .unsubscribe { color: #1a73e8; text-decoration: none; }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <div class="header">
-                  <h1>${data.subject}</h1>
-                </div>
-                <div class="content">
-                  ${data.content}
-                </div>
-                <div class="footer">
-                  <p>이 이메일을 원하지 않으시면 <a href="#" class="unsubscribe">구독 취소</a>를 클릭하세요.</p>
-                </div>
-              </div>
-            </body>
-            </html>
-          `
+          html: buildHtml(subscriber.email),
         })
       )
     );
-
-    // Add delay between batches to avoid rate limiting
     if (i + batchSize < data.subscribers.length) {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
+}
+
+/**
+ * Send notification email to admin
+ */
+export async function sendNotificationEmail(data: {
+  to: string;
+  title: string;
+  body: string;
+  actionUrl?: string;
+  actionLabel?: string;
+}): Promise<boolean> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #16325C; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+        .cta { display: inline-block; background: #00A1E0; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin-top: 16px; }
+        .footer { text-align: center; margin-top: 20px; color: #6b7280; font-size: 13px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h2>${data.title}</h2>
+        </div>
+        <div class="content">
+          ${data.body}
+          ${data.actionUrl ? `<p><a href="${data.actionUrl}" class="cta">${data.actionLabel || '확인하기'}</a></p>` : ''}
+        </div>
+        <div class="footer">
+          <p>&copy; ${new Date().getFullYear()} imPD. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: data.to,
+    subject: `[imPD] ${data.title}`,
+    html,
+  });
 }
