@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { organizations, organizationBranding } from '@/lib/db/schema';
-import { eq, desc, or, like } from 'drizzle-orm';
+import { eq, desc, or, like, and, type SQL } from 'drizzle-orm';
 
 // Helper function to generate slug
 function slugify(text: string): string {
@@ -108,15 +108,14 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || undefined;
     const search = searchParams.get('search') || undefined;
 
-    let query = db.select().from(organizations);
-    const conditions: any[] = [];
+    const conditions: SQL[] = [];
 
     if (type) {
-      conditions.push(eq(organizations.type, type as any));
+      conditions.push(eq(organizations.type, type as 'enterprise' | 'business' | 'education' | 'nonprofit'));
     }
 
     if (status) {
-      conditions.push(eq(organizations.subscriptionStatus, status as any));
+      conditions.push(eq(organizations.subscriptionStatus, status as 'trial' | 'active' | 'suspended' | 'cancelled'));
     }
 
     if (search) {
@@ -125,16 +124,14 @@ export async function GET(request: NextRequest) {
           like(organizations.name, `%${search}%`),
           like(organizations.displayName, `%${search}%`),
           like(organizations.contactEmail, `%${search}%`)
-        )
+        )!
       );
     }
 
-    if (conditions.length > 0) {
-      const { and } = await import('drizzle-orm');
-      query = query.where(and(...conditions)) as any;
-    }
-
-    const allOrganizations = await query.orderBy(desc(organizations.createdAt));
+    const baseQuery = db.select().from(organizations);
+    const allOrganizations = conditions.length > 0
+      ? await baseQuery.where(and(...conditions)).orderBy(desc(organizations.createdAt))
+      : await baseQuery.orderBy(desc(organizations.createdAt));
 
     // Parse JSON fields
     const parsed = allOrganizations.map((org) => ({

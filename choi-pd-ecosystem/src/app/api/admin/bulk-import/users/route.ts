@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
           userId: `temp-${Date.now()}-${i}`, // Temporary user ID
           userEmail: row.email,
           userName: row.name || null,
-          role: (row.role as any) || 'member',
+          role: (row.role as 'owner' | 'admin' | 'manager' | 'member' | 'guest') || 'member',
           jobTitle: row.jobTitle || null,
           department: row.department || null,
           status: 'invited',
@@ -139,13 +139,11 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const organizationId = searchParams.get('organizationId') || undefined;
 
-    let query = db.select().from(userBulkImportLogs);
+    const baseQuery = db.select().from(userBulkImportLogs);
 
-    if (organizationId) {
-      query = query.where(eq(userBulkImportLogs.organizationId, parseInt(organizationId))) as any;
-    }
-
-    const logs = await query;
+    const logs = organizationId
+      ? await baseQuery.where(eq(userBulkImportLogs.organizationId, parseInt(organizationId)))
+      : await baseQuery;
 
     // Parse JSON fields
     const parsed = logs.map((log) => ({

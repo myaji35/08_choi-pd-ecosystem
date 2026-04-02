@@ -78,16 +78,16 @@ export async function POST(request: NextRequest) {
     // SNS 계정 생성 (tenantId 주입)
     const result = await db.insert(snsAccounts).values({
       tenantId,
-      platform,
+      platform: platform as 'facebook' | 'instagram' | 'twitter' | 'linkedin',
       accountName,
       accountId: accountId || null,
       accessToken,
       refreshToken: refreshToken || null,
-      tokenExpiresAt: tokenExpiresAt ? Math.floor(new Date(tokenExpiresAt).getTime() / 1000) : null,
+      tokenExpiresAt: tokenExpiresAt ? new Date(tokenExpiresAt) : null,
       isActive: true,
       lastSyncedAt: null,
       metadata: metadata ? JSON.stringify(metadata) : null,
-    } as any).returning();
+    }).returning();
 
     return NextResponse.json({
       success: true,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { cohorts, cohortUsers } from '@/lib/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, type SQL } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
@@ -58,9 +58,9 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const cohortType = searchParams.get('cohortType') || undefined;
 
-    const conditions: any[] = [tenantFilter(cohorts.tenantId, tenantId)];
+    const conditions: SQL[] = [tenantFilter(cohorts.tenantId, tenantId)];
     if (cohortType) {
-      conditions.push(eq(cohorts.cohortType, cohortType as any));
+      conditions.push(eq(cohorts.cohortType, cohortType as 'acquisition' | 'behavior' | 'demographic' | 'custom'));
     }
 
     const allCohorts = await db.select().from(cohorts).where(and(...conditions)).orderBy(desc(cohorts.createdAt));

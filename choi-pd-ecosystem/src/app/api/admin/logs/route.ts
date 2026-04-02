@@ -5,7 +5,7 @@ import { getLogs, getSystemMetrics, getSystemHealth, clearLogs, exportLogs } fro
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const level = searchParams.get('level') as any;
+    const level = (searchParams.get('level') ?? undefined) as 'debug' | 'info' | 'warn' | 'error' | undefined;
     const category = searchParams.get('category') || undefined;
     const limit = parseInt(searchParams.get('limit') || '100');
     const sinceParam = searchParams.get('since');

@@ -20,7 +20,7 @@ import {
   type NewWebhook,
   type NewWebhookLog
 } from './db/schema';
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, and, sql, type SQL } from 'drizzle-orm';
 import crypto from 'crypto';
 
 // ============================================================
@@ -521,16 +521,16 @@ export function verifyWebhookSignature(
  * Get popular automation templates
  */
 export async function getAutomationTemplates(params?: {
-  category?: string;
+  category?: 'onboarding' | 'engagement' | 'support' | 'marketing' | 'sales';
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   limit?: number;
 }): Promise<any[]> {
   const { category, difficulty, limit = 20 } = params || {};
 
-  const conditions = [eq(automationTemplates.isPublic, true)];
+  const conditions: SQL[] = [eq(automationTemplates.isPublic, true)];
 
   if (category) {
-    conditions.push(eq(automationTemplates.category, category as any));
+    conditions.push(eq(automationTemplates.category, category));
   }
 
   if (difficulty) {

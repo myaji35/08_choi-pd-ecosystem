@@ -5,24 +5,26 @@ import { eq, and, desc, sql } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
+type NotificationUserType = 'admin' | 'pd' | 'distributor';
+
 // GET /api/notifications?userType=admin&limit=50 - Get notifications
 export async function GET(request: NextRequest) {
   try {
     const tenantId = getTenantIdFromRequest(request);
     const { searchParams } = new URL(request.url);
-    const userType = searchParams.get('userType') || 'admin';
+    const userType = (searchParams.get('userType') || 'admin') as NotificationUserType;
     const limit = parseInt(searchParams.get('limit') || '50');
     const unreadOnly = searchParams.get('unreadOnly') === 'true';
 
     let whereCondition = and(
       tenantFilter(notifications.tenantId, tenantId),
-      eq(notifications.userType, userType as any)
+      eq(notifications.userType, userType)
     );
 
     if (unreadOnly) {
       whereCondition = and(
         tenantFilter(notifications.tenantId, tenantId),
-        eq(notifications.userType, userType as any),
+        eq(notifications.userType, userType),
         eq(notifications.isRead, false)
       );
     }
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest) {
       .from(notifications)
       .where(and(
         tenantFilter(notifications.tenantId, tenantId),
-        eq(notifications.userType, userType as any),
+        eq(notifications.userType, userType),
         eq(notifications.isRead, false)
       ))
       .get();

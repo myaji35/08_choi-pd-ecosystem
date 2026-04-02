@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { rfmSegments } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, type SQL } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
@@ -134,23 +134,19 @@ export async function GET(request: NextRequest) {
     const userType = searchParams.get('userType') || undefined;
 
     const tenantId = getTenantIdFromRequest(request);
-    let query = db.select().from(rfmSegments);
-    const conditions: any[] = [tenantFilter(rfmSegments.tenantId, tenantId)];
+    const conditions: SQL[] = [tenantFilter(rfmSegments.tenantId, tenantId)];
 
     if (rfmSegment) {
       conditions.push(eq(rfmSegments.rfmSegment, rfmSegment));
     }
 
     if (userType) {
-      conditions.push(eq(rfmSegments.userType, userType as any));
+      conditions.push(eq(rfmSegments.userType, userType as 'distributor' | 'lead'));
     }
 
-    if (conditions.length > 0) {
-      const { and } = await import('drizzle-orm');
-      query = query.where(and(...conditions)) as any;
-    }
-
-    const segments = await query.orderBy(desc(rfmSegments.calculatedAt));
+    const segments = await db.select().from(rfmSegments)
+      .where(and(...conditions))
+      .orderBy(desc(rfmSegments.calculatedAt));
 
     return NextResponse.json({ success: true, data: segments });
   } catch (error: any) {

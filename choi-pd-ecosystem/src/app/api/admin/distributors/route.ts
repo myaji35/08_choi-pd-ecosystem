@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const tenantId = getTenantIdFromRequest(request);
 
     const results = status
-      ? await db.select().from(distributors).where(and(eq(distributors.tenantId, tenantId), eq(distributors.status, status as any))).all()
+      ? await db.select().from(distributors).where(and(eq(distributors.tenantId, tenantId), eq(distributors.status, status as 'pending' | 'approved' | 'active' | 'suspended' | 'rejected'))).all()
       : await db.select().from(distributors).where(eq(distributors.tenantId, tenantId)).all();
 
     return NextResponse.json({

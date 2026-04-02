@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { abTests } from '@/lib/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, type SQL } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
@@ -70,9 +70,9 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status') || undefined;
 
-    const conditions: any[] = [tenantFilter(abTests.tenantId, tenantId)];
+    const conditions: SQL[] = [tenantFilter(abTests.tenantId, tenantId)];
     if (status) {
-      conditions.push(eq(abTests.status, status as any));
+      conditions.push(eq(abTests.status, status as 'draft' | 'running' | 'paused' | 'completed' | 'archived'));
     }
 
     const tests = await db.select().from(abTests).where(and(...conditions)).orderBy(desc(abTests.createdAt));

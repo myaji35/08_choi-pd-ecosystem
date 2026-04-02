@@ -22,7 +22,7 @@ import {
   type NewSecurityEvent,
   type NewLoginAttempt,
 } from './db/schema';
-import { eq, and, gte, desc, sql } from 'drizzle-orm';
+import { eq, and, gte, desc, sql, type SQL } from 'drizzle-orm';
 import crypto from 'crypto';
 
 // ── TOTP Base32 (RFC 4648) ──────────────────────
@@ -100,7 +100,7 @@ export async function getAuditLogs(filters: {
   startDate?: Date;
   limit?: number;
 }) {
-  const conditions = [];
+  const conditions: SQL[] = [];
 
   if (filters.userId) {
     conditions.push(eq(auditLogs.userId, filters.userId));
@@ -115,13 +115,13 @@ export async function getAuditLogs(filters: {
     conditions.push(gte(auditLogs.createdAt, filters.startDate));
   }
 
-  let query = db.select().from(auditLogs);
+  const query = db.select().from(auditLogs);
 
-  if (conditions.length > 0) {
-    query = query.where(and(...conditions)) as any;
-  }
+  const filtered = conditions.length > 0
+    ? query.where(and(...conditions))
+    : query;
 
-  return await query
+  return await filtered
     .orderBy(desc(auditLogs.createdAt))
     .limit(filters.limit || 100);
 }

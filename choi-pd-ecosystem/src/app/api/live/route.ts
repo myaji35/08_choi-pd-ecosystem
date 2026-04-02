@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const conditions = [tenantFilter(liveStreams.tenantId, tenantId)];
 
     if (status) {
-      conditions.push(eq(liveStreams.status, status as any));
+      conditions.push(eq(liveStreams.status, status as 'scheduled' | 'live' | 'ended' | 'cancelled'));
     }
 
     if (hostedBy) {

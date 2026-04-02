@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { faqKnowledgeBase } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, type SQL } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
@@ -61,23 +61,19 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category') || undefined;
     const isActive = searchParams.get('isActive') || undefined;
 
-    let query = db.select().from(faqKnowledgeBase);
-    const conditions: any[] = [tenantFilter(faqKnowledgeBase.tenantId, tenantId)];
+    const conditions: SQL[] = [tenantFilter(faqKnowledgeBase.tenantId, tenantId)];
 
     if (category) {
-      conditions.push(eq(faqKnowledgeBase.category, category as any));
+      conditions.push(eq(faqKnowledgeBase.category, category as 'general' | 'distributor' | 'payment' | 'resource' | 'technical'));
     }
 
     if (isActive !== undefined) {
       conditions.push(eq(faqKnowledgeBase.isActive, isActive === 'true'));
     }
 
-    if (conditions.length > 0) {
-      const { and } = await import('drizzle-orm');
-      query = query.where(and(...conditions)) as any;
-    }
-
-    const faqs = await query.orderBy(
+    const faqs = await db.select().from(faqKnowledgeBase)
+      .where(and(...conditions))
+      .orderBy(
       desc(faqKnowledgeBase.priority),
       desc(faqKnowledgeBase.createdAt)
     );

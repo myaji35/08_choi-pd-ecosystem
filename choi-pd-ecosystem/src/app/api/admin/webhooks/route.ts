@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { webhooks } from '@/lib/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, type SQL } from 'drizzle-orm';
 import { createWebhook } from '@/lib/workflows';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter } from '@/lib/tenant/query-helpers';
@@ -16,15 +16,14 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const isActive = searchParams.get('isActive');
 
-    let query = db.select().from(webhooks);
-
-    const conditions: any[] = [tenantFilter(webhooks.tenantId, tenantId)];
+    const conditions: SQL[] = [tenantFilter(webhooks.tenantId, tenantId)];
     if (isActive !== null) {
       conditions.push(eq(webhooks.isActive, isActive === 'true'));
     }
-    query = query.where(and(...conditions)) as any;
 
-    const allWebhooks = await query.orderBy(desc(webhooks.createdAt));
+    const allWebhooks = await db.select().from(webhooks)
+      .where(and(...conditions))
+      .orderBy(desc(webhooks.createdAt));
 
     // Don't expose secrets in list view
     const sanitized = allWebhooks.map(wh => ({

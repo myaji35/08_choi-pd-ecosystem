@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { supportTickets } from '@/lib/db/schema';
-import { eq, desc, and, or, like } from 'drizzle-orm';
+import { eq, desc, and, or, like, type SQL } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
@@ -77,23 +77,22 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || undefined;
 
     const tenantId = getTenantIdFromRequest(request);
-    let query = db.select().from(supportTickets);
-    const conditions: any[] = [tenantFilter(supportTickets.tenantId, tenantId)];
+    const conditions: SQL[] = [tenantFilter(supportTickets.tenantId, tenantId)];
 
     if (organizationId) {
       conditions.push(eq(supportTickets.organizationId, parseInt(organizationId)));
     }
 
     if (status) {
-      conditions.push(eq(supportTickets.status, status as any));
+      conditions.push(eq(supportTickets.status, status as 'open' | 'in_progress' | 'waiting_customer' | 'resolved' | 'closed'));
     }
 
     if (priority) {
-      conditions.push(eq(supportTickets.priority, priority as any));
+      conditions.push(eq(supportTickets.priority, priority as 'low' | 'medium' | 'high' | 'urgent'));
     }
 
     if (category) {
-      conditions.push(eq(supportTickets.category, category as any));
+      conditions.push(eq(supportTickets.category, category as 'technical' | 'billing' | 'feature_request' | 'bug' | 'other'));
     }
 
     if (assignedTo) {
@@ -105,15 +104,13 @@ export async function GET(request: NextRequest) {
         or(
           like(supportTickets.subject, `%${search}%`),
           like(supportTickets.description, `%${search}%`)
-        )
+        )!
       );
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as any;
-    }
-
-    const tickets = await query.orderBy(desc(supportTickets.createdAt));
+    const tickets = await db.select().from(supportTickets)
+      .where(and(...conditions))
+      .orderBy(desc(supportTickets.createdAt));
 
     // Parse JSON fields
     const parsed = tickets.map((ticket) => ({

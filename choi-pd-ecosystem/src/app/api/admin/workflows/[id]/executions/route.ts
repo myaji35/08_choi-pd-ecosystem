@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { workflowExecutions } from '@/lib/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, type SQL } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter } from '@/lib/tenant/query-helpers';
 
@@ -20,13 +20,13 @@ export async function GET(
     const limit = parseInt(searchParams.get('limit') || '50');
     const status = searchParams.get('status');
 
-    const conditions: any[] = [
+    const conditions: SQL[] = [
       eq(workflowExecutions.workflowId, workflowId),
       tenantFilter(workflowExecutions.tenantId, tenantId)
     ];
 
     if (status) {
-      conditions.push(eq(workflowExecutions.status, status as any));
+      conditions.push(eq(workflowExecutions.status, status as 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'));
     }
 
     const executions = await db

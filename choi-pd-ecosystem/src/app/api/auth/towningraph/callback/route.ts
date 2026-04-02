@@ -22,6 +22,8 @@ export async function GET(request: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const schema = await import('@/lib/db/schema');
       if ('members' in schema) {
+        // TODO: ISS-012 — Replace with direct import once members table is added in Task 5
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const members = (schema as any).members;
         const results = await db
           .select()

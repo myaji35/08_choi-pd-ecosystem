@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { integrations } from '@/lib/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, type SQL } from 'drizzle-orm';
 import { addIntegration, updateIntegration } from '@/lib/workflows';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter } from '@/lib/tenant/query-helpers';
@@ -18,10 +18,10 @@ export async function GET(request: NextRequest) {
     const provider = searchParams.get('provider');
     const isEnabled = searchParams.get('isEnabled');
 
-    const conditions: any[] = [tenantFilter(integrations.tenantId, tenantId)];
+    const conditions: SQL[] = [tenantFilter(integrations.tenantId, tenantId)];
 
     if (type) {
-      conditions.push(eq(integrations.type, type as any));
+      conditions.push(eq(integrations.type, type as 'messaging' | 'crm' | 'storage' | 'analytics' | 'automation'));
     }
 
     if (provider) {

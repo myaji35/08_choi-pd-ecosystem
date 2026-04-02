@@ -8,7 +8,7 @@ import { getAutomationTemplates, createWorkflowFromTemplate } from '@/lib/workfl
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const category = searchParams.get('category') || undefined;
+    const category = (searchParams.get('category') || undefined) as 'onboarding' | 'engagement' | 'support' | 'marketing' | 'sales' | undefined;
     const difficulty = searchParams.get('difficulty') as 'beginner' | 'intermediate' | 'advanced' | undefined;
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
 

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     // 카테고리 필터 + 테넌트 필터
     const results = category && category !== 'all'
-      ? await db.select().from(distributorResources).where(and(tenantFilter(distributorResources.tenantId, tenantId), eq(distributorResources.category, category as any))).all()
+      ? await db.select().from(distributorResources).where(and(tenantFilter(distributorResources.tenantId, tenantId), eq(distributorResources.category, category as 'marketing' | 'training' | 'contract' | 'promotional' | 'technical'))).all()
       : await db.select().from(distributorResources).where(tenantFilter(distributorResources.tenantId, tenantId)).all();
 
     // 검색어 필터 (클라이언트 사이드에서 처리하거나 여기서 처리 가능)

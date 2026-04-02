@@ -29,7 +29,7 @@ import {
   type NewImageAutoTag,
   type NewUserActivityPattern
 } from './db/schema';
-import { eq, desc, and, gte, sql } from 'drizzle-orm';
+import { eq, desc, and, gte, sql, type SQL } from 'drizzle-orm';
 
 // ============================================================
 // Configuration
@@ -539,13 +539,11 @@ export async function findSimilarContent(params: {
     const queryEmbedding = await callEmbeddingModel(queryText);
 
     // Get all embeddings of the specified type
-    let query = db.select().from(contentEmbeddings);
+    const query = db.select().from(contentEmbeddings);
 
-    if (contentType) {
-      query = query.where(eq(contentEmbeddings.contentType, contentType)) as any;
-    }
-
-    const allEmbeddings = await query;
+    const allEmbeddings = contentType
+      ? await query.where(eq(contentEmbeddings.contentType, contentType))
+      : await query;
 
     // Calculate cosine similarity
     const similarities = allEmbeddings.map(item => ({

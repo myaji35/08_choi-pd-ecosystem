@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (visibility) {
-      conditions.push(eq(videoPlaylists.visibility, visibility as any));
+      conditions.push(eq(videoPlaylists.visibility, visibility as 'public' | 'unlisted' | 'private'));
     }
 
     let query = db.select().from(videoPlaylists).where(and(...conditions));

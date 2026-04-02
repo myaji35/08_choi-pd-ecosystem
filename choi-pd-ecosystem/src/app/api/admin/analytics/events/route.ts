@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { analyticsEvents } from '@/lib/db/schema';
-import { eq, and, gte, lte, desc, count } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, count, type SQL } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
@@ -92,8 +92,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '100');
 
     const tenantId = getTenantIdFromRequest(request);
-    let query = db.select().from(analyticsEvents);
-    const conditions: any[] = [tenantFilter(analyticsEvents.tenantId, tenantId)];
+    const conditions: SQL[] = [tenantFilter(analyticsEvents.tenantId, tenantId)];
 
     if (userId) {
       conditions.push(eq(analyticsEvents.userId, userId));
@@ -115,11 +114,8 @@ export async function GET(request: NextRequest) {
       conditions.push(lte(analyticsEvents.createdAt, new Date(endDate)));
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions)) as any;
-    }
-
-    const events = await query
+    const events = await db.select().from(analyticsEvents)
+      .where(and(...conditions))
       .orderBy(desc(analyticsEvents.createdAt))
       .limit(limit);
 

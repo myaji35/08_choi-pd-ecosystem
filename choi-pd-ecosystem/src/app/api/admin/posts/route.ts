@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const conditions = [tenantFilter(posts.tenantId, tenantId)];
 
     if (category) {
-      conditions.push(eq(posts.category, category as any));
+      conditions.push(eq(posts.category, category as 'notice' | 'review' | 'media'));
     }
 
     if (published !== null && published !== undefined) {

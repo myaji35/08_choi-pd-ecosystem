@@ -8,7 +8,7 @@ export function validateFileType(file: File): { valid: boolean; error?: string }
   const fileName = file.name.toLowerCase();
 
   // MIME 타입 검증
-  if (!HERO_IMAGE_CONSTANTS.ALLOWED_FILE_TYPES.includes(fileType as any)) {
+  if (!(HERO_IMAGE_CONSTANTS.ALLOWED_FILE_TYPES as readonly string[]).includes(fileType)) {
     return { valid: false, error: HERO_IMAGE_ERRORS.INVALID_FILE_TYPE };
   }
 
@@ -162,7 +162,7 @@ export function validateHeroImageServer(
   const errors: string[] = [];
 
   // 파일 타입 검증
-  if (!HERO_IMAGE_CONSTANTS.ALLOWED_FILE_TYPES.includes(file.type as any)) {
+  if (!(HERO_IMAGE_CONSTANTS.ALLOWED_FILE_TYPES as readonly string[]).includes(file.type)) {
     errors.push(HERO_IMAGE_ERRORS.INVALID_FILE_TYPE);
   }
 

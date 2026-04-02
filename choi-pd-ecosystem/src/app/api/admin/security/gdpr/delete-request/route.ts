@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { dataDeletionRequests, distributors, leads, inquiries, type NewDataDeletionRequest } from '@/lib/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, type SQL } from 'drizzle-orm';
 import { logAudit } from '@/lib/security';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
@@ -20,17 +20,15 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status') as 'pending' | 'approved' | 'rejected' | 'completed' | null;
 
-    const conditions: any[] = [tenantFilter(dataDeletionRequests.tenantId, tenantId)];
+    const conditions: SQL[] = [tenantFilter(dataDeletionRequests.tenantId, tenantId)];
     if (status) {
       conditions.push(eq(dataDeletionRequests.status, status));
     }
 
-    let query = db.select().from(dataDeletionRequests).where(and(...conditions)) as any;
-
-    const requests = await query;
+    const requests = await db.select().from(dataDeletionRequests).where(and(...conditions));
 
     // Parse metadata
-    const parsedRequests = requests.map((req: any) => ({
+    const parsedRequests = requests.map((req) => ({
       ...req,
       metadata: req.metadata ? JSON.parse(req.metadata) : null,
     }));

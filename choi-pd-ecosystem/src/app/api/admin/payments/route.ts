@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         .from(payments)
         .where(and(
           tenantFilter(payments.tenantId, tenantId),
-          eq(payments.status, status as any)
+          eq(payments.status, status as 'pending' | 'completed' | 'failed' | 'refunded')
         ))
         .orderBy(desc(payments.createdAt))
         .all();

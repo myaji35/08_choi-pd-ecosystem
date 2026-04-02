@@ -13,21 +13,18 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit');
     const offset = searchParams.get('offset');
 
-    let query = db
+    const baseQuery = db
       .select()
       .from(leads)
       .where(tenantFilter(leads.tenantId, tenantId))
       .orderBy(desc(leads.subscribedAt));
 
     // Pagination
-    if (limit) {
-      query = query.limit(parseInt(limit)) as any;
-      if (offset) {
-        query = query.offset(parseInt(offset)) as any;
-      }
-    }
-
-    const results = await query.all();
+    const results = limit
+      ? offset
+        ? await baseQuery.limit(parseInt(limit)).offset(parseInt(offset)).all()
+        : await baseQuery.limit(parseInt(limit)).all()
+      : await baseQuery.all();
 
     // Get total count (테넌트 필터 적용)
     const totalCount = await db

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { videos } from '@/lib/db/schema';
-import { eq, desc, and, or, like } from 'drizzle-orm';
+import { eq, desc, and, or, like, type SQL } from 'drizzle-orm';
 import { createVideo } from '@/lib/video';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter } from '@/lib/tenant/query-helpers';
@@ -22,18 +22,18 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    const conditions: any[] = [tenantFilter(videos.tenantId, tenantId)];
+    const conditions: SQL[] = [tenantFilter(videos.tenantId, tenantId)];
 
     if (courseId) {
       conditions.push(eq(videos.courseId, parseInt(courseId)));
     }
 
     if (status) {
-      conditions.push(eq(videos.status, status as any));
+      conditions.push(eq(videos.status, status as 'uploading' | 'processing' | 'ready' | 'failed' | 'archived'));
     }
 
     if (visibility) {
-      conditions.push(eq(videos.visibility, visibility as any));
+      conditions.push(eq(videos.visibility, visibility as 'public' | 'unlisted' | 'private' | 'members_only'));
     }
 
     if (category) {
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
         or(
           like(videos.title, `%${search}%`),
           like(videos.description, `%${search}%`)
-        )
+        )!
       );
     }
 

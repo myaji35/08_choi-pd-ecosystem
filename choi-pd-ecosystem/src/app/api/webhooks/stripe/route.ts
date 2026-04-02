@@ -46,11 +46,13 @@ export async function POST(request: NextRequest) {
 
         if (tenantId && session.subscription) {
           // 구독 레코드 생성
+          type SaasPlan = 'free' | 'pro' | 'enterprise';
           await db.insert(saasSubscriptions).values({
             tenantId,
             stripeCustomerId: session.customer as string,
             stripeSubscriptionId: session.subscription as string,
-            plan: planId as any,
+            stripePriceId: session.metadata?.stripePriceId || '',
+            plan: planId as SaasPlan,
             status: 'active',
             billingPeriod: session.metadata?.billingPeriod === 'yearly' ? 'yearly' : 'monthly',
           });
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
           await db
             .update(tenants)
             .set({
-              plan: planId as any,
+              plan: planId as SaasPlan,
               stripeCustomerId: session.customer as string,
               stripeSubscriptionId: session.subscription as string,
             })

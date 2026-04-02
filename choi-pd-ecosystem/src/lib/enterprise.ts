@@ -27,7 +27,7 @@ import {
   type NewSupportTicket,
   type NewSlaMetric,
 } from './db/schema';
-import { eq, and, gte, desc, sql } from 'drizzle-orm';
+import { eq, and, gte, desc, sql, type SQL } from 'drizzle-orm';
 import { logAudit } from './security';
 
 // ============================================
@@ -117,13 +117,17 @@ export async function getOrganizations(filters?: {
   status?: 'trial' | 'active' | 'suspended' | 'cancelled';
   plan?: 'basic' | 'premium' | 'enterprise' | 'custom';
 }) {
-  let query = db.select().from(organizations);
+  const conditions: SQL[] = [];
 
   if (filters?.status) {
-    query = query.where(eq(organizations.subscriptionStatus, filters.status)) as any;
+    conditions.push(eq(organizations.subscriptionStatus, filters.status));
   }
 
-  return await query.orderBy(desc(organizations.createdAt));
+  const query = db.select().from(organizations);
+
+  return conditions.length > 0
+    ? await query.where(and(...conditions)).orderBy(desc(organizations.createdAt))
+    : await query.orderBy(desc(organizations.createdAt));
 }
 
 /**
@@ -260,17 +264,21 @@ export async function getTeams(organizationId: number) {
     );
 
   // 계층 구조 구성
-  const teamMap = new Map(allTeams.map(team => [team.id, { ...team, children: [] as any[] }]));
-  const rootTeams: any[] = [];
+  type TeamWithChildren = typeof allTeams[number] & { children: TeamWithChildren[] };
+  const teamMap = new Map(allTeams.map(team => [team.id, { ...team, children: [] as TeamWithChildren[] }]));
+  const rootTeams: TeamWithChildren[] = [];
 
   allTeams.forEach(team => {
+    const teamNode = teamMap.get(team.id);
+    if (!teamNode) return;
+
     if (team.parentTeamId) {
       const parent = teamMap.get(team.parentTeamId);
       if (parent) {
-        parent.children.push(teamMap.get(team.id));
+        parent.children.push(teamNode);
       }
     } else {
-      rootTeams.push(teamMap.get(team.id));
+      rootTeams.push(teamNode);
     }
   });
 
@@ -336,6 +344,8 @@ export async function getOrganizationMembers(organizationId: number, filters?: {
 // ============================================
 // CSV Bulk Import
 // ============================================
+
+type OrgMemberRole = 'owner' | 'admin' | 'manager' | 'member' | 'guest';
 
 interface CsvRow {
   email: string;
@@ -405,7 +415,7 @@ export async function bulkImportUsers(
           userId: `temp-${Date.now()}-${i}`, // TODO: Clerk 연동 시 실제 userId
           userEmail: row.email,
           userName: row.name || null,
-          role: (row.role as any) || 'member',
+          role: (row.role as OrgMemberRole) || 'member',
           teamId: row.teamId || null,
           jobTitle: row.jobTitle || null,
           department: row.department || null,
@@ -478,14 +488,14 @@ export async function createSupportTicket(data: Omit<NewSupportTicket, 'createdA
  * 조직의 티켓 목록 조회
  */
 export async function getSupportTickets(organizationId: number, filters?: {
-  status?: string;
-  priority?: string;
-  category?: string;
+  status?: 'open' | 'in_progress' | 'waiting_customer' | 'resolved' | 'closed';
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  category?: 'technical' | 'billing' | 'feature_request' | 'bug' | 'other';
 }) {
-  const conditions = [eq(supportTickets.organizationId, organizationId)];
+  const conditions: SQL[] = [eq(supportTickets.organizationId, organizationId)];
 
   if (filters?.status) {
-    conditions.push(eq(supportTickets.status, filters.status as any));
+    conditions.push(eq(supportTickets.status, filters.status));
   }
 
   return await db

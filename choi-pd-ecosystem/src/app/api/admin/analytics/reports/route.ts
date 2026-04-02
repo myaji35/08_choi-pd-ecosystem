@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { customReports } from '@/lib/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, type SQL } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter, withTenantId } from '@/lib/tenant/query-helpers';
 
@@ -71,23 +71,19 @@ export async function GET(request: NextRequest) {
     const isPublic = searchParams.get('isPublic') || undefined;
 
     const tenantId = getTenantIdFromRequest(request);
-    let query = db.select().from(customReports);
-    const conditions: any[] = [tenantFilter(customReports.tenantId, tenantId)];
+    const conditions: SQL[] = [tenantFilter(customReports.tenantId, tenantId)];
 
     if (reportType) {
-      conditions.push(eq(customReports.reportType, reportType as any));
+      conditions.push(eq(customReports.reportType, reportType as 'table' | 'chart' | 'dashboard' | 'export'));
     }
 
     if (isPublic !== undefined) {
       conditions.push(eq(customReports.isPublic, isPublic === 'true'));
     }
 
-    if (conditions.length > 0) {
-      const { and } = await import('drizzle-orm');
-      query = query.where(and(...conditions)) as any;
-    }
-
-    const reports = await query.orderBy(desc(customReports.createdAt));
+    const reports = await db.select().from(customReports)
+      .where(and(...conditions))
+      .orderBy(desc(customReports.createdAt));
 
     // Parse JSON fields
     const parsedReports = reports.map((report) => ({
