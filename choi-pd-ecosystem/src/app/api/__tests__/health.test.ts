@@ -14,6 +14,15 @@ jest.mock('@/lib/db', () => ({
   },
 }));
 
+// Mock monitoring import
+jest.mock('@/lib/monitoring', () => ({
+  getMetrics: jest.fn().mockReturnValue({
+    uptime: 120,
+    requests: { total: 42, successful: 40, failed: 2, avgResponseTime: 15.5, byPath: {} },
+    database: { connections: 1, queries: 10, avgQueryTime: 2.3 },
+  }),
+}));
+
 import { GET, HEAD } from '../health/route';
 
 function createRequest(queryString = ''): Request {
@@ -59,6 +68,15 @@ describe('Health Check API', () => {
 
       expect(res.headers.get('Cache-Control')).toBe('no-cache, no-store, must-revalidate');
       expect(res.headers.get('X-Health-Check')).toBe('pass');
+    });
+
+    it('should include monitoring metrics in full check', async () => {
+      const res = await GET(createRequest());
+      const data = await res.json();
+
+      expect(data.metrics).toBeDefined();
+      expect(data.metrics.requests.total).toBe(42);
+      expect(data.metrics.database.queries).toBe(10);
     });
 
     it('should report degraded when DB is disconnected', async () => {

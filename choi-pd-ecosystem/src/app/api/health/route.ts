@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getMetrics } from '@/lib/monitoring';
 
 /**
  * Health check endpoint for monitoring and deployment verification
@@ -30,6 +31,7 @@ interface HealthStatus {
     heapUsedPercent: string;
     external: string;
   };
+  metrics?: ReturnType<typeof getMetrics>;
 }
 
 const formatMemory = (bytes: number) => `${Math.round(bytes / 1024 / 1024)}MB`;
@@ -124,6 +126,7 @@ export async function GET(request: Request) {
         heapUsedPercent: `${Math.round((usage.heapUsed / usage.heapTotal) * 100)}%`,
         external: formatMemory(usage.external),
       };
+      health.metrics = getMetrics();
     }
 
     // Determine overall status
