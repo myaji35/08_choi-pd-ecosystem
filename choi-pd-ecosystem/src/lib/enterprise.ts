@@ -291,6 +291,7 @@ export async function getTeams(organizationId: number) {
 export async function addTeamMember(
   organizationId: number,
   userId: string,
+  userEmail: string,
   teamId: number,
   role: 'owner' | 'admin' | 'manager' | 'member' | 'guest',
   invitedBy: string
@@ -298,7 +299,7 @@ export async function addTeamMember(
   const memberData: NewOrganizationMember = {
     organizationId,
     userId,
-    userEmail: '', // TODO: Clerk에서 가져오기
+    userEmail,
     role,
     teamId,
     invitedBy,
@@ -412,7 +413,7 @@ export async function bulkImportUsers(
         // 멤버 추가
         await db.insert(organizationMembers).values({
           organizationId,
-          userId: `temp-${Date.now()}-${i}`, // TODO: Clerk 연동 시 실제 userId
+          userId: `pending:${row.email}`, // Clerk 연동 시 초대 수락 후 실제 userId로 업데이트됨
           userEmail: row.email,
           userName: row.name || null,
           role: (row.role as OrgMemberRole) || 'member',
@@ -572,7 +573,16 @@ export async function recordSlaMetric(data: Omit<NewSlaMetric, 'createdAt'>) {
       },
     });
 
-    // TODO: 알림 발송 (이메일, Slack 등)
+    // SLA 위반 알림 훅 포인트
+    console.warn('[SLA_VIOLATION]', JSON.stringify({
+      organizationId: data.organizationId,
+      metricType: data.metricType,
+      target: data.targetValue,
+      actual: data.actualValue,
+      metricId: metric.id,
+      timestamp: new Date().toISOString(),
+    }));
+    // TODO: 프로덕션에서 이메일/Slack 알림 서비스 연동
   }
 
   return metric;
