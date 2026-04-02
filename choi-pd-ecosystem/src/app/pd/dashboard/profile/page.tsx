@@ -16,7 +16,7 @@ export default async function AdminProfilePage() {
     name: profileSettings.find(s => s.key === 'profile_name')?.value || '최범희',
     title: profileSettings.find(s => s.key === 'profile_title')?.value || '스마트폰 창업 전략가',
     email: profileSettings.find(s => s.key === 'profile_email')?.value || 'contact@choipd.com',
-    phone: profileSettings.find(s => s.key === 'profile_phone')?.value || '010-XXXX-XXXX',
+    phone: profileSettings.find(s => s.key === 'profile_phone')?.value || '',
     bio: profileSettings.find(s => s.key === 'profile_bio')?.value || '',
   };
 

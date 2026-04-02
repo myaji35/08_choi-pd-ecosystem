@@ -649,8 +649,7 @@ async function callAIModel(params: {
 
   // This is a placeholder - actual implementation requires API calls
   // For now, return a mock response
-  console.log(`Calling AI model: ${model}`);
-  console.log(`Prompt: ${prompt.substring(0, 100)}...`);
+  console.debug('[AI] Calling AI model', { model, promptPreview: prompt.substring(0, 100) });
 
   // Mock response for development
   return `이것은 ${model}의 모의 응답입니다. 실제 구현 시 OpenAI 또는 Anthropic API를 호출해야 합니다.`;
@@ -661,7 +660,7 @@ async function callAIModel(params: {
  */
 async function callEmbeddingModel(text: string): Promise<number[]> {
   // This is a placeholder - actual implementation requires OpenAI API call
-  console.log(`Generating embedding for text: ${text.substring(0, 50)}...`);
+  console.debug('[AI] Generating embedding', { textPreview: text.substring(0, 50) });
 
   // Mock embedding (768-dimensional vector)
   return Array(768).fill(0).map(() => Math.random());

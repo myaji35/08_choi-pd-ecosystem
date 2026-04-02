@@ -5,6 +5,7 @@ import { courses } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { CourseCard } from '@/components/education/CourseCard';
 import { CourseFilter } from '@/components/education/CourseFilter';
+import { getContactInfo } from '@/lib/db/queries/contactInfo';
 import { GraduationCap, Users, Building2 } from 'lucide-react';
 
 interface EducationPageProps {
@@ -19,6 +20,8 @@ export default async function EducationPage({ searchParams }: EducationPageProps
   if (type) {
     conditions.push(eq(courses.type, type));
   }
+
+  const contactInfo = await getContactInfo();
 
   const allCourses = await db.query.courses.findMany({
     where: conditions.length > 1 ? and(...conditions) : conditions[0],
@@ -152,14 +155,24 @@ export default async function EducationPage({ searchParams }: EducationPageProps
                 <svg className="mr-2 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 이메일로 문의하기
               </a>
-              <a
-                href="tel:010-XXXX-XXXX"
-                className="inline-flex items-center justify-center rounded-lg border-2 px-6 py-3 text-sm font-semibold transition-all duration-200 hover:bg-gray-50 hover:-translate-y-0.5"
-                style={{ borderColor: '#16325C', color: '#16325C' }}
-              >
-                <svg className="mr-2 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                전화로 문의하기
-              </a>
+              {contactInfo.phone ? (
+                <a
+                  href={`tel:${contactInfo.phone}`}
+                  className="inline-flex items-center justify-center rounded-lg border-2 px-6 py-3 text-sm font-semibold transition-all duration-200 hover:bg-gray-50 hover:-translate-y-0.5"
+                  style={{ borderColor: '#16325C', color: '#16325C' }}
+                >
+                  <svg className="mr-2 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  전화로 문의하기
+                </a>
+              ) : (
+                <span
+                  className="inline-flex items-center justify-center rounded-lg border-2 px-6 py-3 text-sm font-semibold opacity-50 cursor-not-allowed"
+                  style={{ borderColor: '#16325C', color: '#16325C' }}
+                >
+                  <svg className="mr-2 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  전화번호 미등록
+                </span>
+              )}
             </div>
           </div>
         </div>

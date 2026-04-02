@@ -171,7 +171,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               value={formData.phone}
               onChange={(e) => handleChange('phone', e.target.value)}
               onBlur={(e) => validateField('phone', e.target.value)}
-              placeholder="010-XXXX-XXXX"
+              placeholder="010-0000-0000"
               className={inputClass('phone')}
             />
             {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone}</p>}

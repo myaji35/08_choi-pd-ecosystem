@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Mail, Phone, Facebook, Instagram, Youtube, Linkedin, Globe } from 'lucide-react';
 import { getSocialLinks } from '@/lib/db/queries/socialLinks';
+import { getContactInfo } from '@/lib/db/queries/contactInfo';
 import type { SocialLinks } from '@/lib/seo';
 
 function buildSocialIcons(links: SocialLinks) {
@@ -27,6 +28,7 @@ function buildSocialIcons(links: SocialLinks) {
 
 export async function Footer() {
   const socialLinks = await getSocialLinks();
+  const contactInfo = await getContactInfo();
   const socialIcons = buildSocialIcons(socialLinks);
   const currentYear = new Date().getFullYear();
 
@@ -68,7 +70,7 @@ export async function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>010-XXXX-XXXX</span>
+                <span>{contactInfo.phone || '전화번호 미등록'}</span>
               </div>
             </div>
           </div>
