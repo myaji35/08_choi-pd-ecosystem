@@ -133,3 +133,109 @@ export async function generateCopy(prompt: string, platform?: string): Promise<s
   const data = await res.json();
   return (data.copy as string) ?? '';
 }
+
+// ── 카드뉴스 생성 ──
+
+export interface CardNewsOptions {
+  topic: string;
+  templateType?: string;     // 'BUSINESS' | 'EDUCATION' | 'MARKETING' | 'GENERAL'
+  brandColor?: string;       // HEX 색상 코드 (예: '#00A1E0')
+  slideCount?: number;       // 기본 5
+  autoPublish?: boolean;     // true이면 생성 후 자동 발행
+  publishTo?: string[];      // 발행 대상 플랫폼 ['FACEBOOK', 'INSTAGRAM', ...]
+}
+
+export interface CardNewsResult {
+  success: boolean;
+  cardNewsId?: string;
+  slides?: Array<{
+    index: number;
+    imageUrl: string;
+    text: string;
+  }>;
+  publishedTo?: string[];
+  mockMode?: boolean;
+  error?: string;
+}
+
+/**
+ * AI 카드뉴스 자동 생성
+ * SocialDoctors의 카드뉴스 생성 API를 호출합니다.
+ */
+export async function createCardNews(options: CardNewsOptions): Promise<CardNewsResult> {
+  if (!SOCIAL_PULSE_API_KEY) {
+    console.warn('[SocialPulse] API 키가 설정되지 않았습니다. mockMode로 동작합니다.');
+    return {
+      success: true,
+      mockMode: true,
+      cardNewsId: `mock-cardnews-${Date.now()}`,
+      slides: Array.from({ length: options.slideCount ?? 5 }, (_, i) => ({
+        index: i + 1,
+        imageUrl: `https://placeholder.co/1080x1080?text=Slide+${i + 1}`,
+        text: `${options.topic} - 슬라이드 ${i + 1}`,
+      })),
+    };
+  }
+
+  const res = await fetch(`${SOCIAL_PULSE_BASE_URL}/api/card-news`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      clientSlug: CLIENT_SLUG,
+      topic: options.topic,
+      templateType: options.templateType,
+      brandColor: options.brandColor,
+      slideCount: options.slideCount,
+      autoPublish: options.autoPublish,
+      publishTo: options.publishTo,
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    return { success: false, error: data.error ?? `HTTP ${res.status}` };
+  }
+
+  return data as CardNewsResult;
+}
+
+// ── 발행 상태 조회 ──
+
+export interface PublishStatusItem {
+  postId: string;
+  platform: string;
+  status: 'PENDING' | 'PUBLISHED' | 'FAILED' | 'SCHEDULED';
+  publishedAt?: string;
+  scheduledAt?: string;
+  externalUrl?: string;
+  error?: string;
+}
+
+export interface PublishStatusResponse {
+  posts: PublishStatusItem[];
+  total: number;
+}
+
+/**
+ * 발행 상태 조회
+ * postId를 지정하면 해당 포스트만, 생략하면 최근 발행 목록을 반환합니다.
+ */
+export async function getPublishStatus(postId?: string): Promise<PublishStatusResponse> {
+  if (!SOCIAL_PULSE_API_KEY) {
+    return { posts: [], total: 0 };
+  }
+
+  const params = new URLSearchParams({ clientSlug: CLIENT_SLUG });
+  if (postId) params.set('postId', postId);
+
+  const res = await fetch(`${SOCIAL_PULSE_BASE_URL}/api/social-pulse/publish/status?${params}`, {
+    headers: getHeaders(),
+    cache: 'no-store',
+  });
+
+  if (!res.ok) return { posts: [], total: 0 };
+
+  const data = await res.json();
+  return data as PublishStatusResponse;
+}
