@@ -13,7 +13,10 @@ import { tenants } from './tenant';
 export const members = sqliteTable('members', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
-  towningraphUserId: text('towningraph_user_id').unique(), // 외부 연동 키
+  towningraphUserId: text('towningraph_user_id').unique(), // 외부 연동 키 (Townin user ID)
+  towninEmail: text('townin_email'),                        // Townin 이메일
+  towninName: text('townin_name'),                          // Townin 표시명
+  towninRole: text('townin_role'),                          // Townin 역할 (User/SecurityGuard/Merchant/...)
   slug: text('slug').unique().notNull(), // 서브도메인 slug
   name: text('name').notNull(),
   email: text('email').notNull(),
@@ -32,10 +35,21 @@ export const members = sqliteTable('members', {
   rejectionReason: text('rejection_reason'), // 거부 사유
   isFeatured: integer('is_featured').default(0), // 쇼케이스 노출 여부
   featuredOrder: integer('featured_order').default(0), // 쇼케이스 노출 순서
+  // ── IMPD 검증 프로세스 (의지 필터) ──────────────────────
+  impdStatus: text('impd_status', {
+    enum: ['none', 'in_progress', 'completed', 'rejected']
+  }).notNull().default('none'),                             // IMPD 진행 상태
+  impdStartedAt: integer('impd_started_at', { mode: 'timestamp' }), // 시작일 (7일 데드라인 기준)
+  impdCompletedAt: integer('impd_completed_at', { mode: 'timestamp' }), // 완료일
+  impdVerificationId: text('impd_verification_id').unique(), // 검증 세션 ID
+  impdStepsData: text('impd_steps_data').default('{}'),    // JSON: 각 단계 제출 데이터
+  // ────────────────────────────────────────────────────────
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
 }, (table) => [
   index('idx_members_tenant').on(table.tenantId),
+  index('idx_members_impd_status').on(table.impdStatus),
+  index('idx_members_townin_user').on(table.towningraphUserId),
 ]);
 
 // Member Portfolio Items Table (포트폴리오)

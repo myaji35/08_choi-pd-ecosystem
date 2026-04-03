@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { exchangeTowninGraphCode, getTowninGraphUserInfo } from '@/lib/auth/oauth';
 import { createSession } from '@/lib/auth/session';
 import { db } from '@/lib/db';
+import { members } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code');
@@ -14,37 +16,39 @@ export async function GET(request: NextRequest) {
     const tokenData = await exchangeTowninGraphCode(code);
     const userInfo = await getTowninGraphUserInfo(tokenData.access_token);
 
-    // TODO: members 테이블은 Task 5에서 추가 예정
-    // 현재는 try-catch로 감싸서 테이블 미존재 시에도 크래시 방지
-    let existing: { id: number; email: string; name: string; slug: string; status: string } | undefined;
+    // Townin 사용자 정보: id, email, name, role
+    const towninUserId = String(userInfo.id);
+    const towninEmail = userInfo.email || '';
+    const towninName = userInfo.name || userInfo.email || '';
+    const towninRole = userInfo.role || 'User';
 
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const schema = await import('@/lib/db/schema');
-      if ('members' in schema) {
-        // TODO: ISS-012 — Replace with direct import once members table is added in Task 5
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const members = (schema as any).members;
-        const results = await db
-          .select()
-          .from(members)
-          .where(eq((members as Record<string, import('drizzle-orm').Column>).towningraphUserId, userInfo.id));
-        existing = results[0] as typeof existing;
-      }
-    } catch {
-      // members 테이블이 아직 존재하지 않음 - Task 5에서 추가 예정
-      console.warn('members 테이블이 아직 존재하지 않습니다. Task 5에서 추가됩니다.');
-    }
+    // 기존 회원 조회 (towningraphUserId 기준)
+    const existing = await db
+      .select()
+      .from(members)
+      .where(eq(members.towningraphUserId, towninUserId))
+      .limit(1)
+      .then(rows => rows[0]);
 
     if (existing) {
-      // 기존 회원 -> 세션 생성
+      // 기존 회원 → Townin 정보 최신화 (upsert)
+      await db
+        .update(members)
+        .set({
+          towninEmail,
+          towninName,
+          towninRole,
+          updatedAt: new Date(),
+        })
+        .where(eq(members.id, existing.id));
+
       await createSession({
         userId: String(existing.id),
         email: existing.email,
         name: existing.name,
         role: 'member',
-        slug: existing.slug,
-        status: existing.status,
+        slug: existing.slug ?? undefined,
+        status: existing.status ?? undefined,
         provider: 'towningraph',
       });
 
@@ -54,18 +58,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard/pending', request.url));
     }
 
-    // 신규 회원 -> 승인 신청 페이지로
-    // 임시 세션 생성 (status: new)
+    // 신규 회원 → members 테이블에 Townin 정보로 upsert 생성
+    // slug: Townin 이메일 앞부분 + nanoid 6자리 (충돌 방지)
+    const baseSlug = towninEmail.split('@')[0].replace(/[^a-z0-9]/gi, '').toLowerCase();
+    const slug = `${baseSlug}-${nanoid(6)}`;
+
+    const [newMember] = await db
+      .insert(members)
+      .values({
+        towningraphUserId: towninUserId,
+        towninEmail,
+        towninName,
+        towninRole,
+        slug,
+        name: towninName,
+        email: towninEmail,
+        status: 'pending_approval',
+        impdStatus: 'none',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    // 신규 회원 임시 세션 (status: new → IMPD 시작 유도)
     await createSession({
-      userId: userInfo.id,
-      email: userInfo.email,
-      name: userInfo.name || userInfo.email,
+      userId: String(newMember.id),
+      email: newMember.email,
+      name: newMember.name,
       role: 'member',
+      slug: newMember.slug,
       status: 'new',
       provider: 'towningraph',
     });
 
-    return NextResponse.redirect(new URL('/dashboard/apply', request.url));
+    // IMPD 검증 페이지로 안내 (의지 있는 사람 필터)
+    return NextResponse.redirect(new URL('/impd', request.url));
   } catch (error) {
     console.error('TowninGraph OAuth error:', error);
     return NextResponse.redirect(new URL('/login?error=oauth_failed', request.url));
