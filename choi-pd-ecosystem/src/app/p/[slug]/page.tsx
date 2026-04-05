@@ -133,7 +133,12 @@ export default async function BrandPage({ params }: BrandPageProps) {
   const tenantSettings = tenant.settings ? JSON.parse(tenant.settings) : {};
   const tenantMetadata = tenant.metadata ? JSON.parse(tenant.metadata) : {};
   const bio = tenantSettings.bio || tenantMetadata.bio || '';
+  const ownerName = tenantSettings.ownerName || '';
+  const contactEmail = tenantSettings.email || '';
+  const contactPhone = tenantSettings.phone || '';
+  const serviceDescription = tenantSettings.serviceDescription || '';
   const externalLinks: Array<{ label: string; url: string }> = tenantSettings.externalLinks || [];
+  const youtubeUrl = tenantSettings.youtubeUrl || '';
 
   // 해당 테넌트의 공개 교육 과정
   const tenantCourses = await db
@@ -231,56 +236,79 @@ export default async function BrandPage({ params }: BrandPageProps) {
       {/* ---- 메인 콘텐츠 ---- */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 -mt-2">
 
-        {/* ---- 서비스 소개 카드 (콘텐츠가 없을 때) ---- */}
-        {tenantSns.length === 0 && externalLinks.length === 0 && tenantCourses.length === 0 && (
-          <section className="mb-8">
-            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-              <div
-                className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
-                style={{ background: `${primaryColor}15` }}
-              >
-                <svg className="w-8 h-8" style={{ color: primaryColor }} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                  <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                  <polyline points="2 17 12 22 22 17" />
-                  <polyline points="2 12 12 17 22 12" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold text-[#16325C] mb-2">
-                {tenant.name}
-              </h2>
-              <p className="text-sm text-gray-500 mb-6">
-                {professionInfo.label} · 콘텐츠를 준비하고 있습니다
-              </p>
-              <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
-                <div className="text-center">
-                  <div className="w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center bg-gray-50">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                    </svg>
+        {/* ---- 프로필 상세 카드 (대표자, 서비스 소개, 연락처) ---- */}
+        {(ownerName || serviceDescription || contactEmail || contactPhone) && (
+          <section className="mb-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              {/* 대표자 정보 */}
+              {ownerName && (
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: primaryColor }}>
+                    {ownerName.charAt(0)}
                   </div>
-                  <p className="text-xs text-gray-400">교육 과정</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center bg-gray-50">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                    </svg>
+                  <div>
+                    <p className="text-sm font-semibold text-[#16325C]">{ownerName}</p>
+                    <p className="text-xs text-gray-500">{professionInfo.label}</p>
                   </div>
-                  <p className="text-xs text-gray-400">링크</p>
                 </div>
-                <div className="text-center">
-                  <div className="w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center bg-gray-50">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+              )}
+
+              {/* 서비스 소개 */}
+              {serviceDescription && (
+                <div className="mb-4">
+                  <h3 className="text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
                     </svg>
-                  </div>
-                  <p className="text-xs text-gray-400">SNS</p>
+                    서비스 소개
+                  </h3>
+                  <p className="text-sm text-[#16325C] leading-relaxed">{serviceDescription}</p>
                 </div>
-              </div>
+              )}
+
+              {/* 연락처 */}
+              {(contactEmail || contactPhone) && (
+                <div className="flex flex-wrap gap-3 pt-3 border-t border-gray-100">
+                  {contactEmail && (
+                    <a
+                      href={`mailto:${contactEmail}`}
+                      className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-[#16325C] transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                      </svg>
+                      {contactEmail}
+                    </a>
+                  )}
+                  {contactPhone && (
+                    <a
+                      href={`tel:${contactPhone}`}
+                      className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-[#16325C] transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                      </svg>
+                      {contactPhone}
+                    </a>
+                  )}
+                  {youtubeUrl && (
+                    <a
+                      href={youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs text-red-600 hover:text-red-700 transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.13C5.12 19.56 12 19.56 12 19.56s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
+                        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" />
+                      </svg>
+                      YouTube
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </section>
         )}
