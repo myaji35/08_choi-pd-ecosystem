@@ -2,12 +2,11 @@ export const dynamic = 'force-dynamic';
 
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
-import { tenants, courses, snsAccounts, inquiries } from '@/lib/db/schema';
+import { tenants, courses, snsAccounts, tenantMembers } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import Link from 'next/link';
-import { StructuredData } from '@/components/seo/StructuredData';
-import { BrandPageContactForm } from './contact-form';
 
 // ---- 직업군 한글 라벨 + 배지 색상 ----
 
@@ -105,6 +104,29 @@ export default async function BrandPage({ params }: BrandPageProps) {
   const primaryColor = tenant.primaryColor || '#3b82f6';
   const secondaryColor = tenant.secondaryColor || '#8b5cf6';
   const professionInfo = PROFESSION_LABELS[tenant.profession] || { label: tenant.profession, color: '#16325C' };
+
+  // 소유자 여부 판별 (쿠키 기반)
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get('impd_session')?.value;
+  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+  let isOwner = false;
+
+  if (sessionCookie || isDevMode) {
+    // dev mode에서는 dev_user가 소유자인지 확인
+    const userId = isDevMode ? 'dev_user' : null;
+    if (userId) {
+      const membership = await db
+        .select()
+        .from(tenantMembers)
+        .where(and(
+          eq(tenantMembers.tenantId, tenant.id),
+          eq(tenantMembers.clerkUserId, userId),
+          eq(tenantMembers.role, 'owner')
+        ))
+        .get();
+      isOwner = !!membership;
+    }
+  }
 
   // 설정 JSON 파싱
   const tenantSettings = tenant.settings ? JSON.parse(tenant.settings) : {};
@@ -384,19 +406,93 @@ export default async function BrandPage({ params }: BrandPageProps) {
           </section>
         )}
 
-        {/* ---- 문의 폼 섹션 ---- */}
-        <section className="mb-8">
-          <h2 className="text-lg font-bold text-[#16325C] mb-3">
-            <svg className="w-5 h-5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-              <polyline points="22,6 12,13 2,6" />
-            </svg>
-            문의하기
-          </h2>
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <BrandPageContactForm tenantId={tenant.id} primaryColor={primaryColor} />
-          </div>
-        </section>
+        {/* ---- 소유자: 페이지 완성 가이드 / 방문자: 없음 ---- */}
+        {isOwner && (
+          <section className="mb-8">
+            <div className="bg-white rounded-lg border-2 border-dashed border-[#00A1E0]/30 p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-[#00A1E0]/10 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-[#00A1E0]" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                    <polyline points="2 17 12 22 22 17" />
+                    <polyline points="2 12 12 17 22 12" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-[#16325C] mb-1">페이지를 완성해 보세요</h3>
+                  <p className="text-xs text-gray-500 mb-4">
+                    아래 항목을 채우면 방문자에게 더 풍성한 브랜드 페이지를 보여줄 수 있습니다.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      {bio ? (
+                        <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                      ) : (
+                        <span className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                      )}
+                      <span className={`text-sm ${bio ? 'text-gray-400 line-through' : 'text-gray-700'}`}>소개글 작성</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {tenant.logoUrl ? (
+                        <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                      ) : (
+                        <span className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                      )}
+                      <span className={`text-sm ${tenant.logoUrl ? 'text-gray-400 line-through' : 'text-gray-700'}`}>프로필 사진 / 로고 등록</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {tenantSns.length > 0 ? (
+                        <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                      ) : (
+                        <span className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                      )}
+                      <span className={`text-sm ${tenantSns.length > 0 ? 'text-gray-400 line-through' : 'text-gray-700'}`}>SNS 계정 연결</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {tenantCourses.length > 0 ? (
+                        <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                      ) : (
+                        <span className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                      )}
+                      <span className={`text-sm ${tenantCourses.length > 0 ? 'text-gray-400 line-through' : 'text-gray-700'}`}>서비스 / 교육 과정 등록</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {externalLinks.length > 0 ? (
+                        <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                      ) : (
+                        <span className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                      )}
+                      <span className={`text-sm ${externalLinks.length > 0 ? 'text-gray-400 line-through' : 'text-gray-700'}`}>외부 링크 추가 (홈페이지, 블로그 등)</span>
+                    </div>
+                  </div>
+                  <div className="mt-5">
+                    <Link
+                      href="/pd/settings"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+                      style={{ background: primaryColor }}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                      대시보드에서 편집하기
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ---- 푸터 ---- */}
         <footer className="text-center py-8 border-t border-gray-200">
