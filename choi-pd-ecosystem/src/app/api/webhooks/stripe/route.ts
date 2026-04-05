@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
             trialing: 'trialing',
             unpaid: 'unpaid',
           };
-          const mappedStatus = (statusMap[updatedSub.status] || 'active') as 'active' | 'past_due' | 'canceled' | 'trialing' | 'unpaid';
+          const mappedStatus = (statusMap[updatedSub.status || 'active'] || 'active') as 'active' | 'past_due' | 'canceled' | 'trialing' | 'unpaid';
 
           // 결제 주기 결정
           const interval = updatedSub.items?.data?.[0]?.price?.recurring?.interval;
@@ -185,16 +185,18 @@ export async function POST(request: NextRequest) {
       case 'customer.subscription.deleted': {
         const deletedSub = event.data.object;
 
+        const deletedSubId = deletedSub.id as string;
+
         await db
           .update(saasSubscriptions)
           .set({ status: 'canceled', canceledAt: new Date() })
-          .where(eq(saasSubscriptions.stripeSubscriptionId, deletedSub.id));
+          .where(eq(saasSubscriptions.stripeSubscriptionId, deletedSubId));
 
         // 테넌트를 free 플랜으로 다운그레이드
         const subRecord = await db
           .select()
           .from(saasSubscriptions)
-          .where(eq(saasSubscriptions.stripeSubscriptionId, deletedSub.id))
+          .where(eq(saasSubscriptions.stripeSubscriptionId, deletedSubId))
           .get();
 
         if (subRecord) {

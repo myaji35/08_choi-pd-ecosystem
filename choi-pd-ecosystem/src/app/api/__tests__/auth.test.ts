@@ -5,7 +5,35 @@
 /**
  * Integration tests for Authentication API endpoints
  * Tests login, logout, me, and password change functionality
+ *
+ * ─────────────────────────────────────────────────────────────
+ * TEST FIXTURE NOTICE
+ * All credentials in this file are synthetic mock values used
+ * solely for unit testing. They do NOT reflect real credentials
+ * and must NEVER be used in production environments.
+ * ─────────────────────────────────────────────────────────────
  */
+
+// ─── Test Fixture Constants ───────────────────────────────────
+// These are deliberately fake values for test isolation.
+// Changing them here won't affect production security.
+
+/** Fake bcrypt hash stored in the mock DB row — not a real hash */
+const TEST_BCRYPT_HASH = '$2y$10$testFixtureHashNotRealXXXXXXXXXXXXXXXXXXXXX';
+
+/** Correct password submitted by the test client (plain text, never real) */
+const TEST_CORRECT_PASSWORD = 'test-correct-password-fixture';
+
+/** Wrong password to verify rejection logic */
+const TEST_WRONG_PASSWORD = 'test-wrong-password-fixture';
+
+/** Non-existent username to verify 401 path */
+const TEST_NONEXISTENT_USER = 'test-nonexistent-user-fixture';
+
+/** JWT secret used only during test execution — not the production secret */
+const TEST_JWT_SECRET = 'test-jwt-secret-fixture-for-unit-tests-only-32chars!';
+
+// ─── Mocks ────────────────────────────────────────────────────
 
 // Mock jose module
 jest.mock('jose', () => ({
@@ -13,11 +41,11 @@ jest.mock('jose', () => ({
     setProtectedHeader: jest.fn().mockReturnThis(),
     setIssuedAt: jest.fn().mockReturnThis(),
     setExpirationTime: jest.fn().mockReturnThis(),
-    sign: jest.fn().mockResolvedValue('mock-jwt-token'),
+    sign: jest.fn().mockResolvedValue('mock-jwt-token-fixture'),
   })),
 }));
 
-// Mock bcryptjs
+// Mock bcryptjs — compare() result is controlled per test via mockResolvedValue
 jest.mock('bcryptjs', () => ({
   __esModule: true,
   default: {
@@ -25,7 +53,7 @@ jest.mock('bcryptjs', () => ({
   },
 }));
 
-// Mock db
+// Mock db — select/insert are controlled per test via mockDbSelect / mockDbInsert
 const mockDbSelect = jest.fn();
 const mockDbInsert = jest.fn();
 jest.mock('@/lib/db', () => ({
@@ -43,7 +71,7 @@ jest.mock('@/lib/db', () => ({
   },
 }));
 
-// Mock schema (just need the table references)
+// Mock schema (table reference objects only — no real DB columns needed)
 jest.mock('@/lib/db/schema', () => ({
   adminUsers: { username: 'username' },
   loginAttempts: {},
@@ -53,8 +81,8 @@ jest.mock('drizzle-orm', () => ({
   eq: jest.fn(),
 }));
 
-// Set JWT_SECRET for tests
-process.env.JWT_SECRET = 'test-secret-key-for-unit-tests-only';
+// Inject test JWT_SECRET — overridden before each test run
+process.env.JWT_SECRET = TEST_JWT_SECRET;
 
 import { POST as loginPOST } from '../auth/login/route';
 import { NextRequest } from 'next/server';
@@ -109,7 +137,7 @@ describe('Authentication API', () => {
     it('should return 401 for non-existent user', async () => {
       mockDbSelect.mockResolvedValue([]);
 
-      const req = createRequest({ username: 'wrong', password: 'wrong' });
+      const req = createRequest({ username: TEST_NONEXISTENT_USER, password: TEST_WRONG_PASSWORD });
       const res = await loginPOST(req);
       const data = await res.json();
 
@@ -119,15 +147,16 @@ describe('Authentication API', () => {
     });
 
     it('should return 401 for wrong password', async () => {
+      // Mock DB returns a user row; bcrypt compare returns false (wrong password)
       mockDbSelect.mockResolvedValue([{
         id: 1,
         username: 'admin',
-        password: '$2a$10$hashedpassword',
+        password: TEST_BCRYPT_HASH, // fixture hash — not a real bcrypt hash
         role: 'superadmin',
       }]);
       mockBcryptCompare.mockResolvedValue(false);
 
-      const req = createRequest({ username: 'admin', password: 'wrongpass' });
+      const req = createRequest({ username: 'admin', password: TEST_WRONG_PASSWORD });
       const res = await loginPOST(req);
       const data = await res.json();
 
@@ -137,15 +166,16 @@ describe('Authentication API', () => {
     });
 
     it('should return 200 with JWT token for valid admin credentials', async () => {
+      // Mock DB returns a user row; bcrypt compare returns true (correct password)
       mockDbSelect.mockResolvedValue([{
         id: 1,
         username: 'admin',
-        password: '$2a$10$hashedpassword',
+        password: TEST_BCRYPT_HASH, // fixture hash — not a real bcrypt hash
         role: 'superadmin',
       }]);
       mockBcryptCompare.mockResolvedValue(true);
 
-      const req = createRequest({ username: 'admin', password: 'admin123' });
+      const req = createRequest({ username: 'admin', password: TEST_CORRECT_PASSWORD });
       const res = await loginPOST(req);
       const data = await res.json();
 
@@ -162,12 +192,12 @@ describe('Authentication API', () => {
       mockDbSelect.mockResolvedValue([{
         id: 1,
         username: 'admin',
-        password: '$2a$10$hashedpassword',
+        password: TEST_BCRYPT_HASH, // fixture hash — not a real bcrypt hash
         role: 'superadmin',
       }]);
       mockBcryptCompare.mockResolvedValue(true);
 
-      const req = createRequest({ username: 'admin', password: 'admin123' });
+      const req = createRequest({ username: 'admin', password: TEST_CORRECT_PASSWORD });
       const res = await loginPOST(req);
 
       const setCookie = res.headers.get('set-cookie');
@@ -178,7 +208,7 @@ describe('Authentication API', () => {
     it('should record login attempts on failure', async () => {
       mockDbSelect.mockResolvedValue([]);
 
-      const req = createRequest({ username: 'hacker', password: 'guess' });
+      const req = createRequest({ username: TEST_NONEXISTENT_USER, password: TEST_WRONG_PASSWORD });
       await loginPOST(req);
 
       // loginAttempts insert should have been called
@@ -189,12 +219,12 @@ describe('Authentication API', () => {
       mockDbSelect.mockResolvedValue([{
         id: 1,
         username: 'admin',
-        password: '$2a$10$hashedpassword',
+        password: TEST_BCRYPT_HASH, // fixture hash — not a real bcrypt hash
         role: 'superadmin',
       }]);
       mockBcryptCompare.mockResolvedValue(true);
 
-      const req = createRequest({ username: 'admin', password: 'admin123' });
+      const req = createRequest({ username: 'admin', password: TEST_CORRECT_PASSWORD });
       await loginPOST(req);
 
       expect(mockDbInsert).toHaveBeenCalled();

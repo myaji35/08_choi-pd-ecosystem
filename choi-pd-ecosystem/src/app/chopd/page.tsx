@@ -8,6 +8,8 @@ import { WhyImpdSection } from '@/components/home/WhyImpdSection';
 import { InteractiveDemoSection } from '@/components/home/InteractiveDemoSection';
 import { SocialProofSection } from '@/components/home/SocialProofSection';
 import { CTABandSection } from '@/components/home/CTABandSection';
+import { FeaturedMembersSection } from '@/components/home/FeaturedMembersSection';
+import { PlatformFeaturesSection } from '@/components/home/PlatformFeaturesSection';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { getSocialLinks } from '@/lib/db/queries/socialLinks';
 import { generatePersonSchema, generateOrganizationSchema } from '@/lib/seo';
@@ -80,6 +82,8 @@ export default async function HomePage() {
         profileImageTimestamp={profileImageTimestamp}
         heroImages={heroImages}
       />
+      <FeaturedMembersSection />
+      <PlatformFeaturesSection />
       <WhyImpdSection />
       <InteractiveDemoSection />
       <SocialProofSection />
