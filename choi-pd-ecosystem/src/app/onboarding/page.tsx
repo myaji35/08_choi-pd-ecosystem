@@ -192,13 +192,13 @@ export default function OnboardingPage() {
 
   // slug 유효성 체크
   const checkSlug = useCallback(async (value: string) => {
-    if (!value || value.length < 2) {
+    if (!value || value.length < 3) {
       setSlugStatus('idle');
       return;
     }
     setSlugStatus('checking');
     try {
-      const res = await fetch('/api/onboarding/check-slug', {
+      const res = await fetch('/api/onboarding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug: value }),
@@ -215,7 +215,7 @@ export default function OnboardingPage() {
     // slug는 소문자 알파벳, 숫자, 하이픈만 허용
     const sanitized = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
     setSlug(sanitized);
-    if (sanitized.length >= 2) {
+    if (sanitized.length >= 3) {
       checkSlug(sanitized);
     } else {
       setSlugStatus('idle');
@@ -228,7 +228,7 @@ export default function OnboardingPage() {
       case 0:
         return profession !== null;
       case 1:
-        return brandName.trim().length >= 2 && slug.length >= 2 && slugStatus === 'available';
+        return brandName.trim().length >= 2 && slug.length >= 3 && slugStatus === 'available';
       case 2:
         return true; // 플랜은 기본값이 있으므로 항상 진행 가능
       default:
@@ -272,8 +272,8 @@ export default function OnboardingPage() {
       if (brandName.trim().length < 2) {
         newErrors.brandName = '브랜드 이름은 2자 이상 입력해주세요';
       }
-      if (slug.length < 2) {
-        newErrors.slug = 'URL 슬러그는 2자 이상 입력해주세요';
+      if (slug.length < 3) {
+        newErrors.slug = 'URL 슬러그는 3자 이상 입력해주세요';
       } else if (slugStatus === 'taken') {
         newErrors.slug = '이미 사용 중인 주소입니다. 다른 주소를 입력하세요.';
       }
