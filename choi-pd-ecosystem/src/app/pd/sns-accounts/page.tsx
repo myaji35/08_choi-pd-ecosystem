@@ -148,7 +148,7 @@ export default function SnsAccountsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+    <div className="min-h-screen bg-[#F3F2F2]" data-theme="light" style={{ colorScheme: 'light' }}>
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
@@ -168,7 +168,7 @@ export default function SnsAccountsPage() {
                 계정 추가
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md bg-white text-gray-900 border-gray-200">
               <DialogHeader>
                 <DialogTitle>SNS 계정 추가</DialogTitle>
                 <DialogDescription>
