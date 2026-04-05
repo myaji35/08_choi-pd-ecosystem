@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, uniqueIndex, index, type AnySQLiteColumn } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, uniqueIndex, index, type AnySQLiteColumn } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 // ============================================================
@@ -1955,6 +1955,45 @@ export const memberUploads = sqliteTable('member_uploads', {
 }, (table) => [
   index('idx_member_uploads_tenant').on(table.tenantId),
 ]);
+
+// ============================================================
+// 프로필 자동 강화 (Member Auto-Enrichment)
+// ============================================================
+
+// Enrichment Cache — 수집된 프로필 데이터 캐시
+export const enrichmentCache = sqliteTable('enrichment_cache', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  memberId: integer('member_id').notNull(),
+  source: text('source').notNull(),           // 'gravatar' | 'github' | 'google' | 'linkedin' | 'sns_oauth'
+  dataType: text('data_type').notNull(),       // 'photo_url' | 'company' | 'title' | 'skills' | 'sns_url' | 'bio' | 'location'
+  value: text('value').notNull(),
+  confidence: real('confidence').default(0.5), // 0.0~1.0
+  isApproved: integer('is_approved').default(0), // 0=pending, 1=approved, -1=rejected
+  collectedAt: text('collected_at').notNull(),
+  expiresAt: text('expires_at'),               // 30일 후 만료
+}, (table) => [
+  index('idx_enrichment_cache_member').on(table.memberId),
+  index('idx_enrichment_cache_approved').on(table.isApproved),
+]);
+
+// Enrichment Log — 수집 이력 로그
+export const enrichmentLog = sqliteTable('enrichment_log', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  memberId: integer('member_id').notNull(),
+  action: text('action').notNull(),            // 'scan_started' | 'data_found' | 'user_approved' | 'user_rejected'
+  source: text('source'),
+  metadata: text('metadata'),                   // JSON
+  createdAt: text('created_at').default(sql`(datetime('now'))`),
+}, (table) => [
+  index('idx_enrichment_log_member').on(table.memberId),
+]);
+
+// Export types for Enrichment tables
+export type EnrichmentCacheRow = typeof enrichmentCache.$inferSelect;
+export type NewEnrichmentCacheRow = typeof enrichmentCache.$inferInsert;
+
+export type EnrichmentLogRow = typeof enrichmentLog.$inferSelect;
+export type NewEnrichmentLogRow = typeof enrichmentLog.$inferInsert;
 
 // Export types for Chat & Memory tables
 export type ChatConversation = typeof chatConversations.$inferSelect;

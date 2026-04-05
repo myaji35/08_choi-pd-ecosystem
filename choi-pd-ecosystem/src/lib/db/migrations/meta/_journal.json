@@ -64,6 +64,20 @@
       "when": 1764740859968,
       "tag": "0008_neat_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1775182383068,
+      "tag": "0009_perfect_night_nurse",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1775375796801,
+      "tag": "0010_daffy_hulk",
+      "breakpoints": true
     }
   ]
 }
