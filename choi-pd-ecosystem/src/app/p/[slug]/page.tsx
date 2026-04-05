@@ -236,79 +236,120 @@ export default async function BrandPage({ params }: BrandPageProps) {
       {/* ---- 메인 콘텐츠 ---- */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 -mt-2">
 
-        {/* ---- 프로필 상세 카드 (대표자, 서비스 소개, 연락처) ---- */}
+        {/* ---- 프로필 + 명함 카드 (좌: 정보, 우: 명함 뒷면) ---- */}
         {(ownerName || serviceDescription || contactEmail || contactPhone) && (
           <section className="mb-6">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              {/* 대표자 정보 */}
-              {ownerName && (
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: primaryColor }}>
-                    {ownerName.charAt(0)}
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* 좌측: 프로필 상세 */}
+              <div className="flex-1 bg-white rounded-lg border border-gray-200 p-6">
+                {ownerName && (
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ background: primaryColor }}>
+                      {ownerName.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#16325C]">{ownerName}</p>
+                      <p className="text-xs text-gray-500">{professionInfo.label}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-[#16325C]">{ownerName}</p>
-                    <p className="text-xs text-gray-500">{professionInfo.label}</p>
+                )}
+                {serviceDescription && (
+                  <div className="mb-4">
+                    <h3 className="text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                      </svg>
+                      서비스 소개
+                    </h3>
+                    <p className="text-sm text-[#16325C] leading-relaxed">{serviceDescription}</p>
+                  </div>
+                )}
+                {(contactEmail || contactPhone) && (
+                  <div className="flex flex-wrap gap-3 pt-3 border-t border-gray-100">
+                    {contactEmail && (
+                      <a href={`mailto:${contactEmail}`} className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-[#16325C] transition-colors">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
+                        </svg>
+                        {contactEmail}
+                      </a>
+                    )}
+                    {contactPhone && (
+                      <a href={`tel:${contactPhone}`} className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-[#16325C] transition-colors">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                        </svg>
+                        {contactPhone}
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* 우측: 명함 뒷면 (90x50mm 비율 = 9:5) */}
+              <div className="lg:w-[320px] flex-shrink-0">
+                <div
+                  className="relative rounded-xl overflow-hidden shadow-lg"
+                  style={{ aspectRatio: '9/5', background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}
+                >
+                  {/* 장식 패턴 */}
+                  <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10 -mr-8 -mt-8" style={{ background: 'white' }} />
+                  <div className="absolute bottom-0 left-0 w-16 h-16 rounded-full opacity-10 -ml-4 -mb-4" style={{ background: 'white' }} />
+
+                  <div className="relative h-full flex flex-col justify-between p-5">
+                    {/* 상단: 로고/이니셜 + 브랜드명 */}
+                    <div className="flex items-center gap-2.5">
+                      {tenant.logoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={tenant.logoUrl} alt="" className="w-8 h-8 rounded-full border border-white/30 object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center border border-white/30">
+                          <span className="text-xs font-bold text-white">{tenant.name.charAt(0)}</span>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm font-bold text-white leading-tight">{tenant.name}</p>
+                        {ownerName && <p className="text-[10px] text-white/70">{ownerName} · {professionInfo.label}</p>}
+                      </div>
+                    </div>
+
+                    {/* 하단: 연락처 + QR 영역 */}
+                    <div className="flex items-end justify-between">
+                      <div className="space-y-0.5">
+                        {contactEmail && (
+                          <p className="text-[10px] text-white/80 flex items-center gap-1">
+                            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
+                            </svg>
+                            {contactEmail}
+                          </p>
+                        )}
+                        {contactPhone && (
+                          <p className="text-[10px] text-white/80 flex items-center gap-1">
+                            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                            </svg>
+                            {contactPhone}
+                          </p>
+                        )}
+                        <p className="text-[9px] text-white/50 mt-1">impd.io/{slug}</p>
+                      </div>
+
+                      {/* QR 코드 placeholder (실제 QR은 라이브러리 추가 시) */}
+                      <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center p-1">
+                        {/* QR 코드 시뮬레이션 — 실제로는 qrcode 라이브러리 사용 */}
+                        <div className="w-full h-full grid grid-cols-5 grid-rows-5 gap-px">
+                          {[1,1,1,0,1, 1,0,1,0,1, 1,1,1,0,0, 0,0,0,0,1, 1,0,1,1,1].map((v, i) => (
+                            <div key={i} className={`rounded-[1px] ${v ? 'bg-[#16325C]' : 'bg-transparent'}`} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
-
-              {/* 서비스 소개 */}
-              {serviceDescription && (
-                <div className="mb-4">
-                  <h3 className="text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                    </svg>
-                    서비스 소개
-                  </h3>
-                  <p className="text-sm text-[#16325C] leading-relaxed">{serviceDescription}</p>
-                </div>
-              )}
-
-              {/* 연락처 */}
-              {(contactEmail || contactPhone) && (
-                <div className="flex flex-wrap gap-3 pt-3 border-t border-gray-100">
-                  {contactEmail && (
-                    <a
-                      href={`mailto:${contactEmail}`}
-                      className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-[#16325C] transition-colors"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                        <polyline points="22,6 12,13 2,6" />
-                      </svg>
-                      {contactEmail}
-                    </a>
-                  )}
-                  {contactPhone && (
-                    <a
-                      href={`tel:${contactPhone}`}
-                      className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-[#16325C] transition-colors"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                      </svg>
-                      {contactPhone}
-                    </a>
-                  )}
-                  {youtubeUrl && (
-                    <a
-                      href={youtubeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs text-red-600 hover:text-red-700 transition-colors"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                        <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.13C5.12 19.56 12 19.56 12 19.56s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
-                        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" />
-                      </svg>
-                      YouTube
-                    </a>
-                  )}
-                </div>
-              )}
+                <p className="text-[10px] text-gray-400 text-center mt-1.5">명함 뒷면 미리보기 · 인쇄용 다운로드 준비 중</p>
+              </div>
             </div>
           </section>
         )}
