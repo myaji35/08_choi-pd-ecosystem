@@ -6,9 +6,10 @@ interface SharePanelProps {
   slug: string;
   brandName: string;
   primaryColor: string;
+  compact?: boolean;
 }
 
-export function SharePanel({ slug, brandName, primaryColor }: SharePanelProps) {
+export function SharePanel({ slug, brandName, primaryColor, compact = false }: SharePanelProps) {
   const [isPublished, setIsPublished] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -56,6 +57,22 @@ export function SharePanel({ slug, brandName, primaryColor }: SharePanelProps) {
     const kakaoUrl = `https://sharer.kakao.com/talk/friends/picker/shorturl?app_key=javascript_key&request_url=${encodeURIComponent(pageUrl)}`;
     window.open(`https://story.kakao.com/share?url=${encodeURIComponent(pageUrl)}`, '_blank', 'width=600,height=400');
   };
+
+  // compact 모드: 어드민 바 안에서 작은 공유 버튼만
+  if (compact) {
+    return (
+      <button
+        onClick={handleShare}
+        className="inline-flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium bg-white/10 hover:bg-white/20 transition-colors"
+      >
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+        {copied ? '복사됨!' : '공유'}
+      </button>
+    );
+  }
 
   if (!isPublished) {
     return (
