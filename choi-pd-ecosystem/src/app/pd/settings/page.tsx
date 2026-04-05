@@ -172,29 +172,29 @@ export default function TenantSettingsPage() {
     }
   }, [tenant]);
 
-  // 페이지 진입 시 이메일이 있으면 자동 스캔
-  useEffect(() => {
-    if (!profile.email || enrichSuggestions.length > 0 || isScanning) return;
-    const doScan = async () => {
-      setIsScanning(true);
-      try {
-        const res = await fetch('/api/enrichment/self-scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: profile.email, name: profile.ownerName }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.suggestions?.length > 0) {
-            setEnrichSuggestions(data.suggestions);
-          }
+  // [찾기] 버튼 클릭 시 공개 프로필 스캔
+  const handleScan = async () => {
+    if (!profile.email || isScanning) return;
+    setIsScanning(true);
+    setEnrichSuggestions([]);
+    try {
+      const res = await fetch('/api/enrichment/self-scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: profile.email, name: profile.ownerName }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.suggestions?.length > 0) {
+          setEnrichSuggestions(data.suggestions);
+        } else {
+          setSaveMessage('공개된 프로필 정보를 찾지 못했습니다.');
+          setTimeout(() => setSaveMessage(''), 3000);
         }
-      } catch { /* ignore */ }
-      setIsScanning(false);
-    };
-    doScan();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profile.email]);
+      }
+    } catch { /* ignore */ }
+    setIsScanning(false);
+  };
 
   const hasCustomDomain = canUseFeature('customDomain');
 
@@ -227,31 +227,12 @@ export default function TenantSettingsPage() {
         setSaveMessage('설정이 저장되었습니다.');
         await refresh();
 
-        // 프로필 자동 탐색 (이메일이 있으면 공개 정보 스캔)
-        if (profile.email) {
-          setIsScanning(true);
-          try {
-            const scanRes = await fetch('/api/enrichment/self-scan', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: profile.email, name: profile.ownerName }),
-            });
-            if (scanRes.ok) {
-              const scanData = await scanRes.json();
-              if (scanData.suggestions?.length > 0) {
-                setEnrichSuggestions(scanData.suggestions);
-              }
-            }
-          } catch { /* ignore */ }
-          setIsScanning(false);
-        }
-
-        // 다음 단계 안내 — 미완성 항목 중 가장 중요한 것 제안
+        // 다음 단계 안내 — 저장 완료 후 가장 필요한 행동 제안
         if (!tenant.branding?.logoUrl && !branding.logoUrl) {
           setNextStepHint({
-            message: '프로필 사진을 등록하면 방문자의 신뢰도가 높아집니다.',
-            href: '/pd/dashboard',
-            action: '프로필 사진 등록하기',
+            message: '"공개 프로필 찾기"를 눌러 프로필 사진과 SNS 정보를 자동으로 채워보세요.',
+            href: '#',
+            action: '위로 스크롤',
           });
         } else if (!profile.bio) {
           setNextStepHint({
@@ -259,15 +240,9 @@ export default function TenantSettingsPage() {
             href: '#bio',
             action: '소개 작성하기',
           });
-        } else if (!profile.serviceDescription) {
-          setNextStepHint({
-            message: '서비스 소개를 추가하면 방문자가 무엇을 제공하는지 바로 알 수 있습니다.',
-            href: '#serviceDesc',
-            action: '서비스 소개 작성하기',
-          });
         } else {
           setNextStepHint({
-            message: '홍보 페이지가 준비되었습니다! 직접 확인해 보세요.',
+            message: '설정이 반영되었습니다. 홍보 페이지를 확인해 보세요.',
             href: `/${tenant.slug}`,
             action: '내 페이지 보기',
           });
@@ -450,10 +425,38 @@ export default function TenantSettingsPage() {
               className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0] resize-none"
             />
           </div>
+
+          {/* 공개 정보 찾기 버튼 */}
+          {profile.email && (
+            <div className="pt-3 border-t border-gray-100">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleScan}
+                disabled={isScanning}
+                className="border-[#00A1E0] text-[#00A1E0] hover:bg-blue-50"
+              >
+                {isScanning ? (
+                  <>
+                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                    탐색 중...
+                  </>
+                ) : (
+                  <>
+                    <svg className="mr-2 h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
+                    </svg>
+                    공개 프로필 찾기
+                  </>
+                )}
+              </Button>
+              <span className="ml-2 text-xs text-gray-400">이메일로 공개된 SNS, 사진, 소개글을 찾아드립니다</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* 공개 프로필 탐색 결과 — 브랜드 프로필 바로 아래 */}
+      {/* 공개 프로필 탐색 결과 */}
       {isScanning && (
         <div className="rounded-lg border border-gray-200 bg-white p-4 flex items-center gap-3">
           <Loader2 className="h-5 w-5 animate-spin text-[#00A1E0]" />
