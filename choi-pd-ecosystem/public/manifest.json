@@ -1,7 +1,7 @@
 {
-  "name": "imPD - I'm PD 최범희",
+  "name": "imPD - 나만의 브랜드 허브",
   "short_name": "imPD",
-  "description": "스마트폰 창업 교육 전문가 최범희 PD의 통합 브랜드 허브",
+  "description": "개인사업자와 프리랜서를 위한 통합 브랜드 관리 플랫폼",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
