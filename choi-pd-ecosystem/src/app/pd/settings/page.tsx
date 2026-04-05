@@ -24,6 +24,11 @@ import {
   Check,
   Zap,
   Building2,
+  User,
+  Mail,
+  Phone,
+  FileText,
+  Briefcase,
 } from 'lucide-react';
 import type { TenantBranding, PlanType } from '@/lib/tenant/types';
 
@@ -135,10 +140,32 @@ export default function TenantSettingsPage() {
   // 도메인 설정
   const [customDomain, setCustomDomain] = useState('');
 
+  // 브랜드 프로필 상태
+  const [profile, setProfile] = useState({
+    ownerName: '',
+    email: '',
+    phone: '',
+    bio: '',
+    serviceDescription: '',
+  });
+
   // 테넌트 로드 시 폼 초기화
   useEffect(() => {
     if (tenant?.branding) {
       setBranding(tenant.branding);
+    }
+    // settings JSON에서 프로필 데이터 복원
+    if (tenant && 'settings' in tenant && typeof (tenant as Record<string, unknown>).settings === 'string') {
+      try {
+        const s = JSON.parse((tenant as Record<string, unknown>).settings as string);
+        setProfile({
+          ownerName: s.ownerName || '',
+          email: s.email || '',
+          phone: s.phone || '',
+          bio: s.bio || '',
+          serviceDescription: s.serviceDescription || '',
+        });
+      } catch { /* ignore */ }
     }
   }, [tenant]);
 
@@ -159,11 +186,18 @@ export default function TenantSettingsPage() {
           fontFamily: branding.fontFamily,
           logoUrl: branding.logoUrl,
           faviconUrl: branding.faviconUrl,
+          settings: JSON.stringify({
+            ownerName: profile.ownerName,
+            email: profile.email,
+            phone: profile.phone,
+            bio: profile.bio,
+            serviceDescription: profile.serviceDescription,
+          }),
         }),
       });
 
       if (res.ok) {
-        setSaveMessage('브랜딩이 저장되었습니다.');
+        setSaveMessage('설정이 저장되었습니다.');
         await refresh();
       } else {
         const data = await res.json();
@@ -202,6 +236,93 @@ export default function TenantSettingsPage() {
           </span>
         </div>
       )}
+
+      {/* 브랜드 프로필 */}
+      <Card className="border-gray-200 border-l-4 border-l-[#00A1E0]">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-[#16325C]">
+            <User className="h-5 w-5" />
+            브랜드 프로필
+          </CardTitle>
+          <CardDescription>
+            홍보 페이지에 표시되는 핵심 정보입니다. 방문자가 보는 첫 인상을 결정합니다.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="ownerName" className="block text-xs font-semibold text-gray-600 mb-1.5">
+                <User className="h-3.5 w-3.5 inline mr-1" />
+                대표자 이름
+              </label>
+              <input
+                id="ownerName"
+                type="text"
+                value={profile.ownerName}
+                onChange={(e) => setProfile((p) => ({ ...p, ownerName: e.target.value }))}
+                placeholder="홍길동"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+              />
+            </div>
+            <div>
+              <label htmlFor="settingsEmail" className="block text-xs font-semibold text-gray-600 mb-1.5">
+                <Mail className="h-3.5 w-3.5 inline mr-1" />
+                연락 이메일
+              </label>
+              <input
+                id="settingsEmail"
+                type="email"
+                value={profile.email}
+                onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))}
+                placeholder="hello@example.com"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="settingsPhone" className="block text-xs font-semibold text-gray-600 mb-1.5">
+              <Phone className="h-3.5 w-3.5 inline mr-1" />
+              전화번호 <span className="text-xs font-normal text-gray-400">(선택)</span>
+            </label>
+            <input
+              id="settingsPhone"
+              type="tel"
+              value={profile.phone}
+              onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))}
+              placeholder="010-0000-0000"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+            />
+          </div>
+          <div>
+            <label htmlFor="bio" className="block text-xs font-semibold text-gray-600 mb-1.5">
+              <FileText className="h-3.5 w-3.5 inline mr-1" />
+              한 줄 소개 <span className="text-xs font-normal text-gray-400">(홍보 페이지 상단에 표시)</span>
+            </label>
+            <input
+              id="bio"
+              type="text"
+              value={profile.bio}
+              onChange={(e) => setProfile((p) => ({ ...p, bio: e.target.value }))}
+              placeholder="예: 10년 경력 디지털 마케팅 전문가"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+            />
+          </div>
+          <div>
+            <label htmlFor="serviceDesc" className="block text-xs font-semibold text-gray-600 mb-1.5">
+              <Briefcase className="h-3.5 w-3.5 inline mr-1" />
+              서비스 소개 <span className="text-xs font-normal text-gray-400">(어떤 서비스를 제공하시나요?)</span>
+            </label>
+            <textarea
+              id="serviceDesc"
+              value={profile.serviceDescription}
+              onChange={(e) => setProfile((p) => ({ ...p, serviceDescription: e.target.value }))}
+              placeholder="예: SNS 마케팅 컨설팅, 브랜드 디자인, 온라인 교육 과정 운영"
+              rows={3}
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0] resize-none"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 브랜드 컬러 */}
       <Card className="border-gray-200">
