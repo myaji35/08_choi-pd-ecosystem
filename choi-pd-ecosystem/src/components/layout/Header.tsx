@@ -15,7 +15,7 @@ export function Header() {
   const { tenant } = useTenant();
   const { t } = useTranslation();
   const pathname = usePathname();
-  const userName = user?.name || tenant?.name || '최범희';
+  const userName = user?.name || tenant?.name || '사용자';
 
   const menuItems = [
     { href: '/', label: t('nav.home') },

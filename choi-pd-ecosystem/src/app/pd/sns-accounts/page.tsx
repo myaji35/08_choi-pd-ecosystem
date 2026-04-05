@@ -199,7 +199,7 @@ export default function SnsAccountsPage() {
                     id="accountName"
                     value={formData.accountName}
                     onChange={(e) => setFormData({ ...formData, accountName: e.target.value })}
-                    placeholder="예: 최PD 공식 계정"
+                    placeholder="예: 내 브랜드 공식 계정"
                   />
                 </div>
                 <div className="space-y-2">

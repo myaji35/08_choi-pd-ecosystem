@@ -58,28 +58,67 @@ export function TenantProvider({ children, initialSlug }: TenantProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      // slug이 없거나 chopd면 기본 테넌트 사용
-      const slug = initialSlug || 'chopd';
+      // 명시적 slug이 있으면 해당 테넌트 조회
+      if (initialSlug) {
+        if (initialSlug === 'chopd') {
+          setTenant(DEFAULT_TENANT);
+          setIsLoading(false);
+          return;
+        }
 
-      if (slug === 'chopd') {
-        setTenant(DEFAULT_TENANT);
-        setIsLoading(false);
+        const res = await fetch(`/api/tenants/by-slug/${initialSlug}`);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || '테넌트를 찾을 수 없습니다.');
+        }
+        const data = await res.json();
+        setTenant(data);
         return;
       }
 
-      // 다른 테넌트는 API에서 조회
-      const res = await fetch(`/api/tenants/by-slug/${slug}`);
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || '테넌트를 찾을 수 없습니다.');
+      // slug 없음 → 현재 로그인한 사용자의 소유 테넌트 조회
+      const myRes = await fetch('/api/tenants');
+      if (myRes.ok) {
+        const myData = await myRes.json();
+        if (myData.tenants && myData.tenants.length > 0) {
+          // 첫 번째 소유 테넌트 사용
+          const myTenant = myData.tenants[0];
+          setTenant({
+            id: myTenant.id,
+            name: myTenant.name,
+            slug: myTenant.slug,
+            profession: myTenant.profession,
+            businessType: myTenant.businessType || 'individual',
+            plan: myTenant.plan || 'free',
+            status: myTenant.status || 'active',
+            region: myTenant.region || null,
+            branding: {
+              logoUrl: myTenant.logoUrl || null,
+              faviconUrl: myTenant.faviconUrl || null,
+              primaryColor: myTenant.primaryColor || '#00A1E0',
+              secondaryColor: myTenant.secondaryColor || '#16325C',
+              fontFamily: myTenant.fontFamily || 'Inter',
+              footerText: `© ${new Date().getFullYear()} ${myTenant.name}`,
+            },
+            limits: {
+              maxSnsAccounts: myTenant.plan === 'free' ? 2 : myTenant.plan === 'pro' ? 10 : -1,
+              maxStorage: myTenant.plan === 'free' ? 524288000 : myTenant.plan === 'pro' ? 5368709120 : 53687091200,
+              maxTeamMembers: myTenant.plan === 'free' ? 1 : myTenant.plan === 'pro' ? 3 : -1,
+              maxCourses: myTenant.plan === 'free' ? 10 : -1,
+              maxDistributors: myTenant.plan === 'free' ? 5 : myTenant.plan === 'pro' ? 50 : -1,
+              customDomain: myTenant.plan !== 'free',
+            },
+            createdAt: myTenant.createdAt,
+          });
+          return;
+        }
       }
 
-      const data = await res.json();
-      setTenant(data);
+      // 테넌트가 없으면 기본 테넌트로 fallback (chopd 공개 페이지용)
+      setTenant(DEFAULT_TENANT);
     } catch (err) {
       const message = err instanceof Error ? err.message : '테넌트 로드 실패';
       setError(message);
-      // 에러 시 기본 테넌트로 fallback
       setTenant(DEFAULT_TENANT);
     } finally {
       setIsLoading(false);

@@ -11,7 +11,7 @@ export function NotionHeader() {
   const { toggleSidebar } = useUIStore();
   const { user } = useSession();
   const pathname = usePathname();
-  const userName = user?.name || '최범희';
+  const userName = user?.name || '사용자';
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {

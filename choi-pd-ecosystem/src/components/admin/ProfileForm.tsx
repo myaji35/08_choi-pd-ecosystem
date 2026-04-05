@@ -121,7 +121,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
               onBlur={(e) => validateField('name', e.target.value)}
-              placeholder="최범희"
+              placeholder="이름을 입력하세요"
               className={inputClass('name')}
             />
             {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
@@ -154,7 +154,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               value={formData.email}
               onChange={(e) => handleChange('email', e.target.value)}
               onBlur={(e) => validateField('email', e.target.value)}
-              placeholder="contact@choipd.com"
+              placeholder="email@example.com"
               className={inputClass('email')}
             />
             {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
