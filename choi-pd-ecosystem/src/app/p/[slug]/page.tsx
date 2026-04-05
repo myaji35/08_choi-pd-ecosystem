@@ -7,6 +7,7 @@ import { db } from '@/lib/db';
 import { tenants, courses, snsAccounts, tenantMembers } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import Link from 'next/link';
+import { SharePanel } from './SharePanel';
 
 // ---- 직업군 한글 라벨 + 배지 색상 ----
 
@@ -482,17 +483,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
                           더 채우기
                         </Link>
                       )}
-                      <Link
-                        href={`/${slug}`}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
-                        style={{ background: primaryColor }}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                          <circle cx="12" cy="12" r="3" />
-                        </svg>
-                        {hasMinimum ? '이대로 공개하기' : '미리보기'}
-                      </Link>
+                      <SharePanel slug={slug} brandName={tenant.name} primaryColor={primaryColor} />
                     </div>
                   </div>
                 </div>
