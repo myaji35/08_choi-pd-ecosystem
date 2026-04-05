@@ -286,7 +286,7 @@ export function NotionSidebar() {
       {/* 공개 사이트 바로가기 */}
       <div className="px-2 pb-1">
         <a
-          href={`/p/${tenant?.slug || 'chopd'}`}
+          href={`/${tenant?.slug || 'chopd'}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 px-2 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"

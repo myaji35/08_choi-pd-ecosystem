@@ -542,13 +542,13 @@ export default function OnboardingPage() {
             <div className="inline-block bg-white border border-gray-200 rounded-lg px-6 py-4 mb-6 mt-2">
               <p className="text-xs text-gray-500 mb-1">내 브랜드 페이지 주소</p>
               <p className="text-sm font-semibold text-[#16325C]">
-                {typeof window !== 'undefined' ? window.location.origin : ''}/p/{slug}
+                {typeof window !== 'undefined' ? window.location.origin : ''}/{slug}
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
-                onClick={() => router.push(`/p/${slug}`)}
+                onClick={() => router.push(`/${slug}`)}
                 className="bg-[#00A1E0] hover:bg-[#0090c8] text-white"
               >
                 내 브랜드 페이지 보기

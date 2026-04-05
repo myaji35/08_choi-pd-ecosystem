@@ -95,7 +95,7 @@ export default function PDDashboard() {
 
   const [copied, setCopied] = useState(false);
   const brandPageUrl = tenant?.slug
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/p/${tenant.slug}`
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/${tenant.slug}`
     : '';
 
   const handleCopyUrl = async () => {
@@ -172,7 +172,7 @@ export default function PDDashboard() {
                     className="flex-1 border-gray-300"
                     asChild
                   >
-                    <a href={`/p/${tenant.slug}`} target="_blank" rel="noopener noreferrer">
+                    <a href={`/${tenant.slug}`} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
                       페이지 보기
                     </a>
