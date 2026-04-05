@@ -109,7 +109,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const allowedFields = [
       'name', 'region', 'businessType',
       'logoUrl', 'faviconUrl', 'primaryColor', 'secondaryColor', 'fontFamily',
-      'settings', 'metadata',
+      'customDomain', 'settings', 'metadata',
     ];
 
     const updateData: Record<string, unknown> = {};

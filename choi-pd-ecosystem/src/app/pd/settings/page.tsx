@@ -150,10 +150,16 @@ export default function TenantSettingsPage() {
     setSaveMessage('');
 
     try {
-      const res = await fetch(`/api/tenants/${tenant.id}/branding`, {
+      const res = await fetch(`/api/tenants/${tenant.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(branding),
+        body: JSON.stringify({
+          primaryColor: branding.primaryColor,
+          secondaryColor: branding.secondaryColor,
+          fontFamily: branding.fontFamily,
+          logoUrl: branding.logoUrl,
+          faviconUrl: branding.faviconUrl,
+        }),
       });
 
       if (res.ok) {
