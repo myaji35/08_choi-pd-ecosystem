@@ -474,7 +474,10 @@ export async function disable2FA(userId: string) {
 // Data Encryption
 // ============================================
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-encryption-key-change-in-production';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY ?? (() => {
+  if (process.env.NODE_ENV === 'production') throw new Error('ENCRYPTION_KEY must be set in production');
+  return 'dev-only-encryption-key-not-for-prod';
+})();
 
 /**
  * 데이터 암호화 (AES-256-GCM)

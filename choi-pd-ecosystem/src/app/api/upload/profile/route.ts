@@ -4,7 +4,10 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'choi-pd-ecosystem-secret-key-change-in-production'
+  process.env.JWT_SECRET ?? (() => {
+    if (process.env.NODE_ENV === 'production') throw new Error('JWT_SECRET must be set in production');
+    return 'dev-only-jwt-secret-not-for-prod';
+  })()
 );
 
 export async function POST(request: NextRequest) {

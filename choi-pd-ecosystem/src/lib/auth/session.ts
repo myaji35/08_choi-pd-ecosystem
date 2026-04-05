@@ -12,7 +12,10 @@ export interface SessionPayload {
   provider: 'google' | 'towningraph';
 }
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret');
+const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? (() => {
+  if (process.env.NODE_ENV === 'production') throw new Error('JWT_SECRET must be set in production');
+  return 'dev-only-jwt-secret-not-for-prod';
+})());
 
 export async function createSession(payload: SessionPayload): Promise<string> {
   const token = await new SignJWT({ ...payload })

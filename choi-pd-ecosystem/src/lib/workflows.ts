@@ -601,7 +601,10 @@ export async function createWorkflowFromTemplate(params: {
 // ============================================================
 
 function encryptData(data: string): string {
-  const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-please-change';
+  const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY ?? (() => {
+    if (process.env.NODE_ENV === 'production') throw new Error('ENCRYPTION_KEY must be set in production');
+    return 'dev-only-encryption-key-not-for-prod';
+  })();
   const key = Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32));
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
@@ -614,7 +617,10 @@ function encryptData(data: string): string {
 }
 
 function decryptData(encryptedData: string): string {
-  const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-please-change';
+  const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY ?? (() => {
+    if (process.env.NODE_ENV === 'production') throw new Error('ENCRYPTION_KEY must be set in production');
+    return 'dev-only-encryption-key-not-for-prod';
+  })();
   const key = Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32));
   const parts = encryptedData.split(':');
   const iv = Buffer.from(parts[0], 'hex');
