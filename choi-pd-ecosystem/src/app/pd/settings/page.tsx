@@ -126,6 +126,7 @@ export default function TenantSettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [nextStepHint, setNextStepHint] = useState<{ message: string; href: string; action: string } | null>(null);
 
   // 브랜딩 폼 상태
   const [branding, setBranding] = useState<TenantBranding>({
@@ -199,6 +200,33 @@ export default function TenantSettingsPage() {
       if (res.ok) {
         setSaveMessage('설정이 저장되었습니다.');
         await refresh();
+
+        // 다음 단계 안내 — 미완성 항목 중 가장 중요한 것 제안
+        if (!tenant.branding?.logoUrl && !branding.logoUrl) {
+          setNextStepHint({
+            message: '프로필 사진을 등록하면 방문자의 신뢰도가 높아집니다.',
+            href: '/pd/dashboard',
+            action: '프로필 사진 등록하기',
+          });
+        } else if (!profile.bio) {
+          setNextStepHint({
+            message: '한 줄 소개를 작성하면 홍보 페이지가 더 매력적으로 보입니다.',
+            href: '#bio',
+            action: '소개 작성하기',
+          });
+        } else if (!profile.serviceDescription) {
+          setNextStepHint({
+            message: '서비스 소개를 추가하면 방문자가 무엇을 제공하는지 바로 알 수 있습니다.',
+            href: '#serviceDesc',
+            action: '서비스 소개 작성하기',
+          });
+        } else {
+          setNextStepHint({
+            message: '홍보 페이지가 준비되었습니다! 직접 확인해 보세요.',
+            href: `/${tenant.slug}`,
+            action: '내 페이지 보기',
+          });
+        }
       } else {
         const data = await res.json();
         setSaveMessage(data.error || '저장에 실패했습니다.');
@@ -541,6 +569,30 @@ export default function TenantSettingsPage() {
           )}
         </Button>
       </div>
+
+      {/* 다음 단계 안내 */}
+      {nextStepHint && (
+        <div className="rounded-lg border-2 border-[#00A1E0]/30 bg-[#00A1E0]/5 p-4 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="w-10 h-10 rounded-full bg-[#00A1E0] flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-[#16325C]">다음 단계</p>
+            <p className="text-xs text-gray-600 mt-0.5">{nextStepHint.message}</p>
+          </div>
+          <a
+            href={nextStepHint.href}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#00A1E0] text-white text-sm font-semibold hover:bg-[#0090c8] transition-colors flex-shrink-0"
+          >
+            {nextStepHint.action}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      )}
 
       {/* 플랜 업그레이드 모달 */}
       <Dialog open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen}>
