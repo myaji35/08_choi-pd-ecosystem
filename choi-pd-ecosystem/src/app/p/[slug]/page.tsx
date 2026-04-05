@@ -184,6 +184,60 @@ export default async function BrandPage({ params }: BrandPageProps) {
       {/* ---- 메인 콘텐츠 ---- */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 -mt-2">
 
+        {/* ---- 서비스 소개 카드 (콘텐츠가 없을 때) ---- */}
+        {tenantSns.length === 0 && externalLinks.length === 0 && tenantCourses.length === 0 && (
+          <section className="mb-8">
+            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+              <div
+                className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
+                style={{ background: `${primaryColor}15` }}
+              >
+                <svg className="w-8 h-8" style={{ color: primaryColor }} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                  <polyline points="2 17 12 22 22 17" />
+                  <polyline points="2 12 12 17 22 12" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-[#16325C] mb-2">
+                {tenant.name}
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">
+                {professionInfo.label} · 콘텐츠를 준비하고 있습니다
+              </p>
+              <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
+                <div className="text-center">
+                  <div className="w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center bg-gray-50">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                    </svg>
+                  </div>
+                  <p className="text-xs text-gray-400">교육 과정</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center bg-gray-50">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    </svg>
+                  </div>
+                  <p className="text-xs text-gray-400">링크</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-10 h-10 rounded-lg mx-auto mb-2 flex items-center justify-center bg-gray-50">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                    </svg>
+                  </div>
+                  <p className="text-xs text-gray-400">SNS</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* ---- SNS 링크 섹션 ---- */}
         {tenantSns.length > 0 && (
           <section className="mb-6">
