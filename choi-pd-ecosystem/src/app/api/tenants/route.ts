@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { tenants, tenantMembers } from '@/lib/db/schema';
+import { tenants, tenantMembers, snsAccounts } from '@/lib/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
 // 유효한 직업군 목록
@@ -23,7 +23,7 @@ function isValidSlug(slug: string): boolean {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, slug, profession, businessType, region } = body;
+    const { name, slug, profession, businessType, region, ownerName, email, phone, bio, snsLinks } = body;
 
     // 필수 필드 검증
     if (!name || !slug || !profession) {
@@ -82,6 +82,12 @@ export async function POST(request: NextRequest) {
     }
     const userId = clerkUserId || 'dev_user';
 
+    // settings JSON 구성 (프로필 상세 정보)
+    const settings: Record<string, unknown> = {};
+    if (bio) settings.bio = bio;
+    if (ownerName) settings.ownerName = ownerName;
+    if (phone) settings.phone = phone;
+
     // 테넌트 생성
     const newTenant = await db.insert(tenants).values({
       clerkUserId: userId,
@@ -92,18 +98,64 @@ export async function POST(request: NextRequest) {
       region: region || null,
       plan: 'free',
       status: 'active',
+      settings: Object.keys(settings).length > 0 ? JSON.stringify(settings) : null,
     }).returning().get();
 
     // 소유자를 테넌트 멤버로 등록
     await db.insert(tenantMembers).values({
       tenantId: newTenant.id,
       clerkUserId: userId,
-      email: body.email || `${userId}@placeholder.com`,
-      name,
+      email: email || `${userId}@placeholder.com`,
+      name: ownerName || name,
       role: 'owner',
       status: 'active',
       joinedAt: new Date(),
     });
+
+    // SNS 계정 자동 등록 (온보딩에서 입력한 경우)
+    if (snsLinks) {
+      const VALID_SNS_PLATFORMS = ['facebook', 'instagram', 'twitter', 'linkedin'] as const;
+      type SnsPlatform = typeof VALID_SNS_PLATFORMS[number];
+
+      const snsEntries: Array<{ platform: SnsPlatform; value: string }> = [];
+      if (snsLinks.instagram) snsEntries.push({ platform: 'instagram', value: snsLinks.instagram });
+      if (snsLinks.facebook) snsEntries.push({ platform: 'facebook', value: snsLinks.facebook });
+      // youtube는 DB enum에 없으므로 settings에 별도 저장
+      if (snsLinks.youtube) {
+        await db.update(tenants).set({
+          settings: JSON.stringify({
+            ...settings,
+            youtubeUrl: snsLinks.youtube.startsWith('http')
+              ? snsLinks.youtube
+              : `https://youtube.com/@${snsLinks.youtube.replace(/^@/, '')}`,
+          }),
+        }).where(eq(tenants.id, newTenant.id));
+      }
+
+      for (const entry of snsEntries) {
+        let profileUrl = entry.value;
+        if (!profileUrl.startsWith('http')) {
+          const username = profileUrl.replace(/^@/, '');
+          switch (entry.platform) {
+            case 'instagram': profileUrl = `https://instagram.com/${username}`; break;
+            case 'facebook': profileUrl = `https://facebook.com/${username}`; break;
+          }
+        }
+
+        const accountName = entry.value
+          .replace(/^@/, '')
+          .replace(/https?:\/\/(www\.)?[^/]+\/(@)?/g, '');
+
+        await db.insert(snsAccounts).values({
+          tenantId: newTenant.id,
+          platform: entry.platform,
+          accountName: accountName || entry.value,
+          accessToken: '', // 온보딩에서는 토큰 없음 (나중에 연동)
+          isActive: true,
+          metadata: JSON.stringify({ profileUrl, source: 'onboarding' }),
+        });
+      }
+    }
 
     return NextResponse.json({
       id: newTenant.id,

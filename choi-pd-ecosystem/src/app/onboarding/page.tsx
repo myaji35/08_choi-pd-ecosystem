@@ -127,7 +127,7 @@ const PLANS: PlanOption[] = [
 
 // ---- 스텝 인디케이터 ----
 
-const STEPS = ['직업군 선택', '브랜드 정보', '플랜 선택', '완료'];
+const STEPS = ['직업군 선택', '브랜드 정보', '프로필 상세', '플랜 선택', '완료'];
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
@@ -190,6 +190,16 @@ export default function OnboardingPage() {
   const [plan, setPlan] = useState<PlanType>('free');
   const [fieldErrors, setFieldErrors] = useState<{ brandName?: string; slug?: string }>({});
 
+  // Step 2: 프로필 상세
+  const [ownerName, setOwnerName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [bio, setBio] = useState('');
+  const [snsInstagram, setSnsInstagram] = useState('');
+  const [snsYoutube, setSnsYoutube] = useState('');
+  const [snsFacebook, setSnsFacebook] = useState('');
+  const [privacyAgreed, setPrivacyAgreed] = useState(false);
+
   // slug 유효성 체크
   const checkSlug = useCallback(async (value: string) => {
     if (!value || value.length < 3) {
@@ -230,6 +240,8 @@ export default function OnboardingPage() {
       case 1:
         return brandName.trim().length >= 2 && slug.length >= 3 && slugStatus === 'available';
       case 2:
+        return ownerName.trim().length >= 2 && email.trim().length >= 5 && privacyAgreed;
+      case 3:
         return true; // 플랜은 기본값이 있으므로 항상 진행 가능
       default:
         return false;
@@ -249,11 +261,20 @@ export default function OnboardingPage() {
           profession,
           businessType: 'individual',
           plan,
+          ownerName,
+          email,
+          phone,
+          bio,
+          snsLinks: {
+            instagram: snsInstagram || undefined,
+            youtube: snsYoutube || undefined,
+            facebook: snsFacebook || undefined,
+          },
         }),
       });
 
       if (res.ok) {
-        setStep(3); // 완료 스텝으로 이동
+        setStep(4); // 완료 스텝으로 이동
       } else {
         const data = await res.json();
         toast.error(data.error || '테넌트 생성에 실패했습니다.');
@@ -284,7 +305,7 @@ export default function OnboardingPage() {
       setFieldErrors({});
     }
 
-    if (step === 2) {
+    if (step === 3) {
       handleSubmit();
     } else {
       setStep((s) => s + 1);
@@ -456,8 +477,162 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 2: 플랜 선택 */}
+        {/* Step 2: 프로필 상세 */}
         {step === 2 && (
+          <div>
+            <h2 className="text-2xl font-bold text-[#16325C] text-center mb-2">
+              프로필을 완성하세요
+            </h2>
+            <p className="text-sm text-gray-500 text-center mb-8">
+              입력된 정보로 홍보 페이지가 자동 구성됩니다.
+            </p>
+            <Card className="border-gray-200">
+              <CardContent className="p-6 space-y-5">
+                {/* 대표자 이름 */}
+                <div>
+                  <label htmlFor="ownerName" className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    대표자 이름 <span className="text-red-500" aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="ownerName"
+                    type="text"
+                    value={ownerName}
+                    onChange={(e) => setOwnerName(e.target.value)}
+                    placeholder="홍길동"
+                    aria-required="true"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+                  />
+                </div>
+
+                {/* 이메일 */}
+                <div>
+                  <label htmlFor="email" className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    이메일 <span className="text-red-500" aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="hello@example.com"
+                    aria-required="true"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+                  />
+                </div>
+
+                {/* 전화번호 */}
+                <div>
+                  <label htmlFor="phone" className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    전화번호 <span className="text-xs font-normal text-gray-400">(선택)</span>
+                  </label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="010-0000-0000"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+                  />
+                </div>
+
+                {/* 소개 */}
+                <div>
+                  <label htmlFor="bio" className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    한 줄 소개 <span className="text-xs font-normal text-gray-400">(선택, 홍보 페이지에 표시)</span>
+                  </label>
+                  <textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="어떤 일을 하시나요? 고객에게 보여줄 한 줄 소개를 입력하세요."
+                    rows={2}
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0] resize-none"
+                  />
+                </div>
+
+                {/* SNS 링크 */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-600 mb-2">
+                    SNS 계정 <span className="text-xs font-normal text-gray-400">(선택, 홍보 페이지에 자동 연결)</span>
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-pink-500 to-purple-600 text-white flex-shrink-0">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                        </svg>
+                      </span>
+                      <input
+                        type="text"
+                        value={snsInstagram}
+                        onChange={(e) => setSnsInstagram(e.target.value)}
+                        placeholder="Instagram 사용자명 또는 URL"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-red-600 text-white flex-shrink-0">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.13C5.12 19.56 12 19.56 12 19.56s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
+                          <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" />
+                        </svg>
+                      </span>
+                      <input
+                        type="text"
+                        value={snsYoutube}
+                        onChange={(e) => setSnsYoutube(e.target.value)}
+                        placeholder="YouTube 채널 URL"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-blue-600 text-white flex-shrink-0">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                        </svg>
+                      </span>
+                      <input
+                        type="text"
+                        value={snsFacebook}
+                        onChange={(e) => setSnsFacebook(e.target.value)}
+                        placeholder="Facebook 페이지 URL"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 개인정보 수집 동의 */}
+                <div className="pt-2 border-t border-gray-100">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={privacyAgreed}
+                      onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[#00A1E0] focus:ring-[#00A1E0]"
+                    />
+                    <span className="text-xs text-gray-600 leading-relaxed">
+                      <span className="font-semibold text-gray-700">[필수] 개인정보 수집·이용 동의</span>
+                      <br />
+                      수집항목: 이름, 이메일, 전화번호, SNS 계정 정보, SNS 공개 프로필 사진
+                      <br />
+                      수집목적: 브랜드 홍보 페이지 생성 및 서비스 제공
+                      <br />
+                      이용방법: SNS에 공개된 프로필 사진을 수집하여 브랜드 로고로 제안합니다 (변경 가능)
+                      <br />
+                      보유기간: 회원 탈퇴 시까지 (탈퇴 후 즉시 파기)
+                    </span>
+                  </label>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Step 3: 플랜 선택 */}
+        {step === 3 && (
           <div>
             <h2 className="text-2xl font-bold text-[#16325C] text-center mb-2">
               플랜을 선택하세요
@@ -525,8 +700,8 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 3: 완료 */}
-        {step === 3 && (
+        {/* Step 4: 완료 */}
+        {step === 4 && (
           <div className="text-center py-12">
             <div className="flex items-center justify-center w-16 h-16 rounded-full bg-[#00A1E0] text-white mx-auto mb-6">
               <Check className="h-8 w-8" />
@@ -573,7 +748,7 @@ export default function OnboardingPage() {
         )}
 
         {/* 네비게이션 버튼 (Step 0~2) */}
-        {step < 3 && (
+        {step < 4 && (
           <div className="flex justify-between mt-8">
             <Button
               variant="outline"
@@ -594,7 +769,7 @@ export default function OnboardingPage() {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   생성 중...
                 </>
-              ) : step === 2 ? (
+              ) : step === 3 ? (
                 '브랜드 생성'
               ) : (
                 <>
