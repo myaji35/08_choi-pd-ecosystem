@@ -1,11 +1,13 @@
 import { db } from '@/lib/db';
 import { enrichmentCache, enrichmentLog } from '@/lib/db/schema';
 import { gravatarCollector } from './gravatar';
+import { socialLookupCollector } from './social-lookup';
 import type { EnrichmentCollector, EnrichmentResult } from './types';
 
-// Phase 1: Gravatar만 활성화 / Phase 2에서 githubCollector 추가
+// 수집기 목록 — 순서대로 실행, 결과는 suggestion으로 저장 (사용자 동의 필요)
 const COLLECTORS: EnrichmentCollector[] = [
-  gravatarCollector, // P0: 무료, 빠름, 합법
+  gravatarCollector,      // 무료, 빠름, 합법
+  socialLookupCollector,  // GitHub + 소셜 URL 탐색
 ];
 
 /**
