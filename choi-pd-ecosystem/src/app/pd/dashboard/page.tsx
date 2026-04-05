@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useSession } from '@/hooks/use-session';
 import { useTenant } from '@/lib/tenant/useTenant';
 import { useTranslation } from '@/lib/i18n';
@@ -182,10 +183,10 @@ export default function PDDashboard() {
                     className="flex-1 border-gray-300"
                     asChild
                   >
-                    <a href="/pd/settings">
+                    <Link href="/pd/settings">
                       <Settings className="mr-1.5 h-3.5 w-3.5" />
                       편집
-                    </a>
+                    </Link>
                   </Button>
                 </div>
               </CardContent>
@@ -270,16 +271,16 @@ export default function PDDashboard() {
                 <p className="text-xs font-semibold text-[#16325C] mb-2">콘텐츠 관리</p>
                 <div className="space-y-1.5">
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/pd/dashboard/profile">{t('dashboard.profile')}</a>
+                    <Link href="/pd/dashboard/profile">{t('dashboard.profile')}</Link>
                   </Button>
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/pd/dashboard/hero-images">Hero 이미지</a>
+                    <Link href="/pd/dashboard/hero-images">Hero 이미지</Link>
                   </Button>
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/pd/dashboard/kanban">칸반 보드</a>
+                    <Link href="/pd/dashboard/kanban">칸반 보드</Link>
                   </Button>
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/pd/inquiries">문의 관리</a>
+                    <Link href="/pd/inquiries">문의 관리</Link>
                   </Button>
                 </div>
               </div>
@@ -289,16 +290,16 @@ export default function PDDashboard() {
                 <p className="text-xs font-semibold text-[#16325C] mb-2">SNS / 마케팅</p>
                 <div className="space-y-1.5">
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/pd/sns-accounts">SNS 계정 관리</a>
+                    <Link href="/pd/sns-accounts">SNS 계정 관리</Link>
                   </Button>
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/pd/scheduled-posts">예약 포스트</a>
+                    <Link href="/pd/scheduled-posts">예약 포스트</Link>
                   </Button>
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/pd/newsletter">뉴스레터 구독자</a>
+                    <Link href="/pd/newsletter">뉴스레터 구독자</Link>
                   </Button>
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/pd/notifications">알림 테스트</a>
+                    <Link href="/pd/notifications">알림 테스트</Link>
                   </Button>
                 </div>
               </div>
@@ -308,22 +309,22 @@ export default function PDDashboard() {
                 <p className="text-xs font-semibold text-[#16325C] mb-2">사이트 관리</p>
                 <div className="space-y-1.5">
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/pd/settings">
+                    <Link href="/pd/settings">
                       <Settings className="mr-2 h-4 w-4" />
                       {t('nav.settings')} (브랜딩/도메인)
-                    </a>
+                    </Link>
                   </Button>
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/admin/dashboard">분양 관리 대시보드</a>
+                    <Link href="/admin/dashboard">분양 관리 대시보드</Link>
                   </Button>
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/">홈페이지 보기</a>
+                    <Link href="/">홈페이지 보기</Link>
                   </Button>
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/education">교육 페이지</a>
+                    <Link href="/education">교육 페이지</Link>
                   </Button>
                   <Button variant="outline" className="w-full justify-start border-gray-300" asChild>
-                    <a href="/media">미디어 페이지</a>
+                    <Link href="/media">미디어 페이지</Link>
                   </Button>
                 </div>
               </div>

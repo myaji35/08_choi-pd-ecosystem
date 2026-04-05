@@ -20,7 +20,7 @@ export const revalidate = 60; // ISR: 1분마다 재생성 (프로필 이미지 
 
 export default async function HomePage() {
   // 프로필 이미지 파일의 수정 시간을 가져와서 캐시 버스팅
-  let profileImageTimestamp = Date.now();
+  let profileImageTimestamp = 0;
   try {
     const profilePath = join(process.cwd(), 'public', 'images', 'profile.jpg');
     const stats = await stat(profilePath);

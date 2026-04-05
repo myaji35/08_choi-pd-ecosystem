@@ -1,7 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
+
+const emptySubscribe = () => () => {};
+const getTrue = () => true;
+const getFalse = () => false;
 
 interface HeroSectionProps {
   profileImageTimestamp?: number;
@@ -9,14 +13,10 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({
-  profileImageTimestamp = Date.now(),
+  profileImageTimestamp = 0,
   heroImages = []
 }: HeroSectionProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(emptySubscribe, getTrue, getFalse);
 
   return (
     <section className="relative overflow-hidden bg-white">

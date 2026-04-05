@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useSession } from '@/hooks/use-session';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -152,10 +153,10 @@ export default function AdminDistributorDashboard() {
             <p className="text-base font-semibold text-gray-700 mb-1">아직 등록된 수요자가 없습니다</p>
             <p className="text-sm text-gray-500 mb-4">첫 번째 수요자를 등록하여 대시보드를 활성화하세요.</p>
             <Button asChild>
-              <a href="/admin/distributors/new">
+              <Link href="/admin/distributors/new">
                 <UserPlus className="mr-2 h-4 w-4" />
                 수요자 등록하기
-              </a>
+              </Link>
             </Button>
           </div>
         )}
@@ -234,22 +235,22 @@ export default function AdminDistributorDashboard() {
             </CardHeader>
             <CardContent className="space-y-2">
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/distributors">
+                <Link href="/admin/distributors">
                   <Users className="mr-2 h-4 w-4" />
                   전체 수요자 목록
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/distributors/pending">
+                <Link href="/admin/distributors/pending">
                   <Clock className="mr-2 h-4 w-4" />
                   승인 대기 ({stats?.pendingDistributors ?? 0})
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/distributors/new">
+                <Link href="/admin/distributors/new">
                   <UserPlus className="mr-2 h-4 w-4" />
                   신규 수요자 등록
-                </a>
+                </Link>
               </Button>
             </CardContent>
           </Card>
@@ -267,16 +268,16 @@ export default function AdminDistributorDashboard() {
             </CardHeader>
             <CardContent className="space-y-2">
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/resources">
+                <Link href="/admin/resources">
                   <FileText className="mr-2 h-4 w-4" />
                   전체 리소스
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/resources/new">
+                <Link href="/admin/resources/new">
                   <Download className="mr-2 h-4 w-4" />
                   새 자료 추가
-                </a>
+                </Link>
               </Button>
             </CardContent>
           </Card>
@@ -294,22 +295,22 @@ export default function AdminDistributorDashboard() {
             </CardHeader>
             <CardContent className="space-y-2">
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/activity-log">
+                <Link href="/admin/activity-log">
                   <FileText className="mr-2 h-4 w-4" />
                   활동 로그
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/analytics">
+                <Link href="/admin/analytics">
                   <TrendingUp className="mr-2 h-4 w-4" />
                   통계 대시보드
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/reports">
+                <Link href="/admin/reports">
                   <Download className="mr-2 h-4 w-4" />
                   리포트 다운로드
-                </a>
+                </Link>
               </Button>
             </CardContent>
           </Card>
@@ -327,22 +328,22 @@ export default function AdminDistributorDashboard() {
             </CardHeader>
             <CardContent className="space-y-2">
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/subscription-plans">
+                <Link href="/admin/subscription-plans">
                   <FileText className="mr-2 h-4 w-4" />
                   구독 플랜
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/payments">
+                <Link href="/admin/payments">
                   <CreditCard className="mr-2 h-4 w-4" />
                   결제 내역
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/admin/invoices">
+                <Link href="/admin/invoices">
                   <Receipt className="mr-2 h-4 w-4" />
                   영수증 관리
-                </a>
+                </Link>
               </Button>
             </CardContent>
           </Card>
@@ -357,24 +358,24 @@ export default function AdminDistributorDashboard() {
           <CardContent>
             <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/">
+                <Link href="/">
                   홈페이지 보기
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/education">
+                <Link href="/education">
                   교육 페이지
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/media">
+                <Link href="/media">
                   미디어 페이지
-                </a>
+                </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
-                <a href="/works">
+                <Link href="/works">
                   작품 페이지
-                </a>
+                </Link>
               </Button>
             </div>
           </CardContent>
