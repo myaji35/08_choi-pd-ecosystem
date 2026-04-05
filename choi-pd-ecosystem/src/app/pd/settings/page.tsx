@@ -284,6 +284,62 @@ export default function TenantSettingsPage() {
     }
   };
 
+  // enrichment 항목 [사용] 시 즉시 저장
+  const applyAndSave = async (suggestion: typeof enrichSuggestions[0], index: number) => {
+    if (!tenant) return;
+
+    // 1. 폼 상태 업데이트
+    let updatedProfile = { ...profile };
+    let updatedBranding = { ...branding };
+
+    if (suggestion.dataType === 'photo_url') {
+      updatedBranding = { ...updatedBranding, logoUrl: suggestion.value };
+      setBranding(updatedBranding);
+    }
+    if (suggestion.dataType === 'bio' && !profile.bio) {
+      updatedProfile = { ...updatedProfile, bio: suggestion.value };
+      setProfile(updatedProfile);
+    }
+    if (suggestion.dataType === 'name') {
+      // 활동명은 소개에 활용 가능 — 기존 ownerName이 비어있으면 채움
+      if (!profile.ownerName) {
+        updatedProfile = { ...updatedProfile, ownerName: suggestion.value };
+        setProfile(updatedProfile);
+      }
+    }
+
+    // 2. 제안 목록에서 제거
+    setEnrichSuggestions(prev => prev.filter((_, idx) => idx !== index));
+
+    // 3. 즉시 DB 저장
+    try {
+      const res = await fetch(`/api/tenants/${tenant.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          primaryColor: updatedBranding.primaryColor,
+          secondaryColor: updatedBranding.secondaryColor,
+          fontFamily: updatedBranding.fontFamily,
+          logoUrl: updatedBranding.logoUrl,
+          faviconUrl: updatedBranding.faviconUrl,
+          settings: JSON.stringify({
+            ownerName: updatedProfile.ownerName,
+            email: updatedProfile.email,
+            phone: updatedProfile.phone,
+            bio: updatedProfile.bio,
+            serviceDescription: updatedProfile.serviceDescription,
+          }),
+        }),
+      });
+
+      if (res.ok) {
+        setSaveMessage('적용되었습니다.');
+        await refresh();
+      }
+    } catch { /* ignore */ }
+    setTimeout(() => setSaveMessage(''), 2000);
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* 페이지 헤더 */}
@@ -451,15 +507,7 @@ export default function TenantSettingsPage() {
                       size="sm"
                       variant="outline"
                       className="text-xs border-green-300 text-green-700 hover:bg-green-50"
-                      onClick={() => {
-                        if (s.dataType === 'bio' && !profile.bio) {
-                          setProfile(p => ({ ...p, bio: s.value }));
-                        }
-                        if (s.dataType === 'photo_url') {
-                          setBranding(b => ({ ...b, logoUrl: s.value }));
-                        }
-                        setEnrichSuggestions(prev => prev.filter((_, idx) => idx !== i));
-                      }}
+                      onClick={() => applyAndSave(s, i)}
                     >
                       <Check className="h-3 w-3 mr-1" />
                       사용
@@ -479,7 +527,7 @@ export default function TenantSettingsPage() {
               );
             })}
             <p className="text-xs text-gray-400 mt-2">
-              [사용]을 누르면 위 폼에 반영됩니다. "변경사항 저장"을 눌러야 최종 저장됩니다.
+              [사용]을 누르면 즉시 프로필에 반영·저장됩니다.
             </p>
           </CardContent>
         </Card>
