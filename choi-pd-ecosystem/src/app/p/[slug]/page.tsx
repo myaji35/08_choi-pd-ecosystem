@@ -407,92 +407,99 @@ export default async function BrandPage({ params }: BrandPageProps) {
         )}
 
         {/* ---- 소유자: 페이지 완성 가이드 / 방문자: 없음 ---- */}
-        {isOwner && (
-          <section className="mb-8">
-            <div className="bg-white rounded-lg border-2 border-dashed border-[#00A1E0]/30 p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-[#00A1E0]/10 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-[#00A1E0]" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                    <polyline points="2 17 12 22 22 17" />
-                    <polyline points="2 12 12 17 22 12" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-bold text-[#16325C] mb-1">페이지를 완성해 보세요</h3>
-                  <p className="text-xs text-gray-500 mb-4">
-                    아래 항목을 채우면 방문자에게 더 풍성한 브랜드 페이지를 보여줄 수 있습니다.
-                  </p>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                      {bio ? (
-                        <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
-                      ) : (
-                        <span className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
-                      )}
-                      <span className={`text-sm ${bio ? 'text-gray-400 line-through' : 'text-gray-700'}`}>소개글 작성</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {tenant.logoUrl ? (
-                        <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
-                      ) : (
-                        <span className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
-                      )}
-                      <span className={`text-sm ${tenant.logoUrl ? 'text-gray-400 line-through' : 'text-gray-700'}`}>프로필 사진 / 로고 등록</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {tenantSns.length > 0 ? (
-                        <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
-                      ) : (
-                        <span className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
-                      )}
-                      <span className={`text-sm ${tenantSns.length > 0 ? 'text-gray-400 line-through' : 'text-gray-700'}`}>SNS 계정 연결</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {tenantCourses.length > 0 ? (
-                        <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
-                      ) : (
-                        <span className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
-                      )}
-                      <span className={`text-sm ${tenantCourses.length > 0 ? 'text-gray-400 line-through' : 'text-gray-700'}`}>서비스 / 교육 과정 등록</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {externalLinks.length > 0 ? (
-                        <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
-                      ) : (
-                        <span className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
-                      )}
-                      <span className={`text-sm ${externalLinks.length > 0 ? 'text-gray-400 line-through' : 'text-gray-700'}`}>외부 링크 추가 (홈페이지, 블로그 등)</span>
-                    </div>
+        {isOwner && (() => {
+          const checklist = [
+            { done: !!bio, label: '소개글 작성' },
+            { done: !!tenant.logoUrl, label: '프로필 사진 / 로고 등록' },
+            { done: tenantSns.length > 0, label: 'SNS 계정 연결' },
+            { done: tenantCourses.length > 0, label: '서비스 / 교육 과정 등록' },
+            { done: externalLinks.length > 0, label: '외부 링크 추가' },
+          ];
+          const doneCount = checklist.filter(c => c.done).length;
+          const allDone = doneCount === checklist.length;
+          const hasMinimum = doneCount >= 2; // 소개글+사진이면 최소 완성
+
+          return (
+            <section className="mb-8">
+              <div className="bg-white rounded-lg border-2 border-dashed border-[#00A1E0]/30 p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-[#00A1E0]/10 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-[#00A1E0]" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                      <polyline points="2 17 12 22 22 17" />
+                      <polyline points="2 12 12 17 22 12" />
+                    </svg>
                   </div>
-                  <div className="mt-5">
-                    <Link
-                      href={`/${slug}/settings`}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
-                      style={{ background: primaryColor }}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                      내 페이지 편집하기
-                    </Link>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="text-sm font-bold text-[#16325C]">
+                        {allDone ? '페이지가 완성되었습니다!' : '페이지를 완성해 보세요'}
+                      </h3>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{
+                        background: allDone ? '#059669' : doneCount >= 3 ? '#00A1E0' : '#d97706',
+                        color: 'white',
+                      }}>
+                        {doneCount}/{checklist.length}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-4">
+                      {allDone
+                        ? '모든 항목이 완성되었습니다. 방문자에게 멋진 페이지를 보여주세요.'
+                        : hasMinimum
+                          ? '기본 정보가 준비되었습니다. 나머지는 나중에 추가해도 됩니다.'
+                          : '아래 항목을 채우면 방문자에게 더 풍성한 브랜드 페이지를 보여줄 수 있습니다.'}
+                    </p>
+
+                    {/* 체크리스트 — 미완성 항목이 있을 때만 표시 */}
+                    {!allDone && (
+                      <div className="space-y-2 mb-5">
+                        {checklist.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-3">
+                            {item.done ? (
+                              <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                              </span>
+                            ) : (
+                              <span className="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0" />
+                            )}
+                            <span className={`text-sm ${item.done ? 'text-gray-400 line-through' : 'text-gray-700'}`}>{item.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 버튼 영역 */}
+                    <div className="flex flex-wrap gap-2">
+                      {!allDone && (
+                        <Link
+                          href={`/${slug}/settings`}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border border-gray-300 text-[#16325C] hover:bg-gray-50 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                          더 채우기
+                        </Link>
+                      )}
+                      <Link
+                        href={`/${slug}`}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+                        style={{ background: primaryColor }}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                        {hasMinimum ? '이대로 공개하기' : '미리보기'}
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
-        )}
+            </section>
+          );
+        })()}
 
         {/* ---- 푸터 ---- */}
         <footer className="text-center py-8 border-t border-gray-200">
