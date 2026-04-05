@@ -158,9 +158,9 @@ export default function TenantSettingsPage() {
       setBranding(tenant.branding);
     }
     // settings JSON에서 프로필 데이터 복원
-    if (tenant && 'settings' in tenant && typeof (tenant as Record<string, unknown>).settings === 'string') {
+    if (tenant?.settings && typeof tenant.settings === 'string') {
       try {
-        const s = JSON.parse((tenant as Record<string, unknown>).settings as string);
+        const s = JSON.parse(tenant.settings);
         setProfile({
           ownerName: s.ownerName || '',
           email: s.email || '',
@@ -171,6 +171,30 @@ export default function TenantSettingsPage() {
       } catch { /* ignore */ }
     }
   }, [tenant]);
+
+  // 페이지 진입 시 이메일이 있으면 자동 스캔
+  useEffect(() => {
+    if (!profile.email || enrichSuggestions.length > 0 || isScanning) return;
+    const doScan = async () => {
+      setIsScanning(true);
+      try {
+        const res = await fetch('/api/enrichment/self-scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: profile.email, name: profile.ownerName }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.suggestions?.length > 0) {
+            setEnrichSuggestions(data.suggestions);
+          }
+        }
+      } catch { /* ignore */ }
+      setIsScanning(false);
+    };
+    doScan();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile.email]);
 
   const hasCustomDomain = canUseFeature('customDomain');
 
@@ -372,6 +396,94 @@ export default function TenantSettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 공개 프로필 탐색 결과 — 브랜드 프로필 바로 아래 */}
+      {isScanning && (
+        <div className="rounded-lg border border-gray-200 bg-white p-4 flex items-center gap-3">
+          <Loader2 className="h-5 w-5 animate-spin text-[#00A1E0]" />
+          <p className="text-sm text-gray-600">공개 프로필 정보를 탐색하고 있습니다...</p>
+        </div>
+      )}
+
+      {enrichSuggestions.length > 0 && !isScanning && (
+        <Card className="border-2 border-green-200 bg-green-50/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-[#16325C] text-base">
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
+              </svg>
+              공개 프로필에서 {enrichSuggestions.length}건의 정보를 찾았습니다
+            </CardTitle>
+            <CardDescription>
+              이미 입력하신 이메일로 공개된 정보를 찾았습니다. 원하는 항목만 선택하세요.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {enrichSuggestions.map((s, i) => {
+              const typeLabels: Record<string, string> = {
+                photo_url: '프로필 사진',
+                bio: '소개글',
+                sns_url: 'SNS 링크',
+                location: '위치',
+                company: '소속',
+                name: '활동명',
+              };
+              const label = typeLabels[s.dataType] || s.dataType;
+              const isImage = s.dataType === 'photo_url';
+
+              return (
+                <div key={i} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                  {isImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={s.value} alt="프로필 사진 후보" className="w-12 h-12 rounded-full object-cover border border-gray-200" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-semibold text-gray-500">{s.source}</span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-gray-500">{label} · {s.source}</p>
+                    <p className="text-sm text-[#16325C] truncate">{isImage ? '발견된 프로필 사진' : s.value}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-gray-400">{Math.round(s.confidence * 100)}%</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs border-green-300 text-green-700 hover:bg-green-50"
+                      onClick={() => {
+                        if (s.dataType === 'bio' && !profile.bio) {
+                          setProfile(p => ({ ...p, bio: s.value }));
+                        }
+                        if (s.dataType === 'photo_url') {
+                          setBranding(b => ({ ...b, logoUrl: s.value }));
+                        }
+                        setEnrichSuggestions(prev => prev.filter((_, idx) => idx !== i));
+                      }}
+                    >
+                      <Check className="h-3 w-3 mr-1" />
+                      사용
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs text-gray-400 hover:text-gray-600"
+                      onClick={() => {
+                        setEnrichSuggestions(prev => prev.filter((_, idx) => idx !== i));
+                      }}
+                    >
+                      건너뛰기
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+            <p className="text-xs text-gray-400 mt-2">
+              [사용]을 누르면 위 폼에 반영됩니다. "변경사항 저장"을 눌러야 최종 저장됩니다.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 브랜드 컬러 */}
       <Card className="border-gray-200">
@@ -590,96 +702,6 @@ export default function TenantSettingsPage() {
           )}
         </Button>
       </div>
-
-      {/* 프로필 스캔 결과 — 사용자 동의 후 적용 */}
-      {isScanning && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4 flex items-center gap-3">
-          <Loader2 className="h-5 w-5 animate-spin text-[#00A1E0]" />
-          <p className="text-sm text-gray-600">공개 프로필 정보를 탐색하고 있습니다...</p>
-        </div>
-      )}
-
-      {enrichSuggestions.length > 0 && !isScanning && (
-        <Card className="border-2 border-green-200 bg-green-50/30">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-[#16325C] text-base">
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z" />
-              </svg>
-              공개 프로필에서 {enrichSuggestions.length}건의 정보를 찾았습니다
-            </CardTitle>
-            <CardDescription>
-              아래 정보를 사용하시겠습니까? 원하는 항목만 선택하여 프로필에 반영할 수 있습니다.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {enrichSuggestions.map((s, i) => {
-              const typeLabels: Record<string, string> = {
-                photo_url: '프로필 사진',
-                bio: '소개글',
-                sns_url: 'SNS 링크',
-                location: '위치',
-                company: '소속',
-                name: '이름',
-              };
-              const label = typeLabels[s.dataType] || s.dataType;
-              const isImage = s.dataType === 'photo_url';
-
-              return (
-                <div key={i} className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
-                  {isImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.value} alt="프로필 사진 후보" className="w-12 h-12 rounded-full object-cover border border-gray-200" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-semibold text-gray-500">{s.source}</span>
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-500">{label} · {s.source}</p>
-                    <p className="text-sm text-[#16325C] truncate">{isImage ? '발견된 프로필 사진' : s.value}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-gray-400">{Math.round(s.confidence * 100)}%</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs border-green-300 text-green-700 hover:bg-green-50"
-                      onClick={() => {
-                        // 항목별 자동 반영
-                        if (s.dataType === 'bio' && !profile.bio) {
-                          setProfile(p => ({ ...p, bio: s.value }));
-                        }
-                        if (s.dataType === 'photo_url') {
-                          setBranding(b => ({ ...b, logoUrl: s.value }));
-                        }
-                        // 사용한 항목 제거
-                        setEnrichSuggestions(prev => prev.filter((_, idx) => idx !== i));
-                      }}
-                    >
-                      <Check className="h-3 w-3 mr-1" />
-                      사용
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-xs text-gray-400 hover:text-gray-600"
-                      onClick={() => {
-                        setEnrichSuggestions(prev => prev.filter((_, idx) => idx !== i));
-                      }}
-                    >
-                      건너뛰기
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-            <p className="text-xs text-gray-400 mt-2">
-              "사용"을 누르면 해당 정보가 프로필 폼에 반영됩니다. 반영 후 "변경사항 저장"을 눌러야 최종 저장됩니다.
-            </p>
-          </CardContent>
-        </Card>
-      )}
 
       {/* 다음 단계 안내 */}
       {nextStepHint && (

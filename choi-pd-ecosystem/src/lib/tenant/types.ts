@@ -45,6 +45,7 @@ export interface Tenant {
   region: string | null;
   branding: TenantBranding;
   limits: PlanLimits;
+  settings?: string | null;
   createdAt: string;
 }
 

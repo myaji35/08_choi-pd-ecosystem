@@ -92,6 +92,7 @@ export function TenantProvider({ children, initialSlug }: TenantProviderProps) {
             plan: myTenant.plan || 'free',
             status: myTenant.status || 'active',
             region: myTenant.region || null,
+            settings: myTenant.settings || null,
             branding: {
               logoUrl: myTenant.logoUrl || null,
               faviconUrl: myTenant.faviconUrl || null,
