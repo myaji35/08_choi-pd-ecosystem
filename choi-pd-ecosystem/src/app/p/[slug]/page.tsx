@@ -459,7 +459,129 @@ export default async function BrandPage({ params }: BrandPageProps) {
           </section>
         )}
 
-        {/* 소유자 전용: 없음 — 어드민 바가 상단에 표시됨 */}
+        {/* ---- 직종 맞춤 서비스 쇼케이스 ---- */}
+        {tenantCourses.length === 0 && tenantSns.length === 0 && externalLinks.length === 0 && (() => {
+          // 직종별 맞춤 기능 설명
+          const professionFeatures: Record<string, Array<{ title: string; desc: string; icon: string }>> = {
+            pd: [
+              { title: '방송·콘텐츠 포트폴리오', desc: '제작 영상, 출연 프로그램, 수상 이력을 한눈에 보여줍니다.', icon: 'film' },
+              { title: '출연·섭외 문의', desc: '방송 출연, MC, 강연 섭외 요청을 바로 받을 수 있습니다.', icon: 'mic' },
+              { title: '크리에이터 교육', desc: '유튜브, 틱톡, 라이브 방송 노하우를 공유합니다.', icon: 'book' },
+              { title: 'SNS 채널 통합', desc: 'YouTube, Instagram 등 모든 채널을 한 페이지에서 관리합니다.', icon: 'share' },
+            ],
+            shopowner: [
+              { title: '상품 카탈로그', desc: '대표 상품과 신상품을 매력적으로 소개합니다.', icon: 'package' },
+              { title: '프로모션·이벤트', desc: '할인, 시즌 세일, 기획전 정보를 실시간 공유합니다.', icon: 'tag' },
+              { title: '고객 후기', desc: '실제 구매 고객의 리뷰와 평점을 보여줍니다.', icon: 'star' },
+              { title: '매장 안내', desc: '영업시간, 위치, 연락처를 한곳에서 안내합니다.', icon: 'map' },
+            ],
+            realtor: [
+              { title: '매물 리스트', desc: '추천 매물, 신규 매물을 사진과 함께 소개합니다.', icon: 'home' },
+              { title: '시세 리포트', desc: '지역별 시세 동향과 투자 분석 자료를 제공합니다.', icon: 'chart' },
+              { title: '상담 예약', desc: '온라인으로 상담 일정을 잡을 수 있습니다.', icon: 'calendar' },
+              { title: '자격·경력 소개', desc: '공인중개사 자격, 전문 분야, 거래 실적을 보여줍니다.', icon: 'award' },
+            ],
+            educator: [
+              { title: '강의 프로그램', desc: '온·오프라인 강의, 워크숍 일정을 소개합니다.', icon: 'book' },
+              { title: '수강 후기', desc: '수강생들의 생생한 후기와 성과를 보여줍니다.', icon: 'star' },
+              { title: '교육 자료', desc: '무료 콘텐츠, 샘플 강의로 전문성을 증명합니다.', icon: 'file' },
+              { title: '수강 신청', desc: '온라인으로 바로 수강 신청을 받을 수 있습니다.', icon: 'check' },
+            ],
+            insurance: [
+              { title: '보험 컨설팅', desc: '생명보험, 손해보험, 연금 등 맞춤 설계를 안내합니다.', icon: 'shield' },
+              { title: '자격·전문 분야', desc: 'MDRT, CFP 등 보유 자격과 전문 영역을 소개합니다.', icon: 'award' },
+              { title: '고객 사례', desc: '실제 설계 사례와 고객 만족도를 보여줍니다.', icon: 'users' },
+              { title: '무료 상담', desc: '온라인으로 무료 보험 상담을 신청할 수 있습니다.', icon: 'phone' },
+            ],
+            freelancer: [
+              { title: '서비스 소개', desc: '제공하는 서비스와 전문 분야를 상세히 안내합니다.', icon: 'briefcase' },
+              { title: '포트폴리오', desc: '작업물, 프로젝트 사례를 시각적으로 보여줍니다.', icon: 'image' },
+              { title: '고객 후기', desc: '함께 일한 클라이언트의 추천과 평가를 공유합니다.', icon: 'star' },
+              { title: '프로젝트 문의', desc: '새로운 프로젝트 의뢰를 바로 받을 수 있습니다.', icon: 'send' },
+            ],
+          };
+
+          const features = professionFeatures[tenant.profession] || professionFeatures.freelancer;
+
+          const iconSvgs: Record<string, React.ReactNode> = {
+            film: <path d="M19.82 2H4.18A2.18 2.18 0 0 0 2 4.18v15.64A2.18 2.18 0 0 0 4.18 22h15.64A2.18 2.18 0 0 0 22 19.82V4.18A2.18 2.18 0 0 0 19.82 2zM7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5" />,
+            mic: <><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></>,
+            book: <><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></>,
+            share: <><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" /></>,
+            package: <><line x1="16.5" y1="9.4" x2="7.5" y2="4.21" /><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></>,
+            tag: <><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" /></>,
+            star: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />,
+            map: <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></>,
+            home: <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></>,
+            chart: <><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></>,
+            calendar: <><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></>,
+            award: <><circle cx="12" cy="8" r="7" /><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" /></>,
+            shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
+            users: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>,
+            phone: <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />,
+            briefcase: <><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></>,
+            image: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></>,
+            send: <><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></>,
+            file: <><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" /><polyline points="13 2 13 9 20 9" /></>,
+            check: <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></>,
+          };
+
+          return (
+            <section className="mb-8">
+              <h2 className="text-base font-bold text-[#16325C] mb-1 text-center">
+                {tenant.name}에서 만나보세요
+              </h2>
+              <p className="text-xs text-gray-500 mb-4 text-center">
+                {professionInfo.label} 맞춤 브랜드 허브
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {features.map((f, idx) => (
+                  <div key={idx} className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${primaryColor}15` }}>
+                        <svg className="w-[18px] h-[18px]" style={{ color: primaryColor }} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          {iconSvgs[f.icon] || iconSvgs.briefcase}
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-[#16325C]">{f.title}</h3>
+                        <p className="text-xs text-gray-500 mt-0.5">{f.desc}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+            {/* CTA — 방문자에게는 문의, 소유자에게는 설정 */}
+            <div className="mt-4 text-center">
+              {isOwner ? (
+                <Link
+                  href={`/${slug}/settings`}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors"
+                  style={{ background: primaryColor }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  콘텐츠 등록 시작하기
+                </Link>
+              ) : (
+                <a
+                  href={contactEmail ? `mailto:${contactEmail}` : '#'}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors"
+                  style={{ background: primaryColor }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
+                  </svg>
+                  문의하기
+                </a>
+              )}
+            </div>
+          </section>
+          );
+        })()}
 
         {/* ---- 푸터 ---- */}
         <footer className="text-center py-8 border-t border-gray-200">
