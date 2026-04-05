@@ -228,10 +228,22 @@ export default function middleware(request: NextRequest) {
   const isKnownRoute = KNOWN_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   const isRootPath = pathname === '/';
 
-  if (!isKnownRoute && !isRootPath && /^\/[a-z0-9][a-z0-9-]*$/.test(pathname)) {
-    const url = request.nextUrl.clone();
-    url.pathname = `/p${pathname}`;
-    return NextResponse.rewrite(url);
+  if (!isKnownRoute && !isRootPath && /^\/[a-z0-9][a-z0-9-]*/.test(pathname)) {
+    // /{slug}/settings, /{slug}/dashboard 등 → /pd/* 로 rewrite
+    const slugMatch = pathname.match(/^\/([a-z0-9][a-z0-9-]*)\/(.+)$/);
+    if (slugMatch) {
+      const subPath = slugMatch[2]; // settings, dashboard, etc.
+      const url = request.nextUrl.clone();
+      url.pathname = `/pd/${subPath}`;
+      return NextResponse.rewrite(url);
+    }
+
+    // /{slug} (서브경로 없음) → /p/{slug} rewrite
+    if (/^\/[a-z0-9][a-z0-9-]*$/.test(pathname)) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/p${pathname}`;
+      return NextResponse.rewrite(url);
+    }
   }
 
   return NextResponse.next();

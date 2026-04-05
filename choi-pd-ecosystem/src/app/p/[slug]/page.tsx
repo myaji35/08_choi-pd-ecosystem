@@ -477,7 +477,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
                   </div>
                   <div className="mt-5">
                     <Link
-                      href="/pd/settings"
+                      href={`/${slug}/settings`}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
                       style={{ background: primaryColor }}
                     >
@@ -485,7 +485,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                       </svg>
-                      대시보드에서 편집하기
+                      내 페이지 편집하기
                     </Link>
                   </div>
                 </div>
