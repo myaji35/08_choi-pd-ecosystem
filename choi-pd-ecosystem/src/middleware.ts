@@ -218,6 +218,22 @@ export default function middleware(request: NextRequest) {
     }
   }
 
+  // ─── 테넌트 vanity URL: /{slug} → /p/{slug} rewrite ──────────
+  // 알려진 라우트가 아닌 최상위 경로는 테넌트 slug로 간주
+  const KNOWN_PREFIXES = [
+    '/admin', '/pd', '/chopd', '/api', '/login', '/onboarding',
+    '/signup', '/dashboard', '/p/', '/education', '/media', '/works',
+    '/community', '/pricing', '/_next', '/images', '/icons', '/fonts',
+  ];
+  const isKnownRoute = KNOWN_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const isRootPath = pathname === '/';
+
+  if (!isKnownRoute && !isRootPath && /^\/[a-z0-9][a-z0-9-]*$/.test(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/p${pathname}`;
+    return NextResponse.rewrite(url);
+  }
+
   return NextResponse.next();
 }
 
