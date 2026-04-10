@@ -124,10 +124,13 @@ export function SocialProofSection() {
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-6">
             파트너 및 교육 기관
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 opacity-60">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             {LOGOS.map((logo) => (
-              <div key={logo.name} className={`${logo.width} h-8 bg-gray-300 rounded flex items-center justify-center`}>
-                <span className="text-[10px] text-gray-500 font-medium">{logo.name}</span>
+              <div key={logo.name} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#00A1E0' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span className="text-sm font-medium text-gray-700">{logo.name}</span>
               </div>
             ))}
           </div>

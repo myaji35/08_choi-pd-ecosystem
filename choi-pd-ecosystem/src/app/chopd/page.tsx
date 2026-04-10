@@ -55,12 +55,6 @@ export default async function HomePage() {
       { '@type': 'Offer', price: '19000', priceCurrency: 'KRW', name: 'Pro', description: '브랜드 페이지 무제한, AI 콘텐츠 무제한, SNS 채널 5개, 예약 발행' },
       { '@type': 'Offer', price: '59000', priceCurrency: 'KRW', name: 'Biz', description: 'Pro 모든 기능 + 팀 멤버 5명, 전담 매니저, SLA 99.9%' },
     ],
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.9',
-      reviewCount: '500',
-      bestRating: '5',
-    },
     featureList: [
       'AI 콘텐츠 자동 생성',
       '11개 SNS/블로그 채널 동시 발행',
