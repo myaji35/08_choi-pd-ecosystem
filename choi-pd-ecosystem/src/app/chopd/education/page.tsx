@@ -120,8 +120,25 @@ export default async function EducationPage({ searchParams }: EducationPageProps
                 {type ? '해당 유형의 교육 과정을 준비 중입니다' : '새로운 교육 과정이 곧 시작됩니다'}
               </h3>
               <p className="text-gray-500 max-w-md mx-auto leading-relaxed">
-                현재 교육 과정을 준비 중입니다. 아래 문의하기를 통해 먼저 관심을 등록해주세요.
+                현재 교육 과정을 준비 중입니다. 관심 등록 시 오픈 알림을 가장 먼저 보내드립니다.
               </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <a
+                  href="#inquiry"
+                  className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+                  style={{ background: '#00A1E0' }}
+                >
+                  <svg className="mr-2 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  관심 등록 문의하기
+                </a>
+                <a
+                  href="/chopd/community"
+                  className="inline-flex items-center justify-center rounded-lg border-2 px-6 py-3 text-sm font-semibold transition-all duration-200 hover:bg-gray-50 hover:-translate-y-0.5"
+                  style={{ borderColor: '#16325C', color: '#16325C' }}
+                >
+                  커뮤니티 바로가기
+                </a>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -148,7 +165,7 @@ export default async function EducationPage({ searchParams }: EducationPageProps
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
               <a
-                href="mailto:contact@choipd.com"
+                href={`mailto:${contactInfo.email ?? 'contact@impd.kr'}`}
                 className="inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
                 style={{ background: '#00A1E0' }}
               >
