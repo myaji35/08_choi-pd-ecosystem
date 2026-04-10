@@ -1,11 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSnsPost } from '@/lib/ai';
+import { rateLimit } from '@/lib/rate-limit';
 
 const SESSION_COOKIE_NAME = 'impd_session';
 
 // POST /api/ai/generate/post - Generate SNS post draft
 export async function POST(request: NextRequest) {
   try {
+    // IP당 10회/분 제한
+    const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
+    const rl = rateLimit(`ai-generate:${ip}`, 10, 60_000);
+    if (!rl.success) {
+      return NextResponse.json(
+        { success: false, error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(rl.resetAt),
+          },
+        }
+      );
+    }
+
     // 인증 확인: 세션 쿠키에서 추출 (body userId 신뢰 금지)
     const isDevMode = process.env.DEV_MODE === 'true';
     const sessionCookie =

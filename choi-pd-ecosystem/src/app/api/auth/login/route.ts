@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 import { adminUsers, loginAttempts } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { rateLimit } from '@/lib/rate-limit';
 
 // JWT_SECRET 필수 — 폴백 문자열 없음
 function getJwtSecret(): Uint8Array {
@@ -38,8 +39,24 @@ async function recordLoginAttempt(
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, password } = await request.json();
     const ipAddress = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
+
+    // IP당 5회/분 제한
+    const rl = rateLimit(`login:${ipAddress}`, 5, 60_000);
+    if (!rl.success) {
+      return NextResponse.json(
+        { success: false, error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(rl.resetAt),
+          },
+        }
+      );
+    }
+
+    const { username, password } = await request.json();
     const userAgent = request.headers.get('user-agent');
 
     if (!username || !password) {

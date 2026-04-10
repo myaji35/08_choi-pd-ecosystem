@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { tenants } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { rateLimit } from '@/lib/rate-limit';
 
 // 직업군 목록 정의
 const PROFESSIONS = [
@@ -119,6 +120,22 @@ export async function GET() {
 // POST /api/onboarding — slug 사용 가능 여부 확인
 export async function POST(request: NextRequest) {
   try {
+    // IP당 30회/분 제한
+    const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown';
+    const rl = rateLimit(`slug-check:${ip}`, 30, 60_000);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.', code: 'TOO_MANY_REQUESTS' },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(rl.resetAt),
+          },
+        }
+      );
+    }
+
     // 인증 확인
     const clerkUserId = request.headers.get('x-clerk-user-id');
     const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
