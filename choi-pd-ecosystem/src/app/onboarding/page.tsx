@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -90,6 +90,7 @@ const PLANS: PlanOption[] = [
       '기본 대시보드',
       '교육 과정 10개',
       '유통사 5개',
+      'AI 월 5회 제한',
     ],
   },
   {
@@ -199,6 +200,29 @@ export default function OnboardingPage() {
   const [snsYoutube, setSnsYoutube] = useState('');
   const [snsFacebook, setSnsFacebook] = useState('');
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Step 4 완료 후 자동 리디렉션 카운트다운
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const slugDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (step === 4) {
+      setRedirectCountdown(3);
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (redirectCountdown === null) return;
+    if (redirectCountdown === 0) {
+      router.push('/pd/dashboard');
+      return;
+    }
+    const timer = setTimeout(() => setRedirectCountdown((c) => (c !== null ? c - 1 : null)), 1000);
+    return () => clearTimeout(timer);
+  }, [redirectCountdown, router]);
 
   // slug 유효성 체크
   const checkSlug = useCallback(async (value: string) => {
@@ -220,13 +244,22 @@ export default function OnboardingPage() {
     }
   }, []);
 
-  // slug 입력 핸들러
+  // slug 입력 핸들러 (300ms debounce)
   const handleSlugChange = (value: string) => {
     // slug는 소문자 알파벳, 숫자, 하이픈만 허용
     const sanitized = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
     setSlug(sanitized);
+
+    // 이전 debounce 타이머 취소
+    if (slugDebounceRef.current) {
+      clearTimeout(slugDebounceRef.current);
+    }
+
     if (sanitized.length >= 3) {
-      checkSlug(sanitized);
+      setSlugStatus('checking');
+      slugDebounceRef.current = setTimeout(() => {
+        checkSlug(sanitized);
+      }, 300);
     } else {
       setSlugStatus('idle');
     }
@@ -240,7 +273,7 @@ export default function OnboardingPage() {
       case 1:
         return brandName.trim().length >= 2 && slug.length >= 3 && slugStatus === 'available';
       case 2:
-        return ownerName.trim().length >= 2 && email.trim().length >= 5 && privacyAgreed;
+        return ownerName.trim().length >= 2 && EMAIL_REGEX.test(email.trim()) && privacyAgreed;
       case 3:
         return true; // 플랜은 기본값이 있으므로 항상 진행 가능
       default:
@@ -513,11 +546,32 @@ export default function OnboardingPage() {
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (emailError && EMAIL_REGEX.test(e.target.value.trim())) {
+                        setEmailError(null);
+                      }
+                    }}
+                    onBlur={() => {
+                      if (email.trim().length > 0 && !EMAIL_REGEX.test(email.trim())) {
+                        setEmailError('올바른 이메일 형식이 아닙니다');
+                      } else {
+                        setEmailError(null);
+                      }
+                    }}
                     placeholder="hello@example.com"
                     aria-required="true"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+                    aria-invalid={!!emailError}
+                    aria-describedby={emailError ? 'email-error' : undefined}
+                    className={`w-full px-3 py-2.5 border rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 ${
+                      emailError
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-gray-300 focus:border-[#00A1E0] focus:ring-[#00A1E0]'
+                    }`}
                   />
+                  {emailError && (
+                    <p id="email-error" role="alert" className="mt-1 text-xs text-red-600">{emailError}</p>
+                  )}
                 </div>
 
                 {/* 전화번호 */}
@@ -650,6 +704,8 @@ export default function OnboardingPage() {
                   className={`cursor-pointer transition-all hover:shadow-md border-2 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00A1E0] focus-visible:ring-offset-2 ${
                     plan === p.id
                       ? 'border-[#00A1E0] shadow-md'
+                      : p.popular
+                      ? 'border-[#00A1E0] hover:shadow-md'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                   onClick={() => setPlan(p.id)}
@@ -663,7 +719,7 @@ export default function OnboardingPage() {
                   {p.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                       <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white" style={{ background: '#00A1E0' }}>
-                        인기
+                        가장 인기
                       </span>
                     </div>
                   )}
@@ -721,20 +777,27 @@ export default function OnboardingPage() {
               </p>
             </div>
 
+            {/* 자동 리디렉션 안내 */}
+            {redirectCountdown !== null && redirectCountdown > 0 && (
+              <p className="text-sm text-gray-500 mb-4">
+                {redirectCountdown}초 후 대시보드로 이동합니다...
+              </p>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
-                onClick={() => router.push(`/${slug}`)}
+                onClick={() => router.push('/pd/dashboard')}
                 className="bg-[#00A1E0] hover:bg-[#0090c8] text-white"
               >
-                내 브랜드 페이지 보기
+                지금 바로 이동하기
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <Button
-                onClick={() => router.push('/pd/dashboard')}
+                onClick={() => router.push(`/p/${slug}`)}
                 variant="outline"
                 className="border-gray-300 text-[#16325C]"
               >
-                대시보드로 이동
+                내 브랜드 페이지 보기
               </Button>
               <Button
                 variant="outline"

@@ -112,16 +112,35 @@ export default async function BrandPage({ params }: BrandPageProps) {
   const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
   let isOwner = false;
 
-  if (sessionCookie || isDevMode) {
-    // dev mode에서는 dev_user가 소유자인지 확인
-    const userId = isDevMode ? 'dev_user' : null;
-    if (userId) {
+  // 세션 쿠키가 있으면 JWT에서 userId 추출, 개발모드에서는 'dev_user' 사용
+  let sessionUserId: string | null = null;
+  if (sessionCookie) {
+    try {
+      const { verifySessionToken } = await import('@/lib/auth/session');
+      const session = await verifySessionToken(sessionCookie);
+      if (session?.userId) {
+        sessionUserId = String(session.userId);
+      }
+    } catch {
+      // 세션 파싱 실패 시 무시
+    }
+  }
+  if (!sessionUserId && isDevMode) {
+    sessionUserId = 'dev_user';
+  }
+
+  if (sessionUserId) {
+    // tenant.clerkUserId와 직접 비교 (가장 빠른 경로)
+    if (tenant.clerkUserId && tenant.clerkUserId === sessionUserId) {
+      isOwner = true;
+    } else {
+      // tenantMembers 테이블에서 owner 멤버십 확인
       const membership = await db
         .select()
         .from(tenantMembers)
         .where(and(
           eq(tenantMembers.tenantId, tenant.id),
-          eq(tenantMembers.clerkUserId, userId),
+          eq(tenantMembers.clerkUserId, sessionUserId),
           eq(tenantMembers.role, 'owner')
         ))
         .get();
