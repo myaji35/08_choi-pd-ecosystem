@@ -30,6 +30,7 @@ import {
   FileText,
   Briefcase,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import type { TenantBranding, PlanType } from '@/lib/tenant/types';
 
 // ---- 프리셋 컬러 ----
@@ -124,7 +125,6 @@ export default function TenantSettingsPage() {
   const { tenant, canUseFeature, refresh } = useTenant();
   const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState('');
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [nextStepHint, setNextStepHint] = useState<{ message: string; href: string; action: string } | null>(null);
   const [enrichSuggestions, setEnrichSuggestions] = useState<Array<{ source: string; dataType: string; value: string; confidence: number }>>([]);
@@ -168,7 +168,10 @@ export default function TenantSettingsPage() {
           bio: s.bio || '',
           serviceDescription: s.serviceDescription || '',
         });
-      } catch { /* ignore */ }
+      } catch (e) {
+        console.error('Settings parse error:', e);
+        toast.error('설정 로드 중 오류가 발생했습니다');
+      }
     }
   }, [tenant]);
 
@@ -188,11 +191,13 @@ export default function TenantSettingsPage() {
         if (data.suggestions?.length > 0) {
           setEnrichSuggestions(data.suggestions);
         } else {
-          setSaveMessage('공개된 프로필 정보를 찾지 못했습니다.');
-          setTimeout(() => setSaveMessage(''), 3000);
+          toast.error('공개된 프로필 정보를 찾지 못했습니다.');
         }
       }
-    } catch { /* ignore */ }
+    } catch (e) {
+      console.error('Settings parse error:', e);
+      toast.error('설정 로드 중 오류가 발생했습니다');
+    }
     setIsScanning(false);
   };
 
@@ -201,7 +206,6 @@ export default function TenantSettingsPage() {
   const handleSave = async () => {
     if (!tenant) return;
     setIsSaving(true);
-    setSaveMessage('');
 
     try {
       const res = await fetch(`/api/tenants/${tenant.id}`, {
@@ -224,7 +228,7 @@ export default function TenantSettingsPage() {
       });
 
       if (res.ok) {
-        setSaveMessage('설정이 저장되었습니다.');
+        toast.success('설정이 저장되었습니다');
         await refresh();
 
         // 다음 단계 안내 — 저장 완료 후 가장 필요한 행동 제안
@@ -249,13 +253,12 @@ export default function TenantSettingsPage() {
         }
       } else {
         const data = await res.json();
-        setSaveMessage(data.error || '저장에 실패했습니다.');
+        toast.error(data.error || '저장 중 오류가 발생했습니다');
       }
     } catch {
-      setSaveMessage('네트워크 오류가 발생했습니다.');
+      toast.error('저장 중 오류가 발생했습니다');
     } finally {
       setIsSaving(false);
-      setTimeout(() => setSaveMessage(''), 3000);
     }
   };
 
@@ -308,11 +311,15 @@ export default function TenantSettingsPage() {
       });
 
       if (res.ok) {
-        setSaveMessage('적용되었습니다.');
+        toast.success('적용되었습니다');
         await refresh();
+      } else {
+        toast.error('저장 중 오류가 발생했습니다');
       }
-    } catch { /* ignore */ }
-    setTimeout(() => setSaveMessage(''), 2000);
+    } catch (e) {
+      console.error('Settings parse error:', e);
+      toast.error('저장 중 오류가 발생했습니다');
+    }
   };
 
   return (
@@ -722,19 +729,8 @@ export default function TenantSettingsPage() {
         </CardContent>
       </Card>
 
-      {/* 저장 버튼 + 메시지 */}
-      <div className="flex items-center justify-between">
-        <div>
-          {saveMessage && (
-            <span
-              className={`text-sm ${
-                saveMessage.includes('저장') ? 'text-green-600' : 'text-red-600'
-              }`}
-            >
-              {saveMessage}
-            </span>
-          )}
-        </div>
+      {/* 저장 버튼 */}
+      <div className="flex items-center justify-end">
         <Button
           onClick={handleSave}
           disabled={isSaving}
@@ -878,27 +874,37 @@ export default function TenantSettingsPage() {
                     </ul>
 
                     {/* CTA 버튼 */}
-                    <Button
-                      className="w-full text-white font-semibold"
-                      style={{
-                        background: isCurrent ? '#9ca3af' : plan.color,
-                        cursor: isCurrent || isDowngrade ? 'default' : 'pointer',
-                      }}
-                      disabled={isCurrent || isDowngrade}
-                      onClick={() => {
-                        // Stripe Checkout 연동 (ISS-010 참조)
-                        window.open(
-                          `/api/stripe/checkout?plan=${plan.key}`,
-                          '_blank'
-                        );
-                      }}
-                    >
-                      {isCurrent
-                        ? '사용 중'
-                        : isDowngrade
-                          ? '다운그레이드 불가'
-                          : plan.cta}
-                    </Button>
+                    {isCurrent ? (
+                      <Button
+                        className="w-full text-white font-semibold"
+                        style={{ background: '#9ca3af', cursor: 'default' }}
+                        disabled
+                      >
+                        사용 중
+                      </Button>
+                    ) : isDowngrade ? (
+                      <Button
+                        className="w-full font-semibold"
+                        variant="outline"
+                        disabled
+                      >
+                        다운그레이드 불가
+                      </Button>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-xs text-center text-amber-600 font-medium">
+                          준비 중입니다. 문의:
+                        </p>
+                        <a
+                          href={`mailto:contact@impd.com?subject=${encodeURIComponent(`[업그레이드 문의] ${plan.name} 플랜`)}`}
+                          className="flex items-center justify-center gap-1.5 w-full px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+                          style={{ background: plan.color }}
+                        >
+                          <Mail className="h-4 w-4" />
+                          contact@impd.com
+                        </a>
+                      </div>
+                    )}
                   </div>
                 );
               })}
