@@ -97,9 +97,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
           <Link href="/" className="text-2xl font-bold tracking-tight text-white">imPD</Link>
           <div className="hidden md:flex space-x-8 items-center">
-            <a href="#professions" className="text-gray-300 font-medium hover:text-white transition-colors text-sm">직종별 데모</a>
-            <a href="#features" className="text-gray-300 font-medium hover:text-white transition-colors text-sm">기능</a>
-            <a href="#why" className="text-gray-300 font-medium hover:text-white transition-colors text-sm">왜 imPD?</a>
+            <a href="#professions" className="text-white/80 font-semibold hover:text-white transition-colors text-sm">직종별 데모</a>
+            <a href="#features" className="text-white/80 font-semibold hover:text-white transition-colors text-sm">기능</a>
+            <a href="#why" className="text-white/80 font-semibold hover:text-white transition-colors text-sm">왜 imPD?</a>
           </div>
           <Link
             href="/onboarding"
@@ -123,9 +123,9 @@ export default function LandingPage() {
           <div className="relative max-w-7xl mx-auto px-6 pt-32 pb-20 md:pt-40 md:pb-28">
             {/* 메인 카피 */}
             <div className="max-w-4xl">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 mb-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 border border-white/20 mb-8">
                 <Zap className="w-4 h-4 text-yellow-400" />
-                <span className="text-sm text-gray-300 font-medium">프리랜서·개인사업자 전용 비즈니스 플랫폼</span>
+                <span className="text-sm text-white/80 font-medium">프리랜서·개인사업자 전용 비즈니스 플랫폼</span>
               </div>
 
               <h1 className="text-5xl md:text-7xl font-black leading-[1.1] tracking-tight text-white mb-8">
@@ -135,7 +135,7 @@ export default function LandingPage() {
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-gray-400 max-w-2xl leading-relaxed mb-12">
+              <p className="text-xl md:text-2xl text-gray-300 max-w-2xl leading-relaxed mb-12">
                 프로필, 포트폴리오, 예약, 결제, 분석까지.<br className="hidden md:block" />
                 흩어진 당신의 비즈니스를 <strong className="text-white">5분 만에 통합</strong>합니다.
               </p>
@@ -150,7 +150,7 @@ export default function LandingPage() {
                 </Link>
                 <a
                   href="#professions"
-                  className="border border-white/20 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/5 transition-colors text-center"
+                  className="border-2 border-white/40 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/10 transition-colors text-center"
                 >
                   직종별 데모 체험
                 </a>
@@ -162,7 +162,7 @@ export default function LandingPage() {
               {stats.map((s) => (
                 <div key={s.label} className="text-center md:text-left">
                   <div className="text-3xl md:text-4xl font-black text-white mb-1">{s.value}</div>
-                  <div className="text-sm text-gray-500 font-medium">{s.label}</div>
+                  <div className="text-sm text-gray-400 font-medium">{s.label}</div>
                 </div>
               ))}
             </div>
