@@ -5,10 +5,18 @@
 
 const https = require('https');
 
-const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || 'sk_test_YIs3iTmMEzOBBK5IJ41jlsT09y1ggPH8VYKWUazc0X';
-const OLD_EMAIL = 'admin@test.com';
-const NEW_EMAIL = 'admin@choipd.com';
-const NEW_PASSWORD = 'ChoiPD!2024#Admin';
+const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
+if (!CLERK_SECRET_KEY) {
+  console.error('❌ CLERK_SECRET_KEY 환경변수가 설정되지 않았습니다.');
+  process.exit(1);
+}
+const OLD_EMAIL = process.env.ADMIN_OLD_EMAIL || 'admin@test.com';
+const NEW_EMAIL = process.env.ADMIN_EMAIL || 'admin@choipd.com';
+const NEW_PASSWORD = process.env.ADMIN_PASSWORD;
+if (!NEW_PASSWORD) {
+  console.error('❌ ADMIN_PASSWORD 환경변수가 설정되지 않았습니다.');
+  process.exit(1);
+}
 
 function makeRequest(options, data = null) {
   return new Promise((resolve, reject) => {

@@ -5,9 +5,17 @@
 
 const https = require('https');
 
-const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || 'sk_test_YIs3iTmMEzOBBK5IJ41jlsT09y1ggPH8VYKWUazc0X';
-const ADMIN_EMAIL = 'admin@choipd.com';
-const ADMIN_PASSWORD = 'ChoiPD!2024#Admin';
+const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
+if (!CLERK_SECRET_KEY) {
+  console.error('❌ CLERK_SECRET_KEY 환경변수가 설정되지 않았습니다.');
+  process.exit(1);
+}
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@choipd.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+if (!ADMIN_PASSWORD) {
+  console.error('❌ ADMIN_PASSWORD 환경변수가 설정되지 않았습니다.');
+  process.exit(1);
+}
 
 function createUser() {
   const data = JSON.stringify({
