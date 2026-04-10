@@ -45,17 +45,48 @@ export function InteractiveDemoSection() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleGenerate = useCallback(() => {
+  const handleGenerate = useCallback(async () => {
     if (!text.trim()) return;
     setIsGenerating(true);
     setResults(null);
 
-    // Simulate AI generation delay
-    setTimeout(() => {
+    try {
+      const platforms = ['instagram', 'facebook'] as const;
+      const results = await Promise.all(
+        platforms.map(async (platform) => {
+          const res = await fetch('/api/ai/generate/post', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              topic: text,
+              platform,
+              tone: 'casual',
+              userId: 'demo-user',
+              userType: 'distributor',
+            }),
+          });
+          if (!res.ok) throw new Error(`${res.status}`);
+          const json = await res.json();
+          return json;
+        })
+      );
+
+      const mapped = results.map((r, i) => ({
+        channel: platforms[i] as string,
+        label: platforms[i] === 'instagram' ? '인스타그램' : '페이스북',
+        color: platforms[i] === 'instagram' ? '#E4405F' : '#1877F2',
+        content: r.data?.post ?? '',
+        hashtags: undefined as string[] | undefined,
+      }));
+
+      setResults(mapped);
+    } catch {
+      // API 실패 시 mock 데이터로 fallback
       setResults(MOCK_RESULTS.default);
+    } finally {
       setIsGenerating(false);
       setActiveTab(0);
-    }, 1500);
+    }
   }, [text]);
 
   return (
@@ -116,44 +147,57 @@ export function InteractiveDemoSection() {
 
             {/* Results */}
             {results && (
-              <div className="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
-                {/* Tabs */}
-                <div className="flex border-b border-white/10">
-                  {results.map((r, i) => (
-                    <button
-                      key={r.channel}
-                      onClick={() => setActiveTab(i)}
-                      className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                        activeTab === i
-                          ? 'border-white text-white'
-                          : 'border-transparent text-white/80 hover:text-white'
-                      }`}
-                    >
-                      <span className="w-2 h-2 rounded-full" style={{ background: r.color }} />
-                      {r.label}
-                    </button>
-                  ))}
-                </div>
-                {/* Content */}
-                <div className="p-5">
-                  <div className="whitespace-pre-wrap text-sm text-white/90 leading-relaxed">
-                    {results[activeTab].content}
+              <>
+                <div className="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
+                  {/* Tabs */}
+                  <div className="flex border-b border-white/10">
+                    {results.map((r, i) => (
+                      <button
+                        key={r.channel}
+                        onClick={() => setActiveTab(i)}
+                        className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                          activeTab === i
+                            ? 'border-white text-white'
+                            : 'border-transparent text-white/80 hover:text-white'
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full" style={{ background: r.color }} />
+                        {r.label}
+                      </button>
+                    ))}
                   </div>
-                  {results[activeTab].hashtags && (
-                    <div className="flex flex-wrap gap-1.5 mt-4">
-                      {results[activeTab].hashtags!.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
-                          style={{ background: results[activeTab].color }}
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                  {/* Content */}
+                  <div className="p-5">
+                    <div className="whitespace-pre-wrap text-sm text-white/90 leading-relaxed">
+                      {results[activeTab].content}
                     </div>
-                  )}
+                    {results[activeTab].hashtags && (
+                      <div className="flex flex-wrap gap-1.5 mt-4">
+                        {results[activeTab].hashtags!.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
+                            style={{ background: results[activeTab].color }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+
+                {/* 결과 하단 전환 CTA */}
+                <div className="mt-4 text-center">
+                  <Link
+                    href="/onboarding"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold text-white transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+                    style={{ background: '#00A1E0' }}
+                  >
+                    가입하면 모든 채널에 바로 발행 →
+                  </Link>
+                </div>
+              </>
             )}
 
             {/* CTA */}

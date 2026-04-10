@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const emptySubscribe = () => () => {};
 const getTrue = () => true;
@@ -22,11 +23,13 @@ export function HeroSection({
     <section className="relative overflow-hidden bg-white">
       {/* 히어로 배경 이미지 — 커리어 여성 */}
       <div className="absolute inset-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&q=85&auto=format&fit=crop"
-          alt=""
-          className="w-full h-full object-cover"
+          alt="AI 브랜드 매니저 서비스 배경 — 현대적인 오피스 공간"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
         />
         {/* 오버레이 — 왼쪽 텍스트 영역만 밝게, 오른쪽은 이미지 살림 */}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.75) 45%, rgba(255,255,255,0.35) 100%)' }} />
