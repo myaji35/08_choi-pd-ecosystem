@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateSnsPost } from '@/lib/ai';
 
+const SESSION_COOKIE_NAME = 'impd_session';
+
 // POST /api/ai/generate/post - Generate SNS post draft
 export async function POST(request: NextRequest) {
   try {
+    // 인증 확인: 세션 쿠키에서 추출 (body userId 신뢰 금지)
+    const isDevMode = process.env.DEV_MODE === 'true';
+    const sessionCookie =
+      request.cookies.get(SESSION_COOKIE_NAME)?.value ||
+      request.cookies.get('admin_session')?.value;
+
+    if (!isDevMode && !sessionCookie) {
+      return NextResponse.json(
+        { success: false, error: '인증이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
 
     const { topic, platform, tone, userId, userType } = body;
@@ -49,7 +64,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error generating SNS post:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: '처리 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

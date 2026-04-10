@@ -75,7 +75,7 @@ export async function POST(
   } catch (error: any) {
     console.error('Error adding member:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: '처리 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
@@ -118,7 +118,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching members:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: '처리 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

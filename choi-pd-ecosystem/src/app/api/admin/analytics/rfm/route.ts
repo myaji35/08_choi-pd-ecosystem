@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error creating RFM segment:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: '처리 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching RFM segments:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: '처리 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

@@ -95,7 +95,7 @@ export default function middleware(request: NextRequest) {
   if (pathname.startsWith('/chopd/admin')) {
     const subPath = pathname.replace('/chopd/admin', '') || '';
     const realPath = `/admin${subPath}`;
-    const isDevModeChopd = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    const isDevModeChopd = process.env.DEV_MODE === 'true';
 
     // 로그인 페이지는 인증 체크 없이 통과
     if (realPath === '/admin/login') {
@@ -119,7 +119,7 @@ export default function middleware(request: NextRequest) {
   if (pathname.startsWith('/chopd/pd')) {
     const subPath = pathname.replace('/chopd/pd', '') || '';
     const realPath = `/pd${subPath}`;
-    const isDevModePd = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    const isDevModePd = process.env.DEV_MODE === 'true';
 
     // 로그인 페이지는 인증 체크 없이 통과
     if (realPath === '/pd/login') {
@@ -159,7 +159,7 @@ export default function middleware(request: NextRequest) {
 
     if (!isPublicApi) {
       // 개발 모드에서는 통과
-      const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+      const isDevMode = process.env.DEV_MODE === 'true';
 
       if (!isDevMode) {
         const sessionCookie =
@@ -189,7 +189,7 @@ export default function middleware(request: NextRequest) {
   }
 
   // 개발 모드에서는 페이지 인증 체크 스킵
-  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+  const isDevMode = process.env.DEV_MODE === 'true';
 
   // Check for protected admin routes (직접 접근 시 → /chopd/admin으로 리디렉트)
   if (pathname.startsWith('/admin')) {

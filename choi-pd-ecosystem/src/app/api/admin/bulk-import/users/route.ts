@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
           row: i + 1,
           email: row.email || 'unknown',
           status: 'failed',
-          error: error.message
+          error: '행 처리 중 오류가 발생했습니다.'
         });
       }
     }
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error processing bulk import:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: '처리 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching import logs:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: '처리 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

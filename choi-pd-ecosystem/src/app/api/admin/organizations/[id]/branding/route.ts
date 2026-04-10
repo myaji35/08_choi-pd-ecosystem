@@ -45,7 +45,7 @@ export async function GET(
   } catch (error: any) {
     console.error('Error fetching branding:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: '처리 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
@@ -112,7 +112,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('Error updating branding:', error);
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: '처리 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
