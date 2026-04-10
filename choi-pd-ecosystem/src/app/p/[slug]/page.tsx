@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
 import { tenants, courses, snsAccounts, tenantMembers } from '@/lib/db/schema';
@@ -87,6 +87,52 @@ interface BrandPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// ---- generateMetadata ----
+
+export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
+  const { slug } = await params;
+
+  const tenantResult = await db
+    .select()
+    .from(tenants)
+    .where(and(eq(tenants.slug, slug), eq(tenants.status, 'active')))
+    .limit(1);
+
+  if (tenantResult.length === 0) {
+    return { title: 'imPD' };
+  }
+
+  const tenant = tenantResult[0];
+  const tenantSettings = tenant.settings ? JSON.parse(tenant.settings) : {};
+  const tenantMetadata = tenant.metadata ? JSON.parse(tenant.metadata) : {};
+
+  const bio = tenantSettings.bio || tenantMetadata.bio || '';
+  const serviceDescription = tenantSettings.serviceDescription || '';
+  const description =
+    bio || serviceDescription || `${tenant.name}의 브랜드 페이지입니다.`;
+
+  const ogImage = tenant.logoUrl || '/og-default.png';
+  const pageUrl = `https://impd.townin.net/p/${slug}`;
+
+  return {
+    title: `${tenant.name} | imPD`,
+    description,
+    openGraph: {
+      title: `${tenant.name} | imPD`,
+      description,
+      url: pageUrl,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: `${tenant.name} 대표 이미지` }],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${tenant.name} | imPD`,
+      description,
+      images: [ogImage],
+    },
+  };
+}
+
 export default async function BrandPage({ params }: BrandPageProps) {
   const { slug } = await params;
 
@@ -159,17 +205,17 @@ export default async function BrandPage({ params }: BrandPageProps) {
   const externalLinks: Array<{ label: string; url: string }> = tenantSettings.externalLinks || [];
   const youtubeUrl = tenantSettings.youtubeUrl || '';
 
-  // 해당 테넌트의 공개 교육 과정
-  const tenantCourses = await db
-    .select()
-    .from(courses)
-    .where(and(eq(courses.tenantId, tenant.id), eq(courses.published, true)));
-
-  // 해당 테넌트의 활성 SNS 계정
-  const tenantSns = await db
-    .select()
-    .from(snsAccounts)
-    .where(and(eq(snsAccounts.tenantId, tenant.id), eq(snsAccounts.isActive, true)));
+  // 병렬 쿼리: 교육 과정 + SNS 계정
+  const [tenantCourses, tenantSns] = await Promise.all([
+    db
+      .select()
+      .from(courses)
+      .where(and(eq(courses.tenantId, tenant.id), eq(courses.published, true))),
+    db
+      .select()
+      .from(snsAccounts)
+      .where(and(eq(snsAccounts.tenantId, tenant.id), eq(snsAccounts.isActive, true))),
+  ]);
 
   return (
     <div className="min-h-screen bg-[#F3F2F2]">
@@ -256,6 +302,34 @@ export default async function BrandPage({ params }: BrandPageProps) {
       <main className="max-w-3xl mx-auto px-4 sm:px-6 -mt-2">
 
         {/* ---- 프로필 카드 (좌: 정보, 우: 명함 뒷면 인라인) ---- */}
+        {!(ownerName || serviceDescription || contactEmail || contactPhone) && (
+          <section className="mb-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-500 mb-3">아직 프로필이 작성되지 않았습니다.</p>
+              {isOwner ? (
+                <Link
+                  href="/pd/settings"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
+                  style={{ color: '#00A1E0' }}
+                >
+                  프로필 편집하기
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </Link>
+              ) : (
+                <p className="text-xs text-gray-400">곧 업데이트 예정입니다.</p>
+              )}
+            </div>
+          </section>
+        )}
         {(ownerName || serviceDescription || contactEmail || contactPhone) && (
           <section className="mb-6">
             <div className="bg-white rounded-lg border border-gray-200 p-6">
