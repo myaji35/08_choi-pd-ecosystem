@@ -50,14 +50,14 @@ function createUser() {
       if (res.statusCode === 200 || res.statusCode === 201) {
         console.log('✅ Admin user created successfully!');
         console.log('Email:', ADMIN_EMAIL);
-        console.log('Password:', ADMIN_PASSWORD);
+        console.log('Password: [설정된 환경변수 ADMIN_PASSWORD 사용]');
         console.log('\nYou can now login at:');
         console.log('- Local: http://localhost:3011/admin/login');
         console.log('- Production: https://choi-pd-ecosystem-l4kjszfzd-myaji35s-projects.vercel.app/admin/login');
       } else if (res.statusCode === 422) {
         console.log('ℹ️  User already exists!');
         console.log('Email:', ADMIN_EMAIL);
-        console.log('Password:', ADMIN_PASSWORD);
+        console.log('Password: [설정된 환경변수 ADMIN_PASSWORD 사용]');
       } else {
         console.error('❌ Error creating user:');
         console.error('Status:', res.statusCode);

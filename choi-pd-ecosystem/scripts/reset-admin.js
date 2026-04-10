@@ -119,7 +119,7 @@ async function main() {
     console.log('✅ Admin account created successfully!\n');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('📧 Email:    ', NEW_EMAIL);
-    console.log('🔒 Password: ', NEW_PASSWORD);
+    console.log('🔒 Password: [설정된 환경변수 ADMIN_PASSWORD 사용]');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     console.log('🌐 Login URLs:');
     console.log('   Local:      http://localhost:3011/admin/login');
