@@ -4,6 +4,7 @@ import { inquiries } from '@/lib/db/schema';
 import { z } from 'zod';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { withTenantId } from '@/lib/tenant/query-helpers';
+import { notifyInquiry } from '@/lib/notifications/inquiry';
 
 const inquirySchema = z.object({
   name: z.string().min(2, '이름을 입력해주세요'),
@@ -27,9 +28,26 @@ export async function POST(request: NextRequest) {
       }, tenantId))
       .returning();
 
+    const saved = result[0];
+
+    // 알림 파이프라인 (실패해도 접수 자체는 성공으로 간주)
+    const notify = await notifyInquiry({
+      id: saved.id,
+      name: validatedData.name,
+      email: validatedData.email,
+      phone: validatedData.phone ?? null,
+      message: validatedData.message,
+      type: validatedData.type,
+      createdAt: saved.createdAt ?? null,
+    });
+    if (notify.errors.length > 0) {
+      console.warn('[inquiries] 알림 실패:', notify.errors);
+    }
+
     return NextResponse.json({
       success: true,
-      data: result[0],
+      data: saved,
+      notify: { admin: notify.adminEmail, autoReply: notify.autoReply, webhook: notify.webhook },
       message: '문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.',
     });
   } catch (error) {
