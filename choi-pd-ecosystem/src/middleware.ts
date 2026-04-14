@@ -4,6 +4,24 @@ import type { NextRequest } from 'next/server';
 const SESSION_COOKIE_NAME = 'impd_session';
 
 /**
+ * JWT payload의 role 필드 디코드 (서명 검증은 API 레벨에서 수행)
+ * Edge Runtime에서 jwtVerify 호출 최소화. 위변조 차단이 아닌 "최소한의 role 분기" 용도.
+ */
+function decodeSessionRole(token: string | undefined): string | null {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(
+      Buffer.from(parts[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8')
+    );
+    return typeof payload?.role === 'string' ? payload.role : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * 서브도메인에서 tenantSlug 추출
  * 패턴: {slug}.impd.158.247.235.31.nip.io → slug
  *        {slug}.impd.io → slug (프로덕션)
@@ -149,8 +167,14 @@ export default function middleware(request: NextRequest) {
     '/api/tenants/by-slug/',
   ];
 
+  // /api/choi는 GET만 공개 (브랜드 색상 조회), 쓰기는 세션 필요
+  const isChoiWriteApi =
+    pathname.startsWith('/api/choi') && request.method !== 'GET';
+
   const isProtectedApi =
-    pathname.startsWith('/api/admin') || pathname.startsWith('/api/pd');
+    pathname.startsWith('/api/admin') ||
+    pathname.startsWith('/api/pd') ||
+    isChoiWriteApi;
 
   if (isProtectedApi) {
     const isPublicApi = PUBLIC_API_PATHS.some((p) =>
@@ -191,21 +215,33 @@ export default function middleware(request: NextRequest) {
   // 개발 모드에서는 페이지 인증 체크 스킵
   const isDevMode = process.env.DEV_MODE === 'true';
 
-  // Check for protected admin routes (직접 접근 시 → /chopd/admin으로 리디렉트)
-  if (pathname.startsWith('/admin')) {
+  // Check for protected admin routes — admin role 필수
+  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
     const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-
     if (!sessionCookie && !isDevMode) {
       return NextResponse.redirect(new URL('/login?callbackUrl=/chopd/admin/dashboard', request.url));
     }
+    if (sessionCookie && !isDevMode) {
+      const role = decodeSessionRole(sessionCookie);
+      if (role !== 'admin') {
+        return NextResponse.redirect(new URL('/login?error=admin_required&callbackUrl=/chopd/admin/dashboard', request.url));
+      }
+    }
   }
 
-  // Check for protected PD routes (직접 접근 시 → /chopd/pd로 리디렉트)
-  if (pathname.startsWith('/pd')) {
+  // Check for protected PD routes — 로그인 필수 (role은 /pd 내부에서 구분)
+  if (pathname.startsWith('/pd') && pathname !== '/pd/login') {
     const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-
     if (!sessionCookie && !isDevMode) {
       return NextResponse.redirect(new URL('/login?callbackUrl=/chopd/pd/dashboard', request.url));
+    }
+  }
+
+  // Check for protected /choi/admin routes (최PD 전용 관리 UI)
+  if (pathname.startsWith('/choi/admin')) {
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+    if (!sessionCookie && !isDevMode) {
+      return NextResponse.redirect(new URL('/login?callbackUrl=/choi/admin', request.url));
     }
   }
 
@@ -221,7 +257,7 @@ export default function middleware(request: NextRequest) {
   // ─── 테넌트 vanity URL: /{slug} → /p/{slug} rewrite ──────────
   // 알려진 라우트가 아닌 최상위 경로는 테넌트 slug로 간주
   const KNOWN_PREFIXES = [
-    '/admin', '/pd', '/chopd', '/api', '/login', '/onboarding',
+    '/admin', '/pd', '/chopd', '/choi', '/api', '/login', '/onboarding',
     '/signup', '/dashboard', '/p/', '/education', '/media', '/works',
     '/community', '/pricing', '/_next', '/images', '/icons', '/fonts',
   ];
