@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { appendUtm, profileShareUtm } from '@/lib/pomelli/utm';
 
 interface SharePanelProps {
   slug: string;
@@ -9,27 +10,51 @@ interface SharePanelProps {
   compact?: boolean;
 }
 
+/** 공유 이벤트를 fire-and-forget으로 기록한다. */
+function trackShare(slug: string, platform: string) {
+  const payload = JSON.stringify({ tenantSlug: slug, eventType: 'share', platform });
+  if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+    const blob = new Blob([payload], { type: 'application/json' });
+    navigator.sendBeacon('/api/analytics/track', blob);
+  } else {
+    fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true,
+    }).catch(() => { /* 무음 처리 */ });
+  }
+}
+
 export function SharePanel({ slug, brandName, primaryColor, compact = false }: SharePanelProps) {
   const [isPublished, setIsPublished] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const pageUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/${slug}`
-    : `https://impd.io/${slug}`;
+  const baseUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/p/${slug}`
+    : `https://impd.io/p/${slug}`;
+
+  // 채널별 UTM 링크
+  const pageUrl = baseUrl; // UTM 없는 기본 URL (URL 표시용)
+  const linkUrl = appendUtm(baseUrl, profileShareUtm('link'));
+  const kakaoUrl = appendUtm(baseUrl, profileShareUtm('kakao'));
+  const smsUrl = appendUtm(baseUrl, profileShareUtm('sms'));
+  const nativeShareUrl = appendUtm(baseUrl, profileShareUtm('native_share'));
 
   const handlePublish = () => {
     setIsPublished(true);
   };
 
   const handleCopy = async () => {
+    const copyTarget = linkUrl;
     try {
-      await navigator.clipboard.writeText(pageUrl);
+      await navigator.clipboard.writeText(copyTarget);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // fallback
       const input = document.createElement('input');
-      input.value = pageUrl;
+      input.value = copyTarget;
       document.body.appendChild(input);
       input.select();
       document.execCommand('copy');
@@ -37,6 +62,7 @@ export function SharePanel({ slug, brandName, primaryColor, compact = false }: S
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+    trackShare(slug, 'copy');
   };
 
   const handleShare = async () => {
@@ -45,17 +71,18 @@ export function SharePanel({ slug, brandName, primaryColor, compact = false }: S
         await navigator.share({
           title: brandName,
           text: `${brandName} 브랜드 페이지를 확인해 보세요!`,
-          url: pageUrl,
+          url: nativeShareUrl,
         });
-      } catch { /* cancelled */ }
+        trackShare(slug, 'native_share');
+      } catch { /* cancelled — 트래킹 생략 */ }
     } else {
       handleCopy();
     }
   };
 
   const handleKakao = () => {
-    const kakaoUrl = `https://sharer.kakao.com/talk/friends/picker/shorturl?app_key=javascript_key&request_url=${encodeURIComponent(pageUrl)}`;
-    window.open(`https://story.kakao.com/share?url=${encodeURIComponent(pageUrl)}`, '_blank', 'width=600,height=400');
+    window.open(`https://story.kakao.com/share?url=${encodeURIComponent(kakaoUrl)}`, '_blank', 'width=600,height=400');
+    trackShare(slug, 'kakao');
   };
 
   // compact 모드: 어드민 바 안에서 작은 공유 버튼만
@@ -147,7 +174,8 @@ export function SharePanel({ slug, brandName, primaryColor, compact = false }: S
         </button>
 
         <a
-          href={`sms:?body=${encodeURIComponent(`${brandName} 브랜드 페이지: ${pageUrl}`)}`}
+          href={`sms:?body=${encodeURIComponent(`${brandName} 브랜드 페이지: ${smsUrl}`)}`}
+          onClick={() => trackShare(slug, 'sms')}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border border-gray-300 text-[#16325C] hover:bg-gray-50 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">

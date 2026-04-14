@@ -7,6 +7,7 @@ import { tenants, courses, snsAccounts, personalDna, members } from '@/lib/db/sc
 import { eq, and } from 'drizzle-orm';
 import Link from 'next/link';
 import { OwnerBar } from './OwnerBar';
+import { ViewTracker } from './ViewTracker';
 import { AboutSection } from './sections/AboutSection';
 import { ServicesSection } from './sections/ServicesSection';
 import { TrustSection } from './sections/TrustSection';
@@ -170,6 +171,9 @@ export default async function BrandPage({ params }: BrandPageProps) {
 
   return (
     <div className="min-h-screen bg-[#F3F2F2]">
+      {/* ---- view 이벤트 기록 (클라이언트, 세션당 1회) ---- */}
+      <ViewTracker slug={slug} />
+
       {/* ---- 소유자 전용: 슬림 어드민 바 (클라이언트 아일랜드) ---- */}
       <OwnerBar slug={slug} brandName={tenant.name} />
 
