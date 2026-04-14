@@ -6,6 +6,8 @@ import { getSession } from '@/lib/auth/session';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter, withTenantCondition } from '@/lib/tenant/query-helpers';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/admin/members - 회원 목록 조회
 export async function GET(request: NextRequest) {
   try {
