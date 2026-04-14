@@ -12,6 +12,7 @@ import { ServicesSection } from './sections/ServicesSection';
 import { TrustSection } from './sections/TrustSection';
 import { ActivitySection } from './sections/ActivitySection';
 import { ChannelHub } from './sections/ChannelHub';
+import { BusinessTrustSection, type BusinessInfo } from './sections/BusinessTrustSection';
 
 // ---- 직업군 한글 라벨 + 배지 색상 ----
 
@@ -155,6 +156,18 @@ export default async function BrandPage({ params }: BrandPageProps) {
     })();
   const pressMentions: number = Number(tenantMetadata.pressMentions) || 0;
 
+  // 사업자 정보 파싱 (settings.businessInfo 하위 키)
+  const businessInfo: BusinessInfo | null = (() => {
+    try {
+      const raw = tenantSettings.businessInfo;
+      if (!raw) return null;
+      if (typeof raw === 'object') return raw as BusinessInfo;
+      return JSON.parse(raw) as BusinessInfo;
+    } catch {
+      return null;
+    }
+  })();
+
   return (
     <div className="min-h-screen bg-[#F3F2F2]">
       {/* ---- 소유자 전용: 슬림 어드민 바 (클라이언트 아일랜드) ---- */}
@@ -253,6 +266,9 @@ export default async function BrandPage({ params }: BrandPageProps) {
 
         {/* ---- Channel Hub 섹션: 채널별 활성화 점수 게이지 ---- */}
         <ChannelHub snsAccounts={tenantSns} />
+
+        {/* ---- 사업자 신뢰블록: 법적 정보 + 수상 공인 ---- */}
+        <BusinessTrustSection businessInfo={businessInfo} awards={awards} />
 
         {/* ---- 푸터 ---- */}
         <footer className="text-center py-8 border-t border-gray-200">
