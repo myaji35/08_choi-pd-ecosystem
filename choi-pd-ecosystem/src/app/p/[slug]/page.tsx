@@ -3,8 +3,8 @@ export const revalidate = 86400;
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { db } from '@/lib/db';
-import { tenants, courses, snsAccounts, personalDna, members } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { tenants, courses, snsAccounts, personalDna, members, posts, works } from '@/lib/db/schema';
+import { eq, and, desc } from 'drizzle-orm';
 import { OwnerBar } from './OwnerBar';
 import { ViewTracker } from './ViewTracker';
 import { HeroSection } from './sections/HeroSection';
@@ -108,12 +108,23 @@ export default async function BrandPage({ params }: BrandPageProps) {
   const serviceDescription = tenantSettings.serviceDescription || '';
   const externalLinks: Array<{ label: string; url: string }> = tenantSettings.externalLinks || [];
 
-  // 병렬 쿼리: 교육 과정 + SNS 계정 + 멤버
-  const [tenantCourses, tenantSns, tenantMembers] = await Promise.all([
+  // 병렬 쿼리: 교육 과정 + SNS 계정 + 멤버 + 포스트 + 작품
+  const [tenantCourses, tenantSns, tenantMembers, tenantPosts, tenantWorks] = await Promise.all([
     db.select().from(courses).where(and(eq(courses.tenantId, tenant.id), eq(courses.published, true))),
     db.select().from(snsAccounts).where(and(eq(snsAccounts.tenantId, tenant.id), eq(snsAccounts.isActive, true))),
     db.select().from(members).where(eq(members.tenantId, tenant.id)).limit(1),
+    db.select().from(posts)
+      .where(and(eq(posts.tenantId, tenant.id), eq(posts.published, true)))
+      .orderBy(desc(posts.createdAt))
+      .limit(5),
+    db.select().from(works)
+      .where(eq(works.tenantId, tenant.id))
+      .orderBy(desc(works.createdAt))
+      .limit(12),
   ]);
+
+  const tenantBooks = tenantWorks.filter((w) => w.category === 'gallery').slice(0, 6);
+  const tenantPress = tenantWorks.filter((w) => w.category === 'press').slice(0, 6);
 
   // Personal DNA — 핵심 가치 추출
   let coreValues: string[] = [];
@@ -198,9 +209,9 @@ export default async function BrandPage({ params }: BrandPageProps) {
         />
         <ActivitySection snsAccounts={tenantSns} />
         <ChannelHub snsAccounts={tenantSns} />
-        <FeedSection />
-        <BooksSection />
-        <PressSection />
+        <FeedSection posts={tenantPosts} />
+        <BooksSection books={tenantBooks} />
+        <PressSection pressItems={tenantPress} />
         <CalendarSection />
         <BusinessTrustSection businessInfo={businessInfo} awards={awards} />
         <ContactSection tenantId={tenant.id} primaryColor={primaryColor} />
