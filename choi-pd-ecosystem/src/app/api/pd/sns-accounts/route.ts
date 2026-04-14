@@ -4,6 +4,12 @@ import { snsAccounts } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter } from '@/lib/tenant/query-helpers';
+import { encryptToken, maskToken } from '@/lib/crypto/token-cipher';
+
+/** 토큰 필드를 마스킹한 안전 버전으로 변환 (목록/조회 응답용) */
+function safeAccount<T extends { accessToken: string; refreshToken: string | null }>(a: T) {
+  return { ...a, accessToken: maskToken(a.accessToken), refreshToken: maskToken(a.refreshToken) };
+}
 
 // GET /api/pd/sns-accounts - SNS 계정 목록 조회
 export async function GET(request: NextRequest) {
@@ -41,7 +47,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      accounts: results,
+      accounts: results.map(safeAccount),
     });
   } catch (error) {
     console.error('Failed to fetch SNS accounts:', error);
@@ -75,14 +81,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // SNS 계정 생성 (tenantId 주입)
+    // SNS 계정 생성 — 토큰은 AES-256-GCM 암호화 후 저장 (개인정보보호법 대응)
     const result = await db.insert(snsAccounts).values({
       tenantId,
       platform: platform as 'facebook' | 'instagram' | 'twitter' | 'linkedin',
       accountName,
       accountId: accountId || null,
-      accessToken,
-      refreshToken: refreshToken || null,
+      accessToken: encryptToken(accessToken),
+      refreshToken: refreshToken ? encryptToken(refreshToken) : null,
       tokenExpiresAt: tokenExpiresAt ? new Date(tokenExpiresAt) : null,
       isActive: true,
       lastSyncedAt: null,
@@ -91,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      account: result[0],
+      account: safeAccount(result[0]),
     });
   } catch (error) {
     console.error('Failed to create SNS account:', error);

@@ -3,6 +3,11 @@ import { db } from '@/lib/db';
 import { snsAccounts } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { encryptToken, maskToken } from '@/lib/crypto/token-cipher';
+
+function safeAccount<T extends { accessToken: string; refreshToken: string | null }>(a: T) {
+  return { ...a, accessToken: maskToken(a.accessToken), refreshToken: maskToken(a.refreshToken) };
+}
 
 // GET /api/pd/sns-accounts/[id] - SNS 계정 상세 조회
 export async function GET(
@@ -34,7 +39,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ success: true, account });
+    return NextResponse.json({ success: true, account: safeAccount(account) });
   } catch (error) {
     console.error('Failed to fetch SNS account:', error);
     return NextResponse.json(
@@ -78,8 +83,8 @@ export async function PUT(
 
     if (accountName !== undefined) updateData.accountName = accountName;
     if (accountId !== undefined) updateData.accountId = accountId;
-    if (accessToken !== undefined) updateData.accessToken = accessToken;
-    if (refreshToken !== undefined) updateData.refreshToken = refreshToken;
+    if (accessToken !== undefined) updateData.accessToken = encryptToken(accessToken);
+    if (refreshToken !== undefined) updateData.refreshToken = refreshToken ? encryptToken(refreshToken) : null;
     if (tokenExpiresAt !== undefined)
       updateData.tokenExpiresAt = Math.floor(new Date(tokenExpiresAt).getTime() / 1000);
     if (isActive !== undefined) updateData.isActive = isActive;
@@ -101,7 +106,7 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      account: result[0],
+      account: safeAccount(result[0]),
     });
   } catch (error) {
     console.error('Failed to update SNS account:', error);
