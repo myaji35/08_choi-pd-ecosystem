@@ -149,6 +149,7 @@ export function ChannelHub({ snsAccounts, snsHistory = [] }: ChannelHubProps) {
   }
 
   // snsHistory에서 플랫폼별 최신 성공 날짜 + 30일 게시 횟수 계산
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const ms30d = 30 * 24 * 60 * 60 * 1000;
 

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { db } from '@/lib/db';
 import { tenants } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -6,6 +6,31 @@ import { eq, and } from 'drizzle-orm';
 interface BrandPageLayoutProps {
   children: React.ReactNode;
   params: Promise<{ slug: string }>;
+}
+
+export async function generateViewport({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Viewport> {
+  const { slug } = await params;
+
+  const result = await db
+    .select({ primaryColor: tenants.primaryColor })
+    .from(tenants)
+    .where(and(eq(tenants.slug, slug), eq(tenants.status, 'active')))
+    .limit(1);
+
+  const themeColor =
+    result.length > 0 && result[0].primaryColor
+      ? result[0].primaryColor
+      : '#00A1E0';
+
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    themeColor,
+  };
 }
 
 export async function generateMetadata({

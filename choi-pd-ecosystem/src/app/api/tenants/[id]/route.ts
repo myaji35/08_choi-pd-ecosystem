@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { tenants } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -143,6 +144,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         { status: 404 }
       );
     }
+
+    // 브랜드 페이지 ISR 캐시 무효화
+    revalidatePath(`/p/${updated.slug}`);
 
     return NextResponse.json(updated);
 
