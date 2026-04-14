@@ -21,6 +21,31 @@ export const courses = sqliteTable('courses', {
   index('idx_courses_tenant').on(table.tenantId),
 ]);
 
+// Enrollments Table (수강권/구매 기록) — 외부 결제 webhook이 쓰는 대장
+// VOD는 외부 플랫폼(Toss/Stripe)으로 결제되지만, 자체 사이트에서 "내 강의" 접근 제어를 위해 필요
+export const enrollments = sqliteTable('enrollments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  tenantId: integer('tenant_id').default(1).references(() => tenants.id),
+  userId: text('user_id').notNull(), // session.userId (Clerk or dev)
+  courseId: integer('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
+  provider: text('provider', { enum: ['toss', 'stripe', 'manual'] }).notNull(),
+  externalOrderId: text('external_order_id'), // provider 측 order/session id (멱등키)
+  amount: integer('amount'), // KRW 단위
+  status: text('status', { enum: ['pending', 'paid', 'refunded', 'canceled'] }).default('pending').notNull(),
+  paidAt: integer('paid_at', { mode: 'timestamp' }),
+  refundedAt: integer('refunded_at', { mode: 'timestamp' }),
+  metadata: text('metadata'), // webhook payload snapshot (JSON)
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index('idx_enrollments_user').on(table.userId),
+  index('idx_enrollments_course').on(table.courseId),
+  uniqueIndex('uq_enrollments_provider_order').on(table.provider, table.externalOrderId),
+]);
+
+export type Enrollment = typeof enrollments.$inferSelect;
+export type NewEnrollment = typeof enrollments.$inferInsert;
+
 // Posts Table (공지사항/소식)
 export const posts = sqliteTable('posts', {
   id: integer('id').primaryKey({ autoIncrement: true }),

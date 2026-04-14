@@ -97,8 +97,10 @@ export function CourseCard({ course, variant = 'default' }: CourseCardProps) {
 
       <CardFooter className="flex gap-2">
         {course.externalLink ? (
+          // /api/checkout/start 경유: 로그인 상태 확인 + orderId/userId/courseId 주입 후 외부 리다이렉트
+          // webhook이 orderId를 키로 enrollments 생성 → /dashboard/my-courses 에서 수강권 노출
           <Button asChild className="w-full">
-            <Link href={course.externalLink} target="_blank" rel="noopener noreferrer">
+            <Link href={`/api/checkout/start?courseId=${course.id}`} rel="noopener noreferrer">
               수강 신청하기
               <ExternalLink className="ml-2 h-4 w-4" />
             </Link>

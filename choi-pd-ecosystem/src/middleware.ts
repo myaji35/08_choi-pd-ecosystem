@@ -165,6 +165,9 @@ export default function middleware(request: NextRequest) {
     '/api/auth/',
     '/api/courses',
     '/api/tenants/by-slug/',
+    '/api/payments/webhook/', // provider 서명 기반 인증 — 세션 쿠키 없이 접근 허용
+    '/api/checkout/start', // 내부에서 세션 검증 후 외부 결제로 redirect
+    '/api/enrollments/me', // 내부에서 requireAuth() 가드
   ];
 
   // /api/choi는 GET만 공개 (브랜드 색상 조회), 쓰기는 세션 필요
