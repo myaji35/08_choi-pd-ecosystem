@@ -11,6 +11,7 @@ import { AboutSection } from './sections/AboutSection';
 import { ServicesSection } from './sections/ServicesSection';
 import { TrustSection } from './sections/TrustSection';
 import { ActivitySection } from './sections/ActivitySection';
+import { ChannelHub } from './sections/ChannelHub';
 
 // ---- 직업군 한글 라벨 + 배지 색상 ----
 
@@ -249,6 +250,9 @@ export default async function BrandPage({ params }: BrandPageProps) {
         <ActivitySection
           snsAccounts={tenantSns}
         />
+
+        {/* ---- Channel Hub 섹션: 채널별 활성화 점수 게이지 ---- */}
+        <ChannelHub snsAccounts={tenantSns} />
 
         {/* ---- 푸터 ---- */}
         <footer className="text-center py-8 border-t border-gray-200">
