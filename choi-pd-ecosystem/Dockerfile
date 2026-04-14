@@ -39,6 +39,9 @@ ARG NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DOCKER_BUILD=true
 ENV NODE_ENV=production
+# 빌드 타임 더미 시크릿 (런타임에는 docker run -e 로 실제 값 주입)
+ENV JWT_SECRET=build-time-placeholder-replace-at-runtime
+ENV ENCRYPTION_KEY=build-time-placeholder-0123456789abcdef
 
 # Create SQLite DB with schema for build-time page generation
 RUN mkdir -p data
