@@ -53,3 +53,6 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Font subset cache (intermediate build artifact)
+.font-cache/
