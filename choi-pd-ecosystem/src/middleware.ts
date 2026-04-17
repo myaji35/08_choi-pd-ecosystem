@@ -263,6 +263,7 @@ export default function middleware(request: NextRequest) {
     '/admin', '/pd', '/chopd', '/choi', '/api', '/login', '/onboarding',
     '/signup', '/dashboard', '/p/', '/education', '/media', '/works',
     '/community', '/pricing', '/_next', '/images', '/icons', '/fonts',
+    '/up', // kamal-proxy healthcheck
   ];
   const isKnownRoute = KNOWN_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   const isRootPath = pathname === '/';
