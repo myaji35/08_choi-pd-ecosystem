@@ -13,7 +13,15 @@ import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
+const METADATA_BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.NEXT_PUBLIC_PUBLIC_URL ||
+  (process.env.NODE_ENV === 'production'
+    ? 'http://impd.158.247.235.31.nip.io:3030'
+    : 'http://localhost:3008');
+
 export const metadata: Metadata = {
+  metadataBase: new URL(METADATA_BASE_URL),
   title: {
     default: 'imPD - 최범희 PD | 스마트폰 창업 전문가',
     template: '%s | imPD',

@@ -57,34 +57,80 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
     .where(and(eq(tenants.slug, slug), eq(tenants.status, 'active')))
     .limit(1);
 
-  if (tenantResult.length === 0) {
+  // 1) tenants 에 있으면 기존 로직
+  if (tenantResult.length > 0) {
+    const tenant = tenantResult[0];
+    const tenantSettings = tenant.settings ? JSON.parse(tenant.settings) : {};
+    const tenantMetadata = tenant.metadata ? JSON.parse(tenant.metadata) : {};
+
+    const bio = tenantSettings.bio || tenantMetadata.bio || '';
+    const serviceDescription = tenantSettings.serviceDescription || '';
+    const description = bio || serviceDescription || `${tenant.name}의 브랜드 페이지입니다.`;
+
+    const ogImage = tenant.logoUrl || `/p/${slug}/opengraph-image`;
+    // 실제 서비스 도메인 기준 (nip.io, localhost 등은 client가 알아서 override 가능)
+    const pageUrl = `/p/${slug}`;
+
+    return {
+      title: `${tenant.name} | imPD`,
+      description,
+      openGraph: {
+        title: `${tenant.name} | imPD`,
+        description,
+        url: pageUrl,
+        images: [{ url: ogImage, width: 1200, height: 630, alt: `${tenant.name} 대표 이미지` }],
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${tenant.name} | imPD`,
+        description,
+        images: [ogImage],
+      },
+    };
+  }
+
+  // 2) tenants 없으면 distributors 에서 찾아 독립 메타 생성
+  const distRows = await db
+    .select({
+      name: distributors.name,
+      region: distributors.region,
+      identityJson: distributors.identityJson,
+    })
+    .from(distributors)
+    .where(eq(distributors.slug, slug))
+    .limit(1);
+
+  if (distRows.length === 0) {
     return { title: 'imPD' };
   }
 
-  const tenant = tenantResult[0];
-  const tenantSettings = tenant.settings ? JSON.parse(tenant.settings) : {};
-  const tenantMetadata = tenant.metadata ? JSON.parse(tenant.metadata) : {};
+  const d = distRows[0];
+  const parsed = safeParseJson<{ agenda?: string; heroCopy?: string; keywords?: string[] }>(d.identityJson);
+  const description =
+    parsed?.heroCopy ||
+    parsed?.agenda ||
+    (d.region ? `${d.region} · ${d.name}` : `${d.name}의 imPD 홍보 페이지`);
+  const keywords = (parsed?.keywords || []).slice(0, 10);
 
-  const bio = tenantSettings.bio || tenantMetadata.bio || '';
-  const serviceDescription = tenantSettings.serviceDescription || '';
-  const description = bio || serviceDescription || `${tenant.name}의 브랜드 페이지입니다.`;
-
-  const ogImage = tenant.logoUrl || '/og-default.png';
-  const pageUrl = `https://impd.townin.net/p/${slug}`;
+  const ogImage = `/p/${slug}/opengraph-image`;
+  const title = `${d.name} | imPD`;
 
   return {
-    title: `${tenant.name} | imPD`,
+    title,
     description,
+    keywords,
     openGraph: {
-      title: `${tenant.name} | imPD`,
+      title,
       description,
-      url: pageUrl,
-      images: [{ url: ogImage, width: 1200, height: 630, alt: `${tenant.name} 대표 이미지` }],
+      url: `/p/${slug}`,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: `${d.name} 대표 이미지` }],
       type: 'website',
+      siteName: 'imPD',
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${tenant.name} | imPD`,
+      title,
       description,
       images: [ogImage],
     },

@@ -4,6 +4,7 @@ import { readFile } from 'fs/promises';
 import path from 'path';
 import { db } from '@/lib/db';
 import { tenants } from '@/lib/db/schema';
+import { distributors } from '@/lib/db/schema/distribution';
 import { eq, and } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
@@ -78,7 +79,23 @@ export default async function OgImage({
       .limit(1);
 
     if (result.length === 0) {
-      return fallbackImage(fonts);
+      // tenants 없으면 distributors fallback
+      const dist = await db
+        .select({
+          name: distributors.name,
+          region: distributors.region,
+          businessType: distributors.businessType,
+          identityJson: distributors.identityJson,
+        })
+        .from(distributors)
+        .where(eq(distributors.slug, slug))
+        .limit(1);
+
+      if (dist.length === 0) {
+        return fallbackImage(fonts);
+      }
+
+      return distributorOgImage(dist[0], fonts, !!fontData);
     }
 
     const tenant = result[0];
@@ -276,6 +293,112 @@ export default async function OgImage({
   } catch {
     return fallbackImage(fonts);
   }
+}
+
+function safeParse<T>(raw: string | null | undefined): T | null {
+  if (!raw) return null;
+  try { return JSON.parse(raw) as T; } catch { return null; }
+}
+
+const BUSINESS_LABEL: Record<string, string> = {
+  individual: '개인',
+  company: '기업',
+  organization: '기관/단체',
+};
+
+function distributorOgImage(
+  d: {
+    name: string;
+    region: string | null;
+    businessType: 'individual' | 'company' | 'organization';
+    identityJson: string | null;
+  },
+  fonts: Array<{ name: string; data: ArrayBuffer; style: 'normal'; weight: 700 }>,
+  hasFont: boolean,
+) {
+  const parsed = safeParse<{
+    agenda?: string;
+    heroCopy?: string;
+    tone?: string[];
+    keywords?: string[];
+    usp?: string[];
+  }>(d.identityJson);
+
+  const agenda = parsed?.heroCopy || parsed?.agenda || `${d.name}의 imPD 홍보 페이지`;
+  const chips = [
+    ...(parsed?.keywords || []).slice(0, 3),
+    ...(parsed?.usp || []).slice(0, 2),
+  ].filter(Boolean);
+
+  const primary = '#16325C';
+  const accent = '#00A1E0';
+  const initials = (d.name || 'IM').replace(/\s/g, '').slice(0, 2).toUpperCase();
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: '1200px',
+          height: '630px',
+          display: 'flex',
+          background: `linear-gradient(135deg, ${primary} 0%, #1E3A8A 55%, ${accent} 100%)`,
+          fontFamily: hasFont ? 'Pretendard, sans-serif' : 'sans-serif',
+          padding: '60px 80px',
+          position: 'relative',
+          overflow: 'hidden',
+          color: '#ffffff',
+        }}
+      >
+        {/* 배경 장식 */}
+        <div style={{ position: 'absolute', top: '-120px', right: '-80px', width: '400px', height: '400px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+        <div style={{ position: 'absolute', bottom: '-100px', left: '-60px', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+
+        {/* 왼쪽 */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '22px', paddingRight: '40px' }}>
+          {/* imPD 배지 */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '6px', padding: '4px 12px', fontSize: '14px', fontWeight: 700, color: 'rgba(255,255,255,0.95)', letterSpacing: '0.05em' }}>
+              imPD · {BUSINESS_LABEL[d.businessType] || d.businessType}
+            </div>
+            {d.region && (
+              <div style={{ background: 'rgba(0,0,0,0.25)', borderRadius: '6px', padding: '4px 12px', fontSize: '14px', fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
+                {d.region}
+              </div>
+            )}
+          </div>
+
+          {/* 이름 */}
+          <div style={{ fontSize: '88px', fontWeight: 700, color: '#ffffff', lineHeight: 1.05, letterSpacing: '-0.02em' }}>
+            {d.name}
+          </div>
+
+          {/* 아젠다/슬로건 */}
+          <div style={{ fontSize: '26px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.45, maxWidth: '720px', display: '-webkit-box', WebkitLineClamp: 2, overflow: 'hidden', borderLeft: '4px solid rgba(255,255,255,0.5)', paddingLeft: '16px' }}>
+            {agenda}
+          </div>
+
+          {/* 칩 */}
+          {chips.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+              {chips.slice(0, 5).map((c, i) => (
+                <div key={i} style={{ background: 'rgba(255,255,255,0.18)', color: '#ffffff', borderRadius: '6px', padding: '6px 14px', fontSize: '18px', fontWeight: 600 }}>
+                  {c}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 오른쪽 이니셜 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '240px', flexShrink: 0 }}>
+          <div style={{ width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(255,255,255,0.18)', border: '6px solid rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '80px', fontWeight: 700, color: '#ffffff' }}>
+            {initials}
+          </div>
+        </div>
+      </div>
+    ),
+    { ...size, fonts },
+  );
 }
 
 function fallbackImage(
