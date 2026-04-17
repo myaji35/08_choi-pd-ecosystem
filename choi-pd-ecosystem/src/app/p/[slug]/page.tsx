@@ -4,7 +4,9 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { db } from '@/lib/db';
 import { tenants, courses, snsAccounts, personalDna, members, posts, works } from '@/lib/db/schema';
+import { distributors } from '@/lib/db/schema/distribution';
 import { eq, and, desc } from 'drizzle-orm';
+import { DistributorFallbackPage } from '@/app/member/[slug]/DistributorFallbackPage';
 import { OwnerBar } from './OwnerBar';
 import { ViewTracker } from './ViewTracker';
 import { HeroSection } from './sections/HeroSection';
@@ -33,6 +35,15 @@ const PROFESSION_LABELS: Record<string, { label: string; color: string }> = {
 
 interface BrandPageProps {
   params: Promise<{ slug: string }>;
+}
+
+function safeParseJson<T = any>(raw: string | null | undefined): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
 }
 
 // ---- generateMetadata ----
@@ -90,7 +101,31 @@ export default async function BrandPage({ params }: BrandPageProps) {
     .limit(1);
 
   if (tenantResult.length === 0) {
-    notFound();
+    // tenants 에 없으면 distributors 에서 재조회 → /choi 레이아웃 공개 페이지 렌더
+    const distRows = await db
+      .select()
+      .from(distributors)
+      .where(eq(distributors.slug, slug))
+      .limit(1);
+
+    if (distRows.length === 0) {
+      notFound();
+    }
+
+    const d = distRows[0];
+    const parsed = d.identityJson ? safeParseJson(d.identityJson) : null;
+    return (
+      <DistributorFallbackPage
+        slug={d.slug || slug}
+        name={d.name}
+        email={d.email}
+        region={d.region}
+        businessType={d.businessType}
+        identity={parsed}
+        status={d.status}
+        updatedAt={d.updatedAt ?? null}
+      />
+    );
   }
 
   const tenant = tenantResult[0];
