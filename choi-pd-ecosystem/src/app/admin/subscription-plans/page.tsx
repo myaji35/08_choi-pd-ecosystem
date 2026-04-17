@@ -238,7 +238,7 @@ export default function SubscriptionPlansPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-[#F3F2F2]">
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-4">

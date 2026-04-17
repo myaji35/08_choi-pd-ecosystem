@@ -42,11 +42,11 @@ interface Distributor {
 }
 
 const statusConfig = {
-  pending: { label: '승인 대기', icon: Clock, color: 'bg-orange-100 text-orange-800' },
-  approved: { label: '승인됨', icon: CheckCircle, color: 'bg-blue-100 text-blue-800' },
-  active: { label: '활성', icon: CheckCircle, color: 'bg-green-100 text-green-800' },
-  suspended: { label: '정지', icon: Pause, color: 'bg-gray-100 text-gray-800' },
-  rejected: { label: '거부됨', icon: XCircle, color: 'bg-red-100 text-red-800' },
+  pending: { label: '승인 대기', icon: Clock, color: 'bg-[#EA580C] text-white' },
+  approved: { label: '승인됨', icon: CheckCircle, color: 'bg-[#00A1E0] text-white' },
+  active: { label: '활성', icon: CheckCircle, color: 'bg-[#10B981] text-white' },
+  suspended: { label: '정지', icon: Pause, color: 'bg-gray-500 text-white' },
+  rejected: { label: '거부됨', icon: XCircle, color: 'bg-[#EF4444] text-white' },
 };
 
 const businessTypeLabels = {
@@ -153,7 +153,7 @@ export default function DistributorsListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-[#F3F2F2]">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center gap-4">
@@ -211,7 +211,7 @@ export default function DistributorsListPage() {
               <option value="name:desc">이름 역순</option>
             </select>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700" asChild>
+          <Button className="bg-[#00A1E0] hover:bg-[#0082B3]" asChild>
             <Link href="/admin/distributors/new">
               <UserPlus className="mr-2 h-4 w-4" />
               신규 수요자 등록
@@ -315,7 +315,7 @@ export default function DistributorsListPage() {
                         </TableCell>
                         <TableCell>
                           {distributor.subscriptionPlan ? (
-                            <Badge className="bg-blue-100 text-blue-800">
+                            <Badge className="bg-[#00A1E0] text-white">
                               {planLabels[distributor.subscriptionPlan]}
                             </Badge>
                           ) : (

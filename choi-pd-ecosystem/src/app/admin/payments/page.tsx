@@ -48,10 +48,10 @@ interface Payment {
 }
 
 const statusConfig = {
-  pending: { label: '대기중', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-  completed: { label: '완료', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-  failed: { label: '실패', color: 'bg-red-100 text-red-800', icon: XCircle },
-  refunded: { label: '환불', color: 'bg-gray-100 text-gray-800', icon: DollarSign },
+  pending: { label: '대기중', color: 'bg-[#F59E0B] text-white', icon: Clock },
+  completed: { label: '완료', color: 'bg-[#10B981] text-white', icon: CheckCircle },
+  failed: { label: '실패', color: 'bg-[#EF4444] text-white', icon: XCircle },
+  refunded: { label: '환불', color: 'bg-gray-500 text-white', icon: DollarSign },
 };
 
 const PAGE_SIZE = 20;
@@ -152,7 +152,7 @@ export default function PaymentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-[#F3F2F2]">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">

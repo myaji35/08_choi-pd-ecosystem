@@ -161,7 +161,7 @@ export default function ResourcesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-[#F3F2F2]">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center gap-4">
@@ -332,7 +332,7 @@ export default function ResourcesPage() {
                             {formatFileSize(resource.fileSize)}
                           </TableCell>
                           <TableCell>
-                            <Badge className="bg-blue-100 text-blue-800">
+                            <Badge className="bg-[#00A1E0] text-white">
                               {planLabels[resource.requiredPlan]}
                             </Badge>
                           </TableCell>
@@ -344,7 +344,7 @@ export default function ResourcesPage() {
                           </TableCell>
                           <TableCell>
                             {resource.isActive ? (
-                              <Badge className="bg-green-100 text-green-800">활성</Badge>
+                              <Badge className="bg-[#10B981] text-white">활성</Badge>
                             ) : (
                               <Badge variant="secondary">비활성</Badge>
                             )}

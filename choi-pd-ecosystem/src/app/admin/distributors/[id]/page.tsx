@@ -403,7 +403,7 @@ export default function DistributorDetailPage() {
                 {distributor?.subscriptionPlan && (
                   <div>
                     <p className="text-sm text-gray-600 mb-1">구독 플랜</p>
-                    <Badge className="bg-purple-100 text-purple-800">
+                    <Badge className="bg-[#7C3AED] text-white">
                       {distributor.subscriptionPlan.toUpperCase()}
                     </Badge>
                   </div>

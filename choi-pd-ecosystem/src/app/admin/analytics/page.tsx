@@ -99,7 +99,7 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+      <div className="min-h-screen bg-[#F3F2F2]">
         <header className="border-b bg-white/80 backdrop-blur">
           <div className="container flex h-16 items-center gap-4">
             <div className="h-8 w-8 animate-pulse bg-gray-200 rounded" />
@@ -144,7 +144,7 @@ export default function AnalyticsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F3F2F2] flex items-center justify-center">
         <Card className="max-w-md border-gray-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-700">
@@ -172,7 +172,7 @@ export default function AnalyticsPage() {
 
   if (!analytics) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F3F2F2] flex items-center justify-center">
         <Card className="max-w-md border-gray-200">
           <CardHeader className="items-center text-center">
             <BarChart3 className="h-12 w-12 text-gray-300 mb-2" strokeWidth={1.5} />
@@ -224,7 +224,7 @@ export default function AnalyticsPage() {
     .slice(0, 10);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-[#F3F2F2]">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">

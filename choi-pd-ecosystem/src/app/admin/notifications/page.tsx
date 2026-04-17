@@ -42,10 +42,10 @@ const categoryLabels = {
 };
 
 const typeColors = {
-  info: 'bg-blue-100 text-blue-800',
-  success: 'bg-green-100 text-green-800',
-  warning: 'bg-orange-100 text-orange-800',
-  error: 'bg-red-100 text-red-800',
+  info: 'bg-[#00A1E0] text-white',
+  success: 'bg-[#10B981] text-white',
+  warning: 'bg-[#F59E0B] text-white',
+  error: 'bg-[#EF4444] text-white',
 };
 
 export default function AdminNotificationsPage() {
@@ -140,7 +140,7 @@ export default function AdminNotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-[#F3F2F2]">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
@@ -268,7 +268,7 @@ export default function AdminNotificationsPage() {
                         {notification.isRead ? (
                           <Badge variant="secondary">읽음</Badge>
                         ) : (
-                          <Badge className="bg-blue-100 text-blue-800">안읽음</Badge>
+                          <Badge className="bg-[#00A1E0] text-white">안읽음</Badge>
                         )}
                       </TableCell>
                       <TableCell>

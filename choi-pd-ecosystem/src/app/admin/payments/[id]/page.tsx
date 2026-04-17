@@ -74,10 +74,10 @@ interface InvoiceRow {
 }
 
 const statusConfig = {
-  pending: { label: '대기중', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-  completed: { label: '완료', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-  failed: { label: '실패', color: 'bg-red-100 text-red-800', icon: XCircle },
-  refunded: { label: '환불', color: 'bg-gray-100 text-gray-800', icon: DollarSign },
+  pending: { label: '대기중', color: 'bg-[#F59E0B] text-white', icon: Clock },
+  completed: { label: '완료', color: 'bg-[#10B981] text-white', icon: CheckCircle },
+  failed: { label: '실패', color: 'bg-[#EF4444] text-white', icon: XCircle },
+  refunded: { label: '환불', color: 'bg-gray-500 text-white', icon: DollarSign },
 } as const;
 
 function formatCurrency(amount: number, currency = 'KRW') {

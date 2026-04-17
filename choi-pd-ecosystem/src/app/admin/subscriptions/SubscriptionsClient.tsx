@@ -243,7 +243,7 @@ export default function SubscriptionsClient() {
                     const planCfg = PLAN_CONFIG[sub.plan] || PLAN_CONFIG.free;
                     const statusCfg = SUB_STATUS[sub.status] || SUB_STATUS.active;
                     return (
-                      <tr key={sub.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <tr key={sub.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <div>
                             <span className="text-sm font-medium text-[#16325C]">{sub.tenantName}</span>

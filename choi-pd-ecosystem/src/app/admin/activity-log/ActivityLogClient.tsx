@@ -42,11 +42,11 @@ interface ActivityLog {
 }
 
 const activityConfig = {
-  login: { label: '로그인', icon: LogIn, color: 'bg-blue-100 text-blue-800' },
-  content_access: { label: '콘텐츠 접근', icon: FileText, color: 'bg-green-100 text-green-800' },
-  download: { label: '다운로드', icon: Download, color: 'bg-purple-100 text-purple-800' },
-  payment: { label: '결제', icon: CreditCard, color: 'bg-yellow-100 text-yellow-800' },
-  support_request: { label: '문의', icon: HelpCircle, color: 'bg-orange-100 text-orange-800' },
+  login: { label: '로그인', icon: LogIn, color: 'bg-[#00A1E0] text-white' },
+  content_access: { label: '콘텐츠 접근', icon: FileText, color: 'bg-[#10B981] text-white' },
+  download: { label: '다운로드', icon: Download, color: 'bg-[#7C3AED] text-white' },
+  payment: { label: '결제', icon: CreditCard, color: 'bg-[#F59E0B] text-white' },
+  support_request: { label: '문의', icon: HelpCircle, color: 'bg-[#EA580C] text-white' },
 };
 
 export default function ActivityLogPage() {
@@ -150,7 +150,7 @@ export default function ActivityLogPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-[#F3F2F2]">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center gap-4">

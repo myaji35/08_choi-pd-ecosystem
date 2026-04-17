@@ -12,6 +12,8 @@ import {
   Search,
   Loader2,
   X,
+  Sparkles,
+  FileText,
 } from 'lucide-react';
 
 interface Member {
@@ -224,7 +226,7 @@ export default function AdminMembersPage() {
                 {pagedMembers.map((member) => {
                   const badge = statusBadge[member.status] || { label: member.status, bg: '#6B7280' };
                   return (
-                    <tr key={member.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <tr key={member.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
                         <Link
                           href={`/admin/members/${member.slug}`}
@@ -235,22 +237,24 @@ export default function AdminMembersPage() {
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-[10px] text-gray-400 font-mono">impd.me/{member.slug}</span>
                           {typeof member.completeness === 'number' && (
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                              member.completeness >= 70 ? 'bg-green-100 text-green-700' :
-                              member.completeness >= 40 ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-red-100 text-red-700'
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded text-white ${
+                              member.completeness >= 70 ? 'bg-[#10B981]' :
+                              member.completeness >= 40 ? 'bg-[#F59E0B]' :
+                              'bg-[#EF4444]'
                             }`}>
                               완성도 {member.completeness}%
                             </span>
                           )}
                           {!!member.skillCount && (
-                            <span className="text-[10px] text-purple-600 font-semibold">
-                              🧬 {member.skillCount}
+                            <span className="inline-flex items-center gap-1 text-[10px] text-[#7C3AED] font-semibold">
+                              <Sparkles className="w-3 h-3" />
+                              {member.skillCount}
                             </span>
                           )}
                           {!!member.documentCount && (
-                            <span className="text-[10px] text-blue-600 font-semibold">
-                              📄 {member.documentCount}
+                            <span className="inline-flex items-center gap-1 text-[10px] text-[#00A1E0] font-semibold">
+                              <FileText className="w-3 h-3" />
+                              {member.documentCount}
                             </span>
                           )}
                         </div>

@@ -17,6 +17,8 @@ import {
   Trash2,
   RefreshCw,
   Activity,
+  Target,
+  Lightbulb,
 } from 'lucide-react';
 import MonitorTab from './MonitorTab';
 
@@ -303,9 +305,9 @@ export default function MemberDetailClient({
               ) : (
                 <div className="space-y-4">
                   {[
-                    { title: 'Hard Skills', arr: hardSkills, color: 'bg-blue-100 text-blue-700' },
-                    { title: 'Meta Skills', arr: metaSkills, color: 'bg-purple-100 text-purple-700' },
-                    { title: 'Context', arr: contextSkills, color: 'bg-amber-100 text-amber-700' },
+                    { title: 'Hard Skills', arr: hardSkills, color: 'bg-[#00A1E0] text-white' },
+                    { title: 'Meta Skills', arr: metaSkills, color: 'bg-[#7C3AED] text-white' },
+                    { title: 'Context', arr: contextSkills, color: 'bg-[#F59E0B] text-white' },
                   ].map((group) =>
                     group.arr.length > 0 ? (
                       <div key={group.title}>
@@ -550,7 +552,10 @@ function GapReportTab({
 
       {gaps.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-900">🎯 개선 필요 갭</h3>
+          <h3 className="text-sm font-semibold text-gray-900 inline-flex items-center gap-1.5">
+            <Target className="w-4 h-4 text-[#EF4444]" />
+            개선 필요 갭
+          </h3>
           {gaps.map((g, i) => (
             <div
               key={i}
@@ -579,7 +584,10 @@ function GapReportTab({
 
       {opportunities.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-900">💡 기회</h3>
+          <h3 className="text-sm font-semibold text-gray-900 inline-flex items-center gap-1.5">
+            <Lightbulb className="w-4 h-4 text-[#F59E0B]" />
+            기회
+          </h3>
           {opportunities.map((o, i) => (
             <div key={i} className="border border-cyan-200 bg-cyan-50 rounded-lg p-4">
               <div className="font-bold text-cyan-900 mb-1">{o.title}</div>

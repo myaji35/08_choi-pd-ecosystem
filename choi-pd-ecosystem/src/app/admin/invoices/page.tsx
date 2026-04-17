@@ -51,11 +51,11 @@ interface Invoice {
 }
 
 const statusConfig: Record<Invoice['status'], { label: string; color: string; icon: typeof FileText }> = {
-  draft: { label: '임시', color: 'bg-gray-100 text-gray-800', icon: FileText },
-  sent: { label: '발송됨', color: 'bg-blue-100 text-blue-800', icon: Send },
-  paid: { label: '결제됨', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-  overdue: { label: '연체', color: 'bg-red-100 text-red-800', icon: AlertCircle },
-  cancelled: { label: '취소됨', color: 'bg-gray-100 text-gray-800', icon: AlertCircle },
+  draft: { label: '임시', color: 'bg-gray-500 text-white', icon: FileText },
+  sent: { label: '발송됨', color: 'bg-[#00A1E0] text-white', icon: Send },
+  paid: { label: '결제됨', color: 'bg-[#10B981] text-white', icon: CheckCircle },
+  overdue: { label: '연체', color: 'bg-[#EF4444] text-white', icon: AlertCircle },
+  cancelled: { label: '취소됨', color: 'bg-gray-500 text-white', icon: AlertCircle },
 };
 
 const PAGE_SIZE = 20;
@@ -163,7 +163,7 @@ export default function InvoicesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-[#F3F2F2]">
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-4">

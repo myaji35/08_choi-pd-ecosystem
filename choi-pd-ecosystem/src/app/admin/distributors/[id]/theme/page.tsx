@@ -135,7 +135,7 @@ export default function ThemeSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F3F2F2] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">로딩 중...</p>
@@ -146,7 +146,7 @@ export default function ThemeSettingsPage() {
 
   if (!distributor) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F3F2F2] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600">분양자를 찾을 수 없습니다.</p>
           <Button onClick={() => router.push('/admin/distributors')} className="mt-4">
@@ -158,7 +158,7 @@ export default function ThemeSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-[#F3F2F2]">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">

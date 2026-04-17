@@ -258,7 +258,7 @@ export default function TenantsPage() {
                     const planCfg = PLAN_CONFIG[t.plan] || PLAN_CONFIG.free;
                     const statusCfg = STATUS_CONFIG[t.status] || STATUS_CONFIG.active;
                     return (
-                      <tr key={t.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <tr key={t.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <span className="text-sm font-medium text-[#16325C]">{t.name}</span>
                         </td>
