@@ -6,6 +6,15 @@ import { getSession } from '@/lib/auth/session';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter } from '@/lib/tenant/query-helpers';
 
+/** id 파라미터는 숫자(id) 또는 문자열(slug) 모두 허용 */
+async function resolveMember(idOrSlug: string) {
+  const asInt = parseInt(idOrSlug);
+  if (!isNaN(asInt) && String(asInt) === idOrSlug) {
+    return db.select().from(members).where(eq(members.id, asInt)).get();
+  }
+  return db.select().from(members).where(eq(members.slug, idOrSlug)).get();
+}
+
 // GET /api/admin/members/:id - 회원 상세 조회
 export async function GET(
   request: NextRequest,
@@ -20,13 +29,8 @@ export async function GET(
       );
     }
 
-    const tenantId = getTenantIdFromRequest(request);
     const { id } = await params;
-    const member = await db
-      .select()
-      .from(members)
-      .where(and(eq(members.id, parseInt(id)), tenantFilter(members.tenantId, tenantId)))
-      .get();
+    const member = await resolveMember(id);
 
     if (!member) {
       return NextResponse.json(
@@ -71,11 +75,7 @@ export async function PUT(
       );
     }
 
-    const member = await db
-      .select()
-      .from(members)
-      .where(eq(members.id, parseInt(id)))
-      .get();
+    const member = await resolveMember(id);
 
     if (!member) {
       return NextResponse.json(
@@ -109,7 +109,7 @@ export async function PUT(
     await db
       .update(members)
       .set(updateData)
-      .where(eq(members.id, parseInt(id)));
+      .where(eq(members.id, member.id));
 
     return NextResponse.json({
       success: true,
@@ -125,6 +125,98 @@ export async function PUT(
     console.error('Failed to update member:', error);
     return NextResponse.json(
       { success: false, error: '회원 상태 변경에 실패했습니다.' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH /api/admin/members/:id - 프로필 필드 + 브랜드 DNA 편집
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: '관리자 권한이 필요합니다.' },
+        { status: 403 }
+      );
+    }
+
+    const { id } = await params;
+    const member = await resolveMember(id);
+    if (!member) {
+      return NextResponse.json(
+        { success: false, error: '회원을 찾을 수 없습니다.' },
+        { status: 404 }
+      );
+    }
+
+    const body = await request.json();
+    const {
+      name,
+      email,
+      phone,
+      profession,
+      region,
+      businessType,
+      bio,
+      profileImage,
+      coverImage,
+      socialLinks,
+      themeConfig,
+      status,
+    } = body as Record<string, unknown>;
+
+    const updateData: Record<string, unknown> = { updatedAt: new Date() };
+    if (typeof name === 'string') updateData.name = name.trim();
+    if (typeof email === 'string') updateData.email = email.trim();
+    if (typeof phone === 'string' || phone === null) updateData.phone = phone || null;
+    if (typeof profession === 'string' || profession === null) updateData.profession = profession || null;
+    if (typeof region === 'string' || region === null) updateData.region = region || null;
+    if (typeof businessType === 'string' || businessType === null) updateData.businessType = businessType || null;
+    if (typeof bio === 'string' || bio === null) updateData.bio = bio || null;
+    if (typeof profileImage === 'string' || profileImage === null) updateData.profileImage = profileImage || null;
+    if (typeof coverImage === 'string' || coverImage === null) updateData.coverImage = coverImage || null;
+
+    if (socialLinks !== undefined) {
+      updateData.socialLinks =
+        typeof socialLinks === 'string' ? socialLinks : JSON.stringify(socialLinks);
+    }
+    if (themeConfig !== undefined) {
+      updateData.themeConfig =
+        typeof themeConfig === 'string' ? themeConfig : JSON.stringify(themeConfig);
+    }
+    if (typeof status === 'string') {
+      const valid = ['pending_approval', 'approved', 'rejected', 'suspended'];
+      if (!valid.includes(status)) {
+        return NextResponse.json(
+          { success: false, error: '유효하지 않은 상태입니다.' },
+          { status: 400 }
+        );
+      }
+      updateData.status = status;
+    }
+
+    if (Object.keys(updateData).length <= 1) {
+      return NextResponse.json(
+        { success: false, error: '수정할 필드가 없습니다.' },
+        { status: 400 }
+      );
+    }
+
+    const [updated] = await db
+      .update(members)
+      .set(updateData)
+      .where(eq(members.id, member.id))
+      .returning();
+
+    return NextResponse.json({ success: true, member: updated });
+  } catch (error) {
+    console.error('Failed to patch member:', error);
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : 'patch failed' },
       { status: 500 }
     );
   }

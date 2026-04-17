@@ -51,7 +51,7 @@ export default async function MemberDetailPage({
 
   return (
     <MemberDetailClient
-      initialTab={tab || 'profile'}
+      initialTab={tab || 'monitor'}
       member={member}
       documents={documents}
       skills={memberSkillList}

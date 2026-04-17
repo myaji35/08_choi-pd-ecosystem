@@ -16,7 +16,9 @@ import {
   Sparkles,
   Trash2,
   RefreshCw,
+  Activity,
 } from 'lucide-react';
+import MonitorTab from './MonitorTab';
 
 interface MemberLite {
   id: number;
@@ -70,6 +72,7 @@ interface GapReport {
 }
 
 const TABS = [
+  { key: 'monitor', label: '활동 모니터링', icon: Activity },
   { key: 'profile', label: '프로필', icon: User },
   { key: 'talents', label: '달란트 & 문서', icon: FileText },
   { key: 'gap', label: '갭 리포트', icon: BarChart3 },
@@ -242,6 +245,9 @@ export default function MemberDetailClient({
           {actionError}
         </div>
       )}
+
+      {/* Tab: 활동 모니터링 */}
+      {tab === 'monitor' && <MonitorTab slug={member.slug} />}
 
       {/* Tab A: 프로필 */}
       {tab === 'profile' && (
