@@ -23,6 +23,8 @@ export const distributors = sqliteTable('distributors', {
   identityMd: text('identity_md'), // 회원 아이덴티티(.md) 본문 — 브랜드/톤/아젠다 정의
   identityFilename: text('identity_filename'), // 업로드된 파일명
   identityUpdatedAt: integer('identity_updated_at', { mode: 'timestamp' }),
+  identityJson: text('identity_json'), // 파싱 캐시 (JSON) — agenda/tone/keywords 등
+  identityParsedAt: integer('identity_parsed_at', { mode: 'timestamp' }),
   notes: text('notes'), // 관리자 메모
   totalRevenue: integer('total_revenue').default(0), // 총 매출액 (원)
   lastActivityAt: integer('last_activity_at', { mode: 'timestamp' }),

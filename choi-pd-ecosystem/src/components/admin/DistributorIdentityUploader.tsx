@@ -15,12 +15,14 @@ interface IdentityState {
 interface Props {
   /** /admin/distributors/[id] 의 id (또는 slug) */
   distributorId: string;
+  /** 저장/삭제 성공 후 부모에게 알림 (Preview 카드 재조회 등) */
+  onSaved?: () => void;
 }
 
 const MAX_BYTES = 512 * 1024;
 const ACCEPT = '.md,.markdown,.txt';
 
-export function DistributorIdentityUploader({ distributorId }: Props) {
+export function DistributorIdentityUploader({ distributorId, onSaved }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
 
@@ -122,6 +124,7 @@ export function DistributorIdentityUploader({ distributorId }: Props) {
       });
       setSuccess('아이덴티티가 저장되었습니다.');
       setTimeout(() => setSuccess(''), 2500);
+      onSaved?.();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -143,6 +146,7 @@ export function DistributorIdentityUploader({ distributorId }: Props) {
         setFilenameDraft('identity.md');
         setSuccess('삭제되었습니다.');
         setTimeout(() => setSuccess(''), 2000);
+        onSaved?.();
       } else {
         setError(data?.error || '삭제 실패');
       }

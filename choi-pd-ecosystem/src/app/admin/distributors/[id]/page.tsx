@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { DistributorIdentityUploader } from '@/components/admin/DistributorIdentityUploader';
+import { IdentityPreviewCard } from '@/components/admin/IdentityPreviewCard';
 import {
   ArrowLeft,
   Save,
@@ -55,6 +56,7 @@ export default function DistributorDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [identityRefreshKey, setIdentityRefreshKey] = useState(0);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -394,9 +396,16 @@ export default function DistributorDetailPage() {
             </CardContent>
           </Card>
 
-          {/* 아이덴티티 업로더 — 기본 정보와 동일한 좌측 2열 영역에 이어 배치 */}
-          <div className="md:col-span-2">
-            <DistributorIdentityUploader distributorId={id} />
+          {/* 아이덴티티 분석(Preview) + 업로더 — 기본 정보와 동일한 좌측 2열 영역에 이어 배치 */}
+          <div className="md:col-span-2 space-y-6">
+            <IdentityPreviewCard
+              distributorId={id}
+              refreshKey={identityRefreshKey}
+            />
+            <DistributorIdentityUploader
+              distributorId={id}
+              onSaved={() => setIdentityRefreshKey((k) => k + 1)}
+            />
           </div>
 
           {/* 사이드 정보 */}

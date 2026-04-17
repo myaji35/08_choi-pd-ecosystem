@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { distributors } from '@/lib/db/schema/distribution';
+import { parseIdentityMarkdown } from '@/lib/identity/parser';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +33,8 @@ export async function GET(
       identityMd: distributors.identityMd,
       identityFilename: distributors.identityFilename,
       identityUpdatedAt: distributors.identityUpdatedAt,
+      identityJson: distributors.identityJson,
+      identityParsedAt: distributors.identityParsedAt,
     })
     .from(distributors)
     .where(eq(distributors.id, id))
@@ -41,14 +44,38 @@ export async function GET(
     return NextResponse.json({ success: false, error: 'NOT_FOUND' }, { status: 404 });
   }
 
+  // parsedJson이 비어 있으면(과거 업로드 호환) 즉석 파싱해서 캐시에 반영
+  let parsed = rows[0].identityJson
+    ? safeJson(rows[0].identityJson)
+    : null;
+
+  if (!parsed && rows[0].identityMd) {
+    parsed = parseIdentityMarkdown(rows[0].identityMd);
+    await db
+      .update(distributors)
+      .set({ identityJson: JSON.stringify(parsed), identityParsedAt: new Date() })
+      .where(eq(distributors.id, id));
+  }
+
   return NextResponse.json({
     success: true,
     identity: {
       content: rows[0].identityMd ?? '',
       filename: rows[0].identityFilename ?? null,
       updatedAt: rows[0].identityUpdatedAt ?? null,
+      parsed: parsed,
+      parsedAt: rows[0].identityParsedAt ?? null,
     },
   });
+}
+
+function safeJson<T = unknown>(raw: string | null | undefined): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(
@@ -117,12 +144,16 @@ export async function POST(
     );
   }
 
+  const parsed = parseIdentityMarkdown(content);
+
   await db
     .update(distributors)
     .set({
       identityMd: content,
       identityFilename: filename,
       identityUpdatedAt: new Date(),
+      identityJson: JSON.stringify(parsed),
+      identityParsedAt: new Date(),
       updatedAt: new Date(),
     })
     .where(eq(distributors.id, id));
@@ -134,6 +165,8 @@ export async function POST(
       filename,
       updatedAt: new Date().toISOString(),
       bytes: content.length,
+      parsed,
+      parsedAt: new Date().toISOString(),
     },
   });
 }
@@ -152,6 +185,8 @@ export async function DELETE(
       identityMd: null,
       identityFilename: null,
       identityUpdatedAt: null,
+      identityJson: null,
+      identityParsedAt: null,
       updatedAt: new Date(),
     })
     .where(eq(distributors.id, id));
