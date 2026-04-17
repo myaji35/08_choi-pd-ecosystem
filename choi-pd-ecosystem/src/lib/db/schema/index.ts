@@ -33,3 +33,4 @@ export * from './member';
 export * from './chat';
 export * from './pomelli';
 export * from './talent';
+export * from './follower';

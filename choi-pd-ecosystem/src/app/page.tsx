@@ -1,4 +1,7 @@
 import Link from 'next/link';
+import { Reveal } from '@/components/landing/Reveal';
+import { CountUp } from '@/components/landing/CountUp';
+import { FeaturedMembersMarquee } from '@/components/landing/FeaturedMembersMarquee';
 import {
   User,
   FolderOpen,
@@ -150,13 +153,13 @@ export default function LandingPage() {
       <main>
         {/* ─── Hero: 다크 임팩트 ─── */}
         <section className="relative bg-[#0f172a] overflow-hidden text-white">
-          {/* 배경 — Gradient Mesh + Grain */}
+          {/* 배경 — Gradient Mesh + Grain + Drift 애니메이션 */}
           <div className="absolute inset-0 pointer-events-none">
-            {/* Mesh orb 4개 (blend: soft-light) */}
-            <div className="absolute top-[10%] left-[15%] w-[520px] h-[520px] bg-blue-500/25 rounded-full blur-3xl mix-blend-soft-light" />
-            <div className="absolute bottom-[5%] right-[10%] w-[480px] h-[480px] bg-cyan-400/30 rounded-full blur-3xl mix-blend-soft-light" />
-            <div className="absolute top-[40%] right-[30%] w-[400px] h-[400px] bg-purple-500/15 rounded-full blur-3xl mix-blend-soft-light" />
-            <div className="absolute bottom-[25%] left-[5%] w-[360px] h-[360px] bg-indigo-500/20 rounded-full blur-3xl mix-blend-soft-light" />
+            {/* Mesh orb 4개 (blend: soft-light, drift) */}
+            <div className="absolute top-[10%] left-[15%] w-[520px] h-[520px] bg-blue-500/25 rounded-full blur-3xl mix-blend-soft-light animate-drift-a will-change-transform" />
+            <div className="absolute bottom-[5%] right-[10%] w-[480px] h-[480px] bg-cyan-400/30 rounded-full blur-3xl mix-blend-soft-light animate-drift-b will-change-transform" />
+            <div className="absolute top-[40%] right-[30%] w-[400px] h-[400px] bg-purple-500/15 rounded-full blur-3xl mix-blend-soft-light animate-drift-c will-change-transform" />
+            <div className="absolute bottom-[25%] left-[5%] w-[360px] h-[360px] bg-indigo-500/20 rounded-full blur-3xl mix-blend-soft-light animate-drift-a will-change-transform" style={{ animationDelay: '4s' }} />
 
             {/* Grain/noise texture */}
             <svg className="absolute inset-0 w-full h-full opacity-[0.07] mix-blend-overlay" xmlns="http://www.w3.org/2000/svg">
@@ -182,102 +185,114 @@ export default function LandingPage() {
             <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-16 items-center">
               {/* ◀ 좌: 메인 카피 */}
               <div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/25 backdrop-blur-sm mb-8">
-                  <Zap className="w-4 h-4 text-yellow-400" />
-                  <span className="text-sm font-semibold tracking-wide" style={{ color: '#ffffff' }}>
-                    1인 사업가를 위한, 올인원 비즈니스 페이지
-                  </span>
-                </div>
+                <Reveal delay={80} from="up">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/25 backdrop-blur-sm mb-8">
+                    <Zap className="w-4 h-4 text-yellow-400" />
+                    <span className="text-sm font-semibold tracking-wide" style={{ color: '#ffffff' }}>
+                      1인 사업가를 위한, 올인원 비즈니스 페이지
+                    </span>
+                  </div>
+                </Reveal>
 
-                <h1
-                  className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.08] tracking-tight mb-8"
-                  style={{ color: '#ffffff', textShadow: '0 2px 24px rgba(0,0,0,0.45)' }}
-                >
-                  <span style={{ color: '#ffffff' }}>흩어진 내 일,</span>
-                  <br />
-                  <span className="bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(34,211,238,0.35)]">
-                    하나의 주소로.
-                  </span>
-                </h1>
+                <Reveal delay={180} from="up">
+                  <h1
+                    className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.08] tracking-tight mb-8"
+                    style={{ color: '#ffffff', textShadow: '0 2px 24px rgba(0,0,0,0.45)' }}
+                  >
+                    <span style={{ color: '#ffffff' }}>흩어진 내 일,</span>
+                    <br />
+                    <span className="bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_2px_18px_rgba(34,211,238,0.35)]">
+                      하나의 주소로.
+                    </span>
+                  </h1>
+                </Reveal>
 
-                <p
-                  className="text-lg md:text-xl max-w-2xl leading-relaxed mb-8 font-medium"
-                  style={{ color: 'rgba(255,255,255,0.9)' }}
-                >
-                  이메일로 문의받고, 카톡으로 예약받고, 계좌로 입금받던 당신에게.<br className="hidden md:block" />
-                  <span style={{ color: '#67e8f9' }} className="font-bold">이제 페이지 하나면 됩니다.</span>
-                </p>
+                <Reveal delay={320} from="up">
+                  <p
+                    className="text-lg md:text-xl max-w-2xl leading-relaxed mb-8 font-medium"
+                    style={{ color: 'rgba(255,255,255,0.9)' }}
+                  >
+                    이메일로 문의받고, 카톡으로 예약받고, 계좌로 입금받던 당신에게.<br className="hidden md:block" />
+                    <span style={{ color: '#67e8f9' }} className="font-bold">이제 페이지 하나면 됩니다.</span>
+                  </p>
+                </Reveal>
 
                 {/* 한국 특화 뱃지 스트립 */}
-                <div className="flex flex-wrap items-center gap-2 mb-10">
-                  {['🇰🇷 카카오톡 채널', '💳 토스 결제', '🧾 세금계산서', '🏦 계좌이체'].map((chip) => (
+                <Reveal delay={440} from="up">
+                  <div className="flex flex-wrap items-center gap-2 mb-10">
+                    {['🇰🇷 카카오톡 채널', '💳 토스 결제', '🧾 세금계산서', '🏦 계좌이체'].map((chip) => (
+                      <span
+                        key={chip}
+                        className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-white/5 border border-white/15"
+                        style={{ color: 'rgba(255,255,255,0.85)' }}
+                      >
+                        {chip}
+                      </span>
+                    ))}
                     <span
-                      key={chip}
-                      className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-white/5 border border-white/15"
-                      style={{ color: 'rgba(255,255,255,0.85)' }}
+                      className="text-xs font-medium"
+                      style={{ color: 'rgba(255,255,255,0.5)' }}
                     >
-                      {chip}
+                      기본 제공
                     </span>
-                  ))}
-                  <span
-                    className="text-xs font-medium"
-                    style={{ color: 'rgba(255,255,255,0.5)' }}
-                  >
-                    기본 제공
-                  </span>
-                </div>
+                  </div>
+                </Reveal>
 
-                <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                  <Link
-                    href="/onboarding"
-                    className="group bg-cyan-400 text-[#0f172a] px-8 py-4 rounded-xl font-bold text-lg hover:bg-cyan-300 transition-all text-center flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(34,211,238,0.35)] hover:shadow-[0_0_40px_rgba(34,211,238,0.5)]"
-                  >
-                    내 페이지 만들기
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                  <a
-                    href="#professions"
-                    className="group border-2 border-white/50 bg-white/5 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/15 hover:border-white/80 transition-colors text-center flex items-center justify-center gap-2"
-                    style={{ color: '#ffffff' }}
-                  >
-                    <span className="text-cyan-300 group-hover:translate-x-0.5 transition-transform">▶</span>
-                    내 직종 데모 보기
-                  </a>
-                </div>
-                <p
-                  className="text-xs mb-10"
-                  style={{ color: 'rgba(255,255,255,0.55)' }}
-                >
-                  신용카드 없이 · 평생 무료 시작 · 4분이면 첫 페이지 완성
-                </p>
-
-                {/* 숫자 임팩트 */}
-                <div className="grid grid-cols-4 gap-0 max-w-2xl pt-6 border-t border-white/20">
-                  {stats.map((s, i) => (
-                    <div
-                      key={s.label}
-                      className={i > 0 ? 'border-l border-white/20 pl-5' : 'pl-0'}
-                      style={{ paddingLeft: i > 0 ? '1.25rem' : '0' }}
+                <Reveal delay={560} from="up">
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                    <Link
+                      href="/onboarding"
+                      className="group bg-cyan-400 text-[#0f172a] px-8 py-4 rounded-xl font-bold text-lg hover:bg-cyan-300 transition-all text-center flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(34,211,238,0.35)] hover:shadow-[0_0_40px_rgba(34,211,238,0.5)]"
                     >
+                      내 페이지 만들기
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                    <a
+                      href="#professions"
+                      className="group border-2 border-white/50 bg-white/5 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/15 hover:border-white/80 transition-colors text-center flex items-center justify-center gap-2"
+                      style={{ color: '#ffffff' }}
+                    >
+                      <span className="text-cyan-300 group-hover:translate-x-0.5 transition-transform">▶</span>
+                      내 직종 데모 보기
+                    </a>
+                  </div>
+                  <p
+                    className="text-xs mb-10"
+                    style={{ color: 'rgba(255,255,255,0.55)' }}
+                  >
+                    신용카드 없이 · 평생 무료 시작 · 4분이면 첫 페이지 완성
+                  </p>
+                </Reveal>
+
+                {/* 숫자 임팩트 — CountUp */}
+                <Reveal delay={720} from="up">
+                  <div className="grid grid-cols-4 gap-0 max-w-2xl pt-6 border-t border-white/20">
+                    {stats.map((s, i) => (
                       <div
-                        className="text-2xl md:text-3xl font-black mb-1.5 tracking-tight"
-                        style={{ color: '#ffffff' }}
+                        key={s.label}
+                        className={i > 0 ? 'border-l border-white/20 pl-5' : 'pl-0'}
+                        style={{ paddingLeft: i > 0 ? '1.25rem' : '0' }}
                       >
-                        {s.value}
+                        <div
+                          className="text-2xl md:text-3xl font-black mb-1.5 tracking-tight tabular-nums"
+                          style={{ color: '#ffffff' }}
+                        >
+                          <CountUp target={s.value} duration={1500 + i * 120} />
+                        </div>
+                        <div
+                          className="text-xs md:text-sm font-medium leading-tight"
+                          style={{ color: 'rgba(255,255,255,0.8)' }}
+                        >
+                          {s.label}
+                        </div>
                       </div>
-                      <div
-                        className="text-xs md:text-sm font-medium leading-tight"
-                        style={{ color: 'rgba(255,255,255,0.8)' }}
-                      >
-                        {s.label}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </Reveal>
               </div>
 
-              {/* ▶ 우: 제품 목업 카드 (브라우저 프레임) */}
-              <div className="relative hidden lg:block">
+              {/* ▶ 우: 제품 목업 카드 (브라우저 프레임, float) */}
+              <Reveal delay={400} from="scale" duration={900} className="relative hidden lg:block animate-hero-float will-change-transform">
                 {/* 뒤 레이어 — 직종 아이콘 클러스터 */}
                 <div className="pointer-events-none absolute -top-16 -right-16 grid grid-cols-3 gap-3 opacity-40 blur-[0.5px]">
                   {professions.slice(0, 6).map((p, i) => {
@@ -369,7 +384,7 @@ export default function LandingPage() {
                     <div className="text-sm font-bold text-white">5분 완성</div>
                   </div>
                 </div>
-              </div>
+              </Reveal>
             </div>
           </div>
 
@@ -435,6 +450,9 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* ─── 우수 회원 섬네일 마퀴 ─── */}
+        <FeaturedMembersMarquee />
 
         {/* ─── 직종별 카드 그리드 ─── */}
         <section className="py-20 md:py-28 bg-white" id="professions">

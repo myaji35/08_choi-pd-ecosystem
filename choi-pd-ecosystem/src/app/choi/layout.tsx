@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CHOIPD_DNA } from '@/lib/data/choipd-townin';
 import { loadChoiBrand } from '@/lib/data/choi-brand-store';
+import { getSession } from '@/lib/auth/session';
 
 export const metadata: Metadata = {
   title: '최범희 PD | Personal DNA Report',
@@ -15,13 +16,20 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
-const NAV = [
-  { href: '/choi', label: '홈' },
-  { href: '/choi/admin', label: '관리 · 리포트', admin: true },
-];
-
 export default async function ChoiLayout({ children }: { children: React.ReactNode }) {
   const brand = await loadChoiBrand();
+  const session = await getSession();
+  const isOwner =
+    session?.role === 'admin' ||
+    session?.email === 'choi@impd.me' ||
+    session?.userId === 'choi-pd';
+
+  const NAV: Array<{ href: string; label: string; admin?: boolean }> = [
+    { href: '/choi', label: '홈' },
+  ];
+  if (isOwner) {
+    NAV.push({ href: '/choi/admin', label: '관리 · 리포트', admin: true });
+  }
   const themeCss = `
     :root {
       --choi-primary: ${brand.primary};

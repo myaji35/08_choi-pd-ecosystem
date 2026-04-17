@@ -1,47 +1,197 @@
-// /choi — 운영 결과 대시보드 (공개용)
-// 분석 리포트의 "원본 상세"가 아닌, 적용되어 돌아가는 결과를 보여준다.
-// 원본 상세 섹션은 /choi/admin 에서 관리자가 열람한다.
+// /choi — 팔로워 관점 공개 페이지 (자긍심 A+C+D)
+// A: 프로필 + 활동 콜라주 / C: imPD 검증+수상 / D: 팔로워 수 + 활동 중 배지
 import Link from 'next/link';
 import { CHOIPD_DNA } from '@/lib/data/choipd-townin';
+import { db } from '@/lib/db';
+import {
+  members,
+  memberAwards,
+  memberProfileMedia,
+  memberFollowers,
+  memberActivityTimeline,
+} from '@/lib/db/schema';
+import { and, desc, eq, sql } from 'drizzle-orm';
+import { FollowButton } from '@/components/choi/FollowButton';
 
 const d = CHOIPD_DNA;
+export const dynamic = 'force-dynamic';
 
-export default function ChoiOpsHome() {
-  // 운영 지표 — 리포트의 activityScore + 채널 개수 + 수상 + 타겟층 기반
+async function loadChoiLive() {
+  const member = await db.select().from(members).where(eq(members.slug, 'choi-pd')).get();
+  if (!member) return null;
+  const [awards, media, followerStats, lastTimeline] = await Promise.all([
+    db.select().from(memberAwards).where(eq(memberAwards.memberId, member.id)).orderBy(memberAwards.displayOrder).all(),
+    db.select().from(memberProfileMedia).where(eq(memberProfileMedia.memberId, member.id)).orderBy(memberProfileMedia.displayOrder).all(),
+    db.select({ c: sql<number>`count(*)` }).from(memberFollowers).where(and(eq(memberFollowers.memberId, member.id), eq(memberFollowers.status, 'active'))).get(),
+    db.select().from(memberActivityTimeline).where(eq(memberActivityTimeline.memberId, member.id)).orderBy(desc(memberActivityTimeline.occurredAt)).limit(1).get(),
+  ]);
+  const isLive = lastTimeline?.occurredAt
+    ? Date.now() - new Date(lastTimeline.occurredAt).getTime() < 14 * 86400000
+    : false;
+  return {
+    awards,
+    heroCover: media.find((m) => m.role === 'hero_cover'),
+    heroCollage: media.filter((m) => m.role === 'hero_collage').slice(0, 3),
+    followerCount: Number(followerStats?.c || 0),
+    isLive,
+  };
+}
+
+export default async function ChoiOpsHome() {
   const activeChannels = d.channels.filter((c) => c.status === '운영 중');
-  const growthChannels = d.channels.filter((c) => c.status === '미운영');
   const avgScore = Math.round(activeChannels.reduce((s, c) => s + c.activityScore, 0) / activeChannels.length);
-  const runningCampaigns = d.campaigns.length; // 운영 중인 캠페인 플랜 수
+  const runningCampaigns = d.campaigns.length;
+
+  const live = await loadChoiLive();
+  const awards = live?.awards || [];
+  const heroCollage = live?.heroCollage || [];
+  const heroCover = live?.heroCover;
+  const followerCount = live?.followerCount || 0;
+  const isLive = live?.isLive || false;
+  const verifiedBadge = awards.find((a) => a.category === 'certification' && a.organization === 'imPD Platform');
 
   return (
     <>
-      {/* Hero — 운영 정체성 */}
-      <section style={{ background: 'linear-gradient(105deg, var(--choi-primary) 0%, var(--choi-primary-dark) 55%, var(--choi-trust) 100%)', color: 'white', padding: '3.5rem 1.5rem 4rem' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <span style={{ display: 'inline-block', background: 'var(--choi-secondary)', color: 'white', padding: '4px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em' }}>
-            LIVE · CHOI PD OPERATIONS
-          </span>
-          <h1 style={{ fontSize: 48, fontWeight: 800, margin: '1rem 0 0.75rem', lineHeight: 1.05 }}>
-            {d.meta.koreanName} PD
-          </h1>
-          <p style={{ fontSize: 17, opacity: 0.95, marginBottom: 4 }}>
-            {d.meta.titles.join(' · ')}
-          </p>
-          <p style={{ fontSize: 14, opacity: 0.8, marginBottom: '1.5rem' }}>
-            {d.meta.subtitles.join(' · ')}
-          </p>
-          <p style={{ fontSize: 17, fontWeight: 600, maxWidth: 720, lineHeight: 1.55 }}>
-            “{d.identity.slogan}”
-          </p>
+      {/* Hero — 팔로워 관점 · 자긍심 A+C+D */}
+      <section style={{ position: 'relative', background: 'linear-gradient(105deg, var(--choi-primary) 0%, var(--choi-primary-dark) 55%, var(--choi-trust) 100%)', color: 'white', padding: '3rem 1.5rem 4rem', overflow: 'hidden' }}>
+        {heroCover?.mediaUrl && (
+          <div aria-hidden style={{ position: 'absolute', inset: 0, backgroundImage: `url(${heroCover.mediaUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.18, mixBlendMode: 'overlay', pointerEvents: 'none' }} />
+        )}
 
-          {/* 핵심 CTA — 공공기관 강의 문의 / 콘텐츠 구독 */}
-          <div style={{ display: 'flex', gap: 12, marginTop: '2rem', flexWrap: 'wrap' }}>
-            <a href="#contact" style={{ background: 'var(--choi-accent)', color: 'white', padding: '12px 22px', borderRadius: 6, fontSize: 14, fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 12px rgba(255,111,0,0.35)' }}>
-              B2G · 공공기관 강의 문의 →
-            </a>
-            <a href="#channels" style={{ background: 'rgba(255,255,255,0.15)', color: 'white', padding: '12px 22px', borderRadius: 6, fontSize: 14, fontWeight: 600, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.4)' }}>
-              운영 채널 바로가기
-            </a>
+        <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 2 }}>
+          {/* 배지 스트립: LIVE + imPD 검증 + 팔로워 수 */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 22 }}>
+            {isLive && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--choi-secondary)', color: 'white', padding: '5px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em' }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#B7F5C9', boxShadow: '0 0 10px #B7F5C9' }} />
+                LIVE · 지금 활동 중
+              </span>
+            )}
+            {verifiedBadge && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.95)', color: '#00A1E0', padding: '5px 12px', borderRadius: 999, fontSize: 11, fontWeight: 800 }}>
+                ✓ imPD 검증 회원 · {verifiedBadge.awardedYear}
+              </span>
+            )}
+            {followerCount > 0 && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(0,0,0,0.28)', color: 'white', padding: '5px 12px', borderRadius: 999, fontSize: 11, fontWeight: 700, border: '1px solid rgba(255,255,255,0.2)' }}>
+                팔로워 <strong style={{ marginLeft: 2 }}>{followerCount.toLocaleString('ko-KR')}</strong>명
+              </span>
+            )}
+          </div>
+
+          <div style={{ display: 'grid', gap: 32, gridTemplateColumns: heroCollage.length > 0 ? 'minmax(0, 1.15fr) minmax(0, 1fr)' : '1fr', alignItems: 'center' }}>
+            <div>
+              <h1 style={{ fontSize: 54, fontWeight: 900, margin: '0 0 0.75rem', lineHeight: 1.05, letterSpacing: '-0.02em' }}>
+                {d.meta.koreanName} PD
+              </h1>
+              <p style={{ fontSize: 17, opacity: 0.95, marginBottom: 4, fontWeight: 500 }}>
+                {d.meta.titles.join(' · ')}
+              </p>
+              <p style={{ fontSize: 14, opacity: 0.8, marginBottom: '1.25rem' }}>
+                {d.meta.subtitles.join(' · ')}
+              </p>
+              <p style={{ fontSize: 18, fontWeight: 600, maxWidth: 620, lineHeight: 1.55, borderLeft: '3px solid rgba(255,255,255,0.4)', paddingLeft: 14 }}>
+                "{d.identity.slogan}"
+              </p>
+
+              {/* CTA 스택: 팔로우 / B2G 문의 / 채널 */}
+              <div style={{ display: 'flex', gap: 12, marginTop: '2rem', flexWrap: 'wrap' }}>
+                <FollowButton slug="choi-pd" initialCount={followerCount} />
+                <a href="#contact" style={{ background: 'var(--choi-accent)', color: 'white', padding: '12px 22px', borderRadius: 8, fontSize: 14, fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 14px rgba(255,111,0,0.35)' }}>
+                  B2G · 공공기관 강의 문의 →
+                </a>
+                <a href="#channels" style={{ background: 'rgba(255,255,255,0.15)', color: 'white', padding: '12px 22px', borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.4)' }}>
+                  운영 채널 바로가기
+                </a>
+              </div>
+            </div>
+
+            {/* 우: 활동 콜라주 — 이미지 없으면 그라디언트+아이콘 플레이스홀더 */}
+            {heroCollage.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gridTemplateRows: 'repeat(2, 140px)', gap: 10 }}>
+                {heroCollage.slice(0, 3).map((m, idx) => {
+                  const gradients = [
+                    'linear-gradient(135deg, #D32F2F 0%, #B71C1C 50%, #1A237E 100%)',
+                    'linear-gradient(135deg, #FF6F00 0%, #D32F2F 100%)',
+                    'linear-gradient(135deg, #1A237E 0%, #00897B 100%)',
+                  ];
+                  const icons = ['🎤', '🎥', '🏅']; // 강의/유튜브/수상
+                  return (
+                    <div
+                      key={m.id}
+                      style={{
+                        background: gradients[idx % gradients.length],
+                        borderRadius: 12,
+                        gridColumn: idx === 0 ? '1 / span 2' : undefined,
+                        gridRow: idx === 0 ? '1 / span 2' : undefined,
+                        border: '1px solid rgba(255,255,255,0.28)',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {/* 실 이미지 위 overlay */}
+                      <div
+                        aria-hidden
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          backgroundImage: `url(${m.mediaUrl})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          opacity: 0.7,
+                          mixBlendMode: 'overlay',
+                        }}
+                      />
+                      {/* 아이콘 */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: idx === 0 ? 72 : 44,
+                          filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.35))',
+                          opacity: 0.9,
+                        }}
+                      >
+                        {icons[idx % icons.length]}
+                      </div>
+                      {/* 노이즈 shimmer */}
+                      <div
+                        className="animate-shimmer"
+                        aria-hidden
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          pointerEvents: 'none',
+                          opacity: 0.35,
+                        }}
+                      />
+                      {m.caption && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.78), transparent)',
+                            color: 'white',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            padding: '16px 12px 10px',
+                            letterSpacing: '-0.01em',
+                          }}
+                        >
+                          {m.caption}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </section>
