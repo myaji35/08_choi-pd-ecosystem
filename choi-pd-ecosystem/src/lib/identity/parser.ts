@@ -250,6 +250,60 @@ function extractBacktickKeywords(md: string): string[] {
   ).slice(0, 20);
 }
 
+/**
+ * 섹션 preview 추출 — firstParagraph(순수 문단) 실패 시 표/불릿/하위 섹션에서 발췌.
+ * Pomelli Report 처럼 본문이 전부 마크다운 표/H3 로 구성된 경우 대응.
+ */
+function sectionPreview(body: string, maxChars = 160): string {
+  if (!body) return '';
+
+  // 1순위: 순수 문단
+  const para = firstParagraph(body, maxChars);
+  if (para) return para;
+
+  // 2순위: 표에서 "key: value" 조합 2~3개 추출 (헤더·구분선 제외)
+  const kvs: string[] = [];
+  const tableRowRe = /^\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|/;
+  for (const raw of body.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (/^\|[\s:|-]+\|[\s:|-]+\|?/.test(line)) continue;
+    const m = tableRowRe.exec(line);
+    if (!m) continue;
+    const k = cleanInline(m[1]);
+    const v = cleanInline(m[2]);
+    if (!k || !v) continue;
+    if (/^(구분|항목|지표|내용|기간|분야|역할|축|컬러명|용도|hex|HEX)$/.test(k)) continue;
+    kvs.push(`${k}: ${v}`);
+    if (kvs.length >= 3) break;
+  }
+  if (kvs.length > 0) {
+    const joined = kvs.join(' · ');
+    return joined.length > maxChars ? joined.slice(0, maxChars - 1) + '…' : joined;
+  }
+
+  // 3순위: 불릿 나열
+  const bullets = extractBullets(body, 4);
+  if (bullets.length > 0) {
+    const joined = bullets.join(' · ');
+    return joined.length > maxChars ? joined.slice(0, maxChars - 1) + '…' : joined;
+  }
+
+  // 4순위: 하위 H3 제목 나열
+  const subHeads: string[] = [];
+  for (const line of body.split(/\r?\n/)) {
+    const m = /^#{3,4}\s+(.+)$/.exec(line.trim());
+    if (m) subHeads.push(cleanInline(m[1]));
+    if (subHeads.length >= 4) break;
+  }
+  if (subHeads.length > 0) {
+    const joined = `하위 섹션 ${subHeads.length}개: ` + subHeads.join(' · ');
+    return joined.length > maxChars ? joined.slice(0, maxChars - 1) + '…' : joined;
+  }
+
+  return '';
+}
+
 function extractHashtagsAndMentions(md: string): { hashtags: string[]; mentions: string[] } {
   const hashtags = Array.from(new Set(md.match(/#[가-힣A-Za-z0-9_]{2,30}/g) || []));
   const mentions = Array.from(new Set(md.match(/@[가-힣A-Za-z0-9_]{2,30}/g) || []));
@@ -379,13 +433,26 @@ export function parseIdentityMarkdown(md: string): ParsedIdentity {
   result.mentions = hm.mentions;
 
   // 섹션 스냅샷(미리보기용, 최대 20개)
-  result.sections = sections
-    .filter((s) => s.title !== '__intro__' && s.level >= 2)
-    .slice(0, 20)
-    .map((s) => ({
-      title: s.title,
-      preview: firstParagraph(s.body, 120),
-    }));
+  // 빈 섹션(H2 뒤에 바로 H3가 오는 구조)은 직후 하위 섹션 제목들을 preview로 채움.
+  const visibleSections = sections.filter((s) => s.title !== '__intro__' && s.level >= 2);
+  result.sections = visibleSections.slice(0, 20).map((s, i) => {
+    let preview = sectionPreview(s.body);
+    if (!preview) {
+      // 다음 동일 레벨 전까지의 하위(더 깊은) 섹션 제목 수집
+      const subs: string[] = [];
+      for (let j = i + 1; j < visibleSections.length; j++) {
+        const nxt = visibleSections[j];
+        if (nxt.level <= s.level) break;
+        subs.push(nxt.title);
+        if (subs.length >= 5) break;
+      }
+      if (subs.length > 0) {
+        preview = `하위 섹션 ${subs.length}개 · ${subs.join(' · ')}`;
+        if (preview.length > 160) preview = preview.slice(0, 159) + '…';
+      }
+    }
+    return { title: s.title, preview };
+  });
 
   // 완성도 계산
   const filled = REQUIRED_FIELDS.filter((f) => {
