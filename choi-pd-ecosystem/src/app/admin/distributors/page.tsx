@@ -25,11 +25,13 @@ import {
   Clock,
   XCircle,
   Pause,
-  Eye
+  Eye,
+  ExternalLink,
 } from 'lucide-react';
 
 interface Distributor {
   id: number;
+  slug: string | null;
   name: string;
   email: string;
   phone: string | null;
@@ -338,17 +340,38 @@ export default function DistributorsListPage() {
                           {formatDate(distributor.createdAt)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/admin/distributors/${distributor.id}`);
-                            }}
-                            aria-label="상세 보기"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            {distributor.slug && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                asChild
+                                onClick={(e) => e.stopPropagation()}
+                                aria-label="홍보페이지 새 탭"
+                                className="text-[#00A1E0] hover:bg-[#E6F6FD]"
+                                title={`impd.me/${distributor.slug}`}
+                              >
+                                <a
+                                  href={`/member/${distributor.slug}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/admin/distributors/${distributor.id}`);
+                              }}
+                              aria-label="상세 보기"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

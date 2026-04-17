@@ -25,10 +25,13 @@ import {
   XCircle,
   Clock,
   AlertCircle,
+  ExternalLink,
+  Copy,
 } from 'lucide-react';
 
 interface Distributor {
   id: number;
+  slug: string | null;
   name: string;
   email: string;
   phone: string | null;
@@ -247,6 +250,24 @@ export default function DistributorDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {distributor?.slug && (
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="border-[#00A1E0] text-[#00A1E0] hover:bg-[#E6F6FD]"
+              >
+                <a
+                  href={`/member/${distributor.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="홍보페이지 새 탭에서 열기"
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  홍보페이지 바로가기
+                </a>
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-600">
               <Trash2 className="mr-2 h-4 w-4" />
               삭제
@@ -410,6 +431,64 @@ export default function DistributorDetailPage() {
 
           {/* 사이드 정보 */}
           <div className="space-y-6">
+            {/* 홍보페이지 카드 (slug 있을 때만) */}
+            {distributor?.slug ? (
+              <Card className="border-[#00A1E0]/40 bg-gradient-to-br from-[#F3FBFE] to-white">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base" style={{ color: '#16325C' }}>
+                    <ExternalLink className="h-4 w-4 text-[#00A1E0]" />
+                    홍보페이지
+                  </CardTitle>
+                  <CardDescription>회원의 공개 페이지로 바로 이동합니다</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-xs text-gray-700">
+                    impd.me/<span className="font-bold text-[#16325C]">{distributor.slug}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      asChild
+                      className="flex-1 bg-[#00A1E0] text-white hover:bg-[#0082B3]"
+                    >
+                      <a
+                        href={`/member/${distributor.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="mr-1.5 h-4 w-4" />
+                        바로가기
+                      </a>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const url = `${window.location.origin}/member/${distributor.slug}`;
+                        navigator.clipboard?.writeText(url);
+                        setSuccessMessage('URL이 복사되었습니다');
+                        setTimeout(() => setSuccessMessage(''), 1500);
+                      }}
+                      aria-label="URL 복사"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-dashed border-gray-300 bg-gray-50">
+                <CardContent className="py-5 text-center">
+                  <p className="text-sm font-semibold text-gray-700">
+                    홍보페이지 URL 미설정
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    이 회원은 slug(impd.me 서브디렉토리)가 없어 공개 페이지에 접근할 수 없습니다.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* 상태 정보 */}
             <Card>
               <CardHeader>
