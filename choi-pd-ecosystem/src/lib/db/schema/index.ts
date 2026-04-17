@@ -31,3 +31,5 @@ export * from './automation';
 export * from './video';
 export * from './member';
 export * from './chat';
+export * from './pomelli';
+export * from './talent';
