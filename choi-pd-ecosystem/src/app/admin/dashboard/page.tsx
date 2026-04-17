@@ -297,7 +297,7 @@ export default function AdminDistributorDashboard() {
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-sm shadow-blue-200 group-hover:scale-110 transition-transform">
                   <Users className="h-5 w-5 text-white" strokeWidth={2.2} />
                 </div>
-                <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-bold text-white bg-[#00A1E0] px-2 py-0.5 rounded-full">
                   {stats?.totalDistributors ?? 0}명
                 </span>
               </div>
@@ -316,7 +316,7 @@ export default function AdminDistributorDashboard() {
                   <Clock className="mr-2 h-3.5 w-3.5 text-orange-500" />
                   승인 대기
                   {!!stats?.pendingDistributors && (
-                    <span className="ml-auto text-[10px] font-bold text-orange-600 bg-orange-100 px-1.5 rounded-full">
+                    <span className="ml-auto text-[10px] font-bold text-white bg-orange-500 px-1.5 rounded-full">
                       {stats.pendingDistributors}
                     </span>
                   )}
@@ -366,7 +366,7 @@ export default function AdminDistributorDashboard() {
                   <TrendingUp className="h-5 w-5 text-white" strokeWidth={2.2} />
                 </div>
                 {!!stats?.recentActivities && (
-                  <span className="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-bold text-white bg-purple-500 px-2 py-0.5 rounded-full">
                     {stats.recentActivities}건
                   </span>
                 )}
@@ -405,7 +405,7 @@ export default function AdminDistributorDashboard() {
                   <CreditCard className="h-5 w-5 text-white" strokeWidth={2.2} />
                 </div>
                 {!!stats?.totalRevenue && (
-                  <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-bold text-white bg-amber-500 px-2 py-0.5 rounded-full">
                     {formatCurrency(stats.totalRevenue)}
                   </span>
                 )}

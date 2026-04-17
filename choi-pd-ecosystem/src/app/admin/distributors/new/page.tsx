@@ -193,7 +193,7 @@ export default function NewDistributorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center gap-4">
@@ -401,7 +401,7 @@ export default function NewDistributorPage() {
               </Button>
               <Button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-[#00A1E0] hover:bg-[#0082B3]"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

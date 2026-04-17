@@ -231,7 +231,7 @@ export default function LandingPage() {
                     ))}
                     <span
                       className="text-xs font-medium"
-                      style={{ color: 'rgba(255,255,255,0.5)' }}
+                      style={{ color: 'rgba(255,255,255,0.72)' }}
                     >
                       기본 제공
                     </span>
@@ -514,7 +514,7 @@ export default function LandingPage() {
                 return (
                   <div
                     key={f.title}
-                    className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 hover:border-[#0f172a] hover:shadow-lg transition-all duration-300 group"
+                    className="bg-white p-6 md:p-8 rounded-2xl border border-gray-200 hover:border-[#0f172a] hover:shadow-lg transition-all duration-300 group"
                   >
                     <div className="w-12 h-12 bg-[#0f172a] rounded-xl flex items-center justify-center mb-5">
                       <Icon className="w-6 h-6 text-white" />
@@ -536,7 +536,7 @@ export default function LandingPage() {
                 <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight">
                   5개 플랫폼에<br />
                   흩어진 당신을<br />
-                  <span className="text-[#0f172a]/40">하나로 모으세요</span>
+                  <span className="text-[#0f172a]/55">하나로 모으세요</span>
                 </h2>
                 <div className="space-y-6">
                   {[

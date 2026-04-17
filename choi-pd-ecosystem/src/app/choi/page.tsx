@@ -106,16 +106,18 @@ export default async function ChoiOpsHome() {
               </div>
             </div>
 
-            {/* 우: 활동 콜라주 — 이미지 없으면 그라디언트+아이콘 플레이스홀더 */}
+            {/* 우: 활동 하이라이트 카드 — 실 자산 텍스트 (anti_patterns "이모지 사용" 준수) */}
             {heroCollage.length > 0 && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gridTemplateRows: 'repeat(2, 140px)', gap: 10 }}>
                 {heroCollage.slice(0, 3).map((m, idx) => {
                   const gradients = [
-                    'linear-gradient(135deg, #D32F2F 0%, #B71C1C 50%, #1A237E 100%)',
-                    'linear-gradient(135deg, #FF6F00 0%, #D32F2F 100%)',
-                    'linear-gradient(135deg, #1A237E 0%, #00897B 100%)',
+                    'linear-gradient(135deg, rgba(211,47,47,0.95) 0%, rgba(183,28,28,0.92) 55%, rgba(26,35,126,0.9) 100%)',
+                    'linear-gradient(135deg, rgba(255,111,0,0.95) 0%, rgba(211,47,47,0.92) 100%)',
+                    'linear-gradient(135deg, rgba(26,35,126,0.95) 0%, rgba(0,137,123,0.9) 100%)',
                   ];
-                  const icons = ['🎤', '🎥', '🏅']; // 강의/유튜브/수상
+                  // 실 데이터 힌트 (caption 기반 추출 + 기본 레이블)
+                  const tagByIdx = ['공공기관 강의', '유튜브 제작', '수상·인증'];
+                  const subByIdx = ['B2G 출강 기록', 'Press Awards 유튜버상', '서울시 청소년지도자 대상'];
                   return (
                     <div
                       key={m.id}
@@ -124,69 +126,71 @@ export default async function ChoiOpsHome() {
                         borderRadius: 12,
                         gridColumn: idx === 0 ? '1 / span 2' : undefined,
                         gridRow: idx === 0 ? '1 / span 2' : undefined,
-                        border: '1px solid rgba(255,255,255,0.28)',
+                        border: '1px solid rgba(255,255,255,0.3)',
                         boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
                         position: 'relative',
                         overflow: 'hidden',
+                        padding: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
                       }}
                     >
-                      {/* 실 이미지 위 overlay */}
-                      <div
-                        aria-hidden
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          backgroundImage: `url(${m.mediaUrl})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                          opacity: 0.7,
-                          mixBlendMode: 'overlay',
-                        }}
-                      />
-                      {/* 아이콘 */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: idx === 0 ? 72 : 44,
-                          filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.35))',
-                          opacity: 0.9,
-                        }}
-                      >
-                        {icons[idx % icons.length]}
-                      </div>
-                      {/* 노이즈 shimmer */}
-                      <div
-                        className="animate-shimmer"
-                        aria-hidden
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          pointerEvents: 'none',
-                          opacity: 0.35,
-                        }}
-                      />
-                      {m.caption && (
+                      {/* 실 이미지 overlay (파일 존재 시만) */}
+                      {m.mediaUrl && !m.mediaUrl.startsWith('/images/') && (
                         <div
+                          aria-hidden
                           style={{
                             position: 'absolute',
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            background: 'linear-gradient(to top, rgba(0,0,0,0.78), transparent)',
+                            inset: 0,
+                            backgroundImage: `url(${m.mediaUrl})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            opacity: 0.55,
+                            mixBlendMode: 'overlay',
+                          }}
+                        />
+                      )}
+                      <div style={{ position: 'relative', zIndex: 2 }}>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '3px 8px',
+                            borderRadius: 999,
+                            background: 'rgba(255,255,255,0.2)',
                             color: 'white',
-                            fontSize: 12,
+                            fontSize: 10,
                             fontWeight: 700,
-                            padding: '16px 12px 10px',
-                            letterSpacing: '-0.01em',
+                            letterSpacing: '0.04em',
+                            border: '1px solid rgba(255,255,255,0.35)',
                           }}
                         >
-                          {m.caption}
+                          {tagByIdx[idx] || '활동'}
+                        </span>
+                      </div>
+                      <div style={{ position: 'relative', zIndex: 2 }}>
+                        <div
+                          style={{
+                            color: 'white',
+                            fontWeight: 800,
+                            fontSize: idx === 0 ? 18 : 13,
+                            lineHeight: 1.3,
+                            marginBottom: 4,
+                            textShadow: '0 1px 6px rgba(0,0,0,0.35)',
+                          }}
+                        >
+                          {m.caption || subByIdx[idx] || '활동 기록'}
                         </div>
-                      )}
+                        <div
+                          style={{
+                            color: 'rgba(255,255,255,0.85)',
+                            fontSize: 11,
+                            fontWeight: 500,
+                          }}
+                        >
+                          {subByIdx[idx] || ''}
+                        </div>
+                      </div>
                     </div>
                   );
                 })}

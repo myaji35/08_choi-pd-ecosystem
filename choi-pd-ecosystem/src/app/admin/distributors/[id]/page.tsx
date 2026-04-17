@@ -151,11 +151,11 @@ export default function DistributorDetailPage() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { color: string; icon: any }> = {
-      pending: { color: 'bg-orange-100 text-orange-800', icon: Clock },
-      approved: { color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
-      active: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      suspended: { color: 'bg-red-100 text-red-800', icon: AlertCircle },
-      rejected: { color: 'bg-gray-100 text-gray-800', icon: XCircle },
+      pending: { color: 'bg-orange-500 text-white', icon: Clock },
+      approved: { color: 'bg-[#00A1E0] text-white', icon: CheckCircle },
+      active: { color: 'bg-green-600 text-white', icon: CheckCircle },
+      suspended: { color: 'bg-red-600 text-white', icon: AlertCircle },
+      rejected: { color: 'bg-gray-500 text-white', icon: XCircle },
     };
 
     const variant = variants[status] || variants.pending;
@@ -171,7 +171,7 @@ export default function DistributorDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">로딩 중...</p>
@@ -183,7 +183,7 @@ export default function DistributorDetailPage() {
   if (error && !distributor) {
     const notFound = /not found|찾을 수 없/i.test(error);
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <Card className="max-w-md w-full border-gray-200">
           <CardHeader>
             <CardTitle className="text-gray-900">
@@ -223,7 +223,7 @@ export default function DistributorDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+    <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <header className="border-b bg-white/80 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
@@ -272,7 +272,7 @@ export default function DistributorDetailPage() {
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label htmlFor="name">이름/기업명 *</Label>
+                  <Label htmlFor="name" className="block text-xs font-semibold text-gray-600 mb-1.5">이름/기업명 *</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -282,7 +282,7 @@ export default function DistributorDetailPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="email">이메일 *</Label>
+                  <Label htmlFor="email" className="block text-xs font-semibold text-gray-600 mb-1.5">이메일 *</Label>
                   <Input
                     id="email"
                     type="email"
@@ -293,7 +293,7 @@ export default function DistributorDetailPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="phone">전화번호</Label>
+                  <Label htmlFor="phone" className="block text-xs font-semibold text-gray-600 mb-1.5">전화번호</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
@@ -303,7 +303,7 @@ export default function DistributorDetailPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="region">지역</Label>
+                  <Label htmlFor="region" className="block text-xs font-semibold text-gray-600 mb-1.5">지역</Label>
                   <Input
                     id="region"
                     value={formData.region}
@@ -313,7 +313,7 @@ export default function DistributorDetailPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="businessType">사업 유형 *</Label>
+                  <Label htmlFor="businessType" className="block text-xs font-semibold text-gray-600 mb-1.5">사업 유형 *</Label>
                   <Select
                     value={formData.businessType}
                     onValueChange={(value: any) =>
@@ -332,7 +332,7 @@ export default function DistributorDetailPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="status">상태 *</Label>
+                  <Label htmlFor="status" className="block text-xs font-semibold text-gray-600 mb-1.5">상태 *</Label>
                   <Select
                     value={formData.status}
                     onValueChange={(value: any) => setFormData({ ...formData, status: value })}
@@ -351,7 +351,7 @@ export default function DistributorDetailPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="subscriptionPlan">구독 플랜</Label>
+                  <Label htmlFor="subscriptionPlan" className="block text-xs font-semibold text-gray-600 mb-1.5">구독 플랜</Label>
                   <Select
                     value={formData.subscriptionPlan || 'none'}
                     onValueChange={(value: any) =>
@@ -375,7 +375,7 @@ export default function DistributorDetailPage() {
               </div>
 
               <div>
-                <Label htmlFor="notes">관리자 메모</Label>
+                <Label htmlFor="notes" className="block text-xs font-semibold text-gray-600 mb-1.5">관리자 메모</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
