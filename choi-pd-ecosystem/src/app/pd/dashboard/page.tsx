@@ -9,6 +9,7 @@ import { useTranslation } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Image as ImageIcon, LogOut, User as UserIcon, Settings, Globe, Copy, ExternalLink, Check as CheckIcon, AlertTriangle, RefreshCw } from 'lucide-react';
+import PdRecentFeed from '@/components/dashboard/PdRecentFeed';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 
@@ -419,6 +420,9 @@ export default function PDDashboard() {
               </div>
             </CardContent>
           </Card>
+
+          {/* 최근 활동 피드 */}
+          <PdRecentFeed />
 
           {/* 빠른 링크 — 콘텐츠 관리 */}
           <Card className="border-gray-200">

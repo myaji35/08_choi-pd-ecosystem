@@ -26,6 +26,9 @@ interface Member {
   rejectionReason: string | null;
   createdAt: string;
   updatedAt: string;
+  documentCount?: number;
+  skillCount?: number;
+  completeness?: number | null;
 }
 
 type StatusFilter = 'all' | 'pending_approval' | 'approved' | 'rejected' | 'suspended';
@@ -56,6 +59,8 @@ export default function AdminMembersPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   // 거부 사유 모달
   const [rejectModal, setRejectModal] = useState<{ memberId: number; name: string } | null>(null);
@@ -114,6 +119,13 @@ export default function AdminMembersPage() {
       m.slug.toLowerCase().includes(q)
     );
   });
+
+  const pageCount = Math.max(1, Math.ceil(filteredMembers.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pagedMembers = filteredMembers.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   const tabCounts = members.reduce<Record<string, number>>((acc, m) => {
     acc[m.status] = (acc[m.status] || 0) + 1;
@@ -178,7 +190,7 @@ export default function AdminMembersPage() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
               placeholder="이름, 이메일, slug로 검색"
               className="w-full pl-9 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
             />
@@ -209,12 +221,39 @@ export default function AdminMembersPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredMembers.map((member) => {
+                {pagedMembers.map((member) => {
                   const badge = statusBadge[member.status] || { label: member.status, bg: '#6B7280' };
                   return (
                     <tr key={member.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
-                        <span className="text-sm font-medium text-[#16325C]">{member.name}</span>
+                        <Link
+                          href={`/admin/members/${member.slug}`}
+                          className="text-sm font-medium text-[#16325C] hover:text-[#00A1E0] hover:underline"
+                        >
+                          {member.name}
+                        </Link>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] text-gray-400 font-mono">impd.me/{member.slug}</span>
+                          {typeof member.completeness === 'number' && (
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                              member.completeness >= 70 ? 'bg-green-100 text-green-700' :
+                              member.completeness >= 40 ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              완성도 {member.completeness}%
+                            </span>
+                          )}
+                          {!!member.skillCount && (
+                            <span className="text-[10px] text-purple-600 font-semibold">
+                              🧬 {member.skillCount}
+                            </span>
+                          )}
+                          {!!member.documentCount && (
+                            <span className="text-[10px] text-blue-600 font-semibold">
+                              📄 {member.documentCount}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-sm text-gray-600">{member.email}</span>
@@ -296,6 +335,34 @@ export default function AdminMembersPage() {
                 })}
               </tbody>
             </table>
+            {pageCount > 1 && (
+              <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200 text-sm">
+                <span className="text-gray-600">
+                  {(currentPage - 1) * PAGE_SIZE + 1}–
+                  {Math.min(currentPage * PAGE_SIZE, filteredMembers.length)} /{' '}
+                  {filteredMembers.length}
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 border border-gray-300 text-gray-700 text-xs font-semibold rounded hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    이전
+                  </button>
+                  <span className="flex items-center px-3 text-gray-700">
+                    {currentPage} / {pageCount}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                    disabled={currentPage >= pageCount}
+                    className="px-3 py-1.5 border border-gray-300 text-gray-700 text-xs font-semibold rounded hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    다음
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -61,21 +61,22 @@ const planLabels = {
   enterprise: 'Enterprise',
 };
 
+const PAGE_SIZE = 20;
+type SortKey = 'createdAt' | 'totalRevenue' | 'name';
+
 export default function DistributorsListPage() {
   const router = useRouter();
   const [distributors, setDistributors] = useState<Distributor[]>([]);
-  const [filteredDistributors, setFilteredDistributors] = useState<Distributor[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortKey, setSortKey] = useState<SortKey>('createdAt');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchDistributors();
   }, []);
-
-  useEffect(() => {
-    filterDistributors();
-  }, [searchQuery, statusFilter, distributors]);
 
   const fetchDistributors = async () => {
     setIsLoading(true);
@@ -92,24 +93,42 @@ export default function DistributorsListPage() {
     }
   };
 
-  const filterDistributors = () => {
+  const filteredDistributors = useMemo(() => {
     let filtered = [...distributors];
-
     if (searchQuery) {
+      const q = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (d) =>
-          d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          d.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          d.region?.toLowerCase().includes(searchQuery.toLowerCase())
+          d.name.toLowerCase().includes(q) ||
+          d.email.toLowerCase().includes(q) ||
+          d.region?.toLowerCase().includes(q)
       );
     }
-
     if (statusFilter !== 'all') {
       filtered = filtered.filter((d) => d.status === statusFilter);
     }
 
-    setFilteredDistributors(filtered);
-  };
+    filtered.sort((a, b) => {
+      let diff = 0;
+      if (sortKey === 'createdAt') {
+        diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      } else if (sortKey === 'totalRevenue') {
+        diff = (a.totalRevenue || 0) - (b.totalRevenue || 0);
+      } else {
+        diff = a.name.localeCompare(b.name);
+      }
+      return sortDir === 'asc' ? diff : -diff;
+    });
+
+    return filtered;
+  }, [distributors, searchQuery, statusFilter, sortKey, sortDir]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredDistributors.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pagedDistributors = filteredDistributors.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ko-KR', {
@@ -158,14 +177,14 @@ export default function DistributorsListPage() {
               <Input
                 placeholder="이름, 이메일, 지역으로 검색..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
                 className="pl-10"
               />
             </div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm"
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900"
             >
               <option value="all">전체 상태</option>
               <option value="pending">승인 대기</option>
@@ -173,6 +192,23 @@ export default function DistributorsListPage() {
               <option value="active">활성</option>
               <option value="suspended">정지</option>
               <option value="rejected">거부됨</option>
+            </select>
+            <select
+              value={`${sortKey}:${sortDir}`}
+              onChange={(e) => {
+                const [k, d] = e.target.value.split(':') as [SortKey, 'asc' | 'desc'];
+                setSortKey(k);
+                setSortDir(d);
+                setPage(1);
+              }}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900"
+            >
+              <option value="createdAt:desc">최신 등록순</option>
+              <option value="createdAt:asc">오래된 등록순</option>
+              <option value="totalRevenue:desc">매출 높은순</option>
+              <option value="totalRevenue:asc">매출 낮은순</option>
+              <option value="name:asc">이름 가나다순</option>
+              <option value="name:desc">이름 역순</option>
             </select>
           </div>
           <Button className="bg-blue-600 hover:bg-blue-700" asChild>
@@ -258,7 +294,7 @@ export default function DistributorsListPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredDistributors.map((distributor) => (
+                    {pagedDistributors.map((distributor) => (
                       <TableRow key={distributor.id}>
                         <TableCell className="font-mono text-xs">
                           #{distributor.id}
@@ -308,6 +344,36 @@ export default function DistributorsListPage() {
                     ))}
                   </TableBody>
                 </Table>
+                {pageCount > 1 && (
+                  <div className="flex justify-between items-center mt-4 text-sm">
+                    <span className="text-gray-600">
+                      {(currentPage - 1) * PAGE_SIZE + 1}–
+                      {Math.min(currentPage * PAGE_SIZE, filteredDistributors.length)} /{' '}
+                      {filteredDistributors.length}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        이전
+                      </Button>
+                      <span className="flex items-center px-3 text-gray-700">
+                        {currentPage} / {pageCount}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                        disabled={currentPage >= pageCount}
+                      >
+                        다음
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

@@ -14,6 +14,16 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
   ArrowLeft,
   Clock,
   CheckCircle,
@@ -43,6 +53,8 @@ export default function PendingDistributorsPage() {
   const [pendingDistributors, setPendingDistributors] = useState<PendingDistributor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<PendingDistributor | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   useEffect(() => {
     fetchPendingDistributors();
@@ -86,20 +98,20 @@ export default function PendingDistributorsPage() {
     }
   };
 
-  const handleReject = async (id: number) => {
-    const reason = prompt('거부 사유를 입력하세요 (선택사항):');
-    if (reason === null) return; // 취소
-
+  const confirmReject = async () => {
+    if (!rejectTarget) return;
+    const id = rejectTarget.id;
     setProcessingId(id);
     try {
       const response = await fetch(`/api/admin/distributors/${id}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
+        body: JSON.stringify({ reason: rejectReason || null }),
       });
 
       if (response.ok) {
-        alert('거부되었습니다');
+        setRejectTarget(null);
+        setRejectReason('');
         fetchPendingDistributors();
       } else {
         alert('거부 처리에 실패했습니다');
@@ -232,7 +244,10 @@ export default function PendingDistributorsPage() {
                             <Button
                               size="sm"
                               variant="destructive"
-                              onClick={() => handleReject(distributor.id)}
+                              onClick={() => {
+                                setRejectTarget(distributor);
+                                setRejectReason('');
+                              }}
                               disabled={processingId === distributor.id}
                             >
                               <XCircle className="mr-1 h-3 w-3" />
@@ -249,6 +264,53 @@ export default function PendingDistributorsPage() {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog
+        open={!!rejectTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRejectTarget(null);
+            setRejectReason('');
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>거부 처리</DialogTitle>
+            <DialogDescription>
+              {rejectTarget ? `"${rejectTarget.name}" 수요자 신청을 거부합니다.` : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label className="text-xs font-semibold text-gray-600">거부 사유 (선택)</Label>
+            <Textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="내부 기록용 사유를 입력하세요."
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectTarget(null);
+                setRejectReason('');
+              }}
+              disabled={processingId === rejectTarget?.id}
+            >
+              취소
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmReject}
+              disabled={processingId === rejectTarget?.id}
+            >
+              {processingId === rejectTarget?.id ? '처리 중...' : '거부 확정'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

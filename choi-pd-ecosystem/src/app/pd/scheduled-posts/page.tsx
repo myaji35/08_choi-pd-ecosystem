@@ -32,7 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Calendar, Plus, CheckCircle, Clock, AlertCircle, Send } from 'lucide-react';
+import { ArrowLeft, Calendar, Plus, CheckCircle, Clock, AlertCircle, Send, Pencil, Trash2, RotateCcw } from 'lucide-react';
 
 interface ScheduledPost {
   id: number;
@@ -77,6 +77,8 @@ export default function ScheduledPostsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -127,42 +129,127 @@ export default function ScheduledPostsPage() {
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      contentType: 'posts',
+      contentId: '',
+      platform: 'facebook',
+      accountId: '',
+      message: '',
+      imageUrl: '',
+      link: '',
+      scheduledAt: '',
+    });
+    setEditingPost(null);
+  };
+
+  const openEditDialog = (post: ScheduledPost) => {
+    setEditingPost(post);
+    setFormData({
+      contentType: post.contentType,
+      contentId: String(post.contentId),
+      platform: post.platform,
+      accountId: String(post.accountId),
+      message: post.message,
+      imageUrl: post.imageUrl || '',
+      link: post.link || '',
+      scheduledAt: new Date(post.scheduledAt).toISOString().slice(0, 16),
+    });
+    setIsAddDialogOpen(true);
+  };
+
   const handleAddPost = async () => {
     try {
       setIsSubmitting(true);
-      const response = await fetch('/api/pd/scheduled-posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          contentId: parseInt(formData.contentId),
-          accountId: parseInt(formData.accountId),
-        }),
-      });
+      const isEditing = !!editingPost;
+      const url = isEditing
+        ? `/api/pd/scheduled-posts/${editingPost!.id}`
+        : '/api/pd/scheduled-posts';
+      const method = isEditing ? 'PATCH' : 'POST';
 
-      const data = await response.json();
-
-      if (data.success) {
-        setIsAddDialogOpen(false);
-        setFormData({
-          contentType: 'posts',
-          contentId: '',
-          platform: 'facebook',
-          accountId: '',
-          message: '',
-          imageUrl: '',
-          link: '',
-          scheduledAt: '',
-        });
-        fetchPosts();
-      } else {
-        alert('예약 포스트 생성 실패: ' + data.error);
+      const body: Record<string, unknown> = {
+        message: formData.message,
+        imageUrl: formData.imageUrl || null,
+        link: formData.link || null,
+        scheduledAt: formData.scheduledAt,
+      };
+      if (!isEditing) {
+        body.contentType = formData.contentType;
+        body.contentId = parseInt(formData.contentId);
+        body.platform = formData.platform;
+        body.accountId = parseInt(formData.accountId);
       }
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        alert('저장 실패: ' + (data.error || 'unknown'));
+        return;
+      }
+      setIsAddDialogOpen(false);
+      resetForm();
+      fetchPosts();
     } catch (error) {
-      console.error('Failed to add scheduled post:', error);
-      alert('예약 포스트 생성 중 오류가 발생했습니다.');
+      console.error('Failed to save scheduled post:', error);
+      alert('예약 포스트 저장 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCancel = async (post: ScheduledPost) => {
+    if (!confirm(`예약 #${post.id}을(를) 취소하시겠습니까?`)) return;
+    setActionLoadingId(post.id);
+    try {
+      const res = await fetch(`/api/pd/scheduled-posts/${post.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || '취소 실패');
+      } else {
+        fetchPosts();
+      }
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleDelete = async (post: ScheduledPost) => {
+    if (!confirm(`예약 #${post.id}을(를) 영구 삭제하시겠습니까?`)) return;
+    setActionLoadingId(post.id);
+    try {
+      const res = await fetch(`/api/pd/scheduled-posts/${post.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || '삭제 실패');
+      } else {
+        fetchPosts();
+      }
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleRetry = async (post: ScheduledPost) => {
+    setActionLoadingId(post.id);
+    try {
+      const res = await fetch(`/api/pd/scheduled-posts/${post.id}/retry`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || '재시도 실패');
+      } else {
+        alert(data.message || '재시도가 예약되었습니다.');
+        fetchPosts();
+      }
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -210,18 +297,28 @@ export default function ScheduledPostsPage() {
                 <SelectItem value="failed">실패</SelectItem>
               </SelectContent>
             </Select>
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <Dialog
+              open={isAddDialogOpen}
+              onOpenChange={(open) => {
+                setIsAddDialogOpen(open);
+                if (!open) resetForm();
+              }}
+            >
               <DialogTrigger asChild>
-                <Button>
+                <Button onClick={resetForm}>
                   <Plus className="mr-2 h-4 w-4" />
                   예약 추가
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>예약 포스트 추가</DialogTitle>
+                  <DialogTitle>
+                    {editingPost ? `예약 포스트 수정 #${editingPost.id}` : '예약 포스트 추가'}
+                  </DialogTitle>
                   <DialogDescription>
-                    SNS 자동 포스팅을 예약하세요
+                    {editingPost
+                      ? '메시지/링크/예약 시간을 변경합니다.'
+                      : 'SNS 자동 포스팅을 예약하세요'}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -231,6 +328,7 @@ export default function ScheduledPostsPage() {
                       <Select
                         value={formData.contentType}
                         onValueChange={(value: any) => setFormData({ ...formData, contentType: value })}
+                        disabled={!!editingPost}
                       >
                         <SelectTrigger id="contentType">
                           <SelectValue />
@@ -250,6 +348,7 @@ export default function ScheduledPostsPage() {
                         value={formData.contentId}
                         onChange={(e) => setFormData({ ...formData, contentId: e.target.value })}
                         placeholder="1"
+                        disabled={!!editingPost}
                       />
                     </div>
                   </div>
@@ -259,6 +358,7 @@ export default function ScheduledPostsPage() {
                       <Select
                         value={formData.platform}
                         onValueChange={(value: any) => setFormData({ ...formData, platform: value })}
+                        disabled={!!editingPost}
                       >
                         <SelectTrigger id="platform">
                           <SelectValue />
@@ -276,6 +376,7 @@ export default function ScheduledPostsPage() {
                       <Select
                         value={formData.accountId}
                         onValueChange={(value) => setFormData({ ...formData, accountId: value })}
+                        disabled={!!editingPost}
                       >
                         <SelectTrigger id="accountId">
                           <SelectValue placeholder="계정 선택" />
@@ -335,7 +436,11 @@ export default function ScheduledPostsPage() {
                     취소
                   </Button>
                   <Button onClick={handleAddPost} disabled={isSubmitting}>
-                    {isSubmitting ? '추가 중...' : '예약 추가'}
+                    {isSubmitting
+                      ? '저장 중...'
+                      : editingPost
+                        ? '수정 저장'
+                        : '예약 추가'}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -421,6 +526,7 @@ export default function ScheduledPostsPage() {
                       <TableHead>예약 시간</TableHead>
                       <TableHead>상태</TableHead>
                       <TableHead>발행일</TableHead>
+                      <TableHead className="text-right">액션</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -449,6 +555,56 @@ export default function ScheduledPostsPage() {
                           </TableCell>
                           <TableCell className="text-sm">
                             {post.publishedAt ? formatDate(post.publishedAt) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex gap-1 justify-end">
+                              {(post.status === 'pending' || post.status === 'failed') && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openEditDialog(post)}
+                                  disabled={actionLoadingId === post.id}
+                                  title="수정"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                              )}
+                              {post.status === 'failed' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleRetry(post)}
+                                  disabled={actionLoadingId === post.id}
+                                  title={`재시도 (${post.retryCount}회)`}
+                                >
+                                  <RotateCcw className="h-3 w-3" />
+                                </Button>
+                              )}
+                              {post.status === 'pending' && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleCancel(post)}
+                                  disabled={actionLoadingId === post.id}
+                                  title="취소"
+                                  className="text-orange-600 hover:bg-orange-50"
+                                >
+                                  <AlertCircle className="h-3 w-3" />
+                                </Button>
+                              )}
+                              {(post.status === 'cancelled' || post.status === 'failed') && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDelete(post)}
+                                  disabled={actionLoadingId === post.id}
+                                  title="삭제"
+                                  className="text-red-600 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

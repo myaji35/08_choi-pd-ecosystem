@@ -76,7 +76,14 @@ export function CourseCard({ course, variant = 'default' }: CourseCardProps) {
           )}
         </div>
 
-        <CardTitle className="line-clamp-2 text-xl">{course.title}</CardTitle>
+        <CardTitle className="line-clamp-2 text-xl">
+          <Link
+            href={`/chopd/education/${course.id}`}
+            className="hover:text-[#00A1E0] transition-colors"
+          >
+            {course.title}
+          </Link>
+        </CardTitle>
         <CardDescription className="line-clamp-3">
           {course.description}
         </CardDescription>
@@ -96,18 +103,19 @@ export function CourseCard({ course, variant = 'default' }: CourseCardProps) {
       </CardContent>
 
       <CardFooter className="flex gap-2">
+        <Button asChild variant="outline" className="flex-1">
+          <Link href={`/chopd/education/${course.id}`}>상세 보기</Link>
+        </Button>
         {course.externalLink ? (
-          // /api/checkout/start 경유: 로그인 상태 확인 + orderId/userId/courseId 주입 후 외부 리다이렉트
-          // webhook이 orderId를 키로 enrollments 생성 → /dashboard/my-courses 에서 수강권 노출
-          <Button asChild className="w-full">
+          <Button asChild className="flex-1">
             <Link href={`/api/checkout/start?courseId=${course.id}`} rel="noopener noreferrer">
-              수강 신청하기
+              수강 신청
               <ExternalLink className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         ) : (
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/education#inquiry">문의하기</Link>
+          <Button asChild className="flex-1">
+            <Link href="/chopd/education#inquiry">문의하기</Link>
           </Button>
         )}
       </CardFooter>

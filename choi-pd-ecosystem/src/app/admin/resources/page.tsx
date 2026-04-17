@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -71,6 +71,10 @@ export default function ResourcesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortKey, setSortKey] = useState<'createdAt' | 'downloadCount' | 'title'>('createdAt');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   useEffect(() => {
     fetchResources();
@@ -117,10 +121,32 @@ export default function ResourcesPage() {
     }
   };
 
-  const filteredResources = resources.filter(
-    (resource) =>
-      resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      resource.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredResources = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    const filtered = resources.filter(
+      (resource) =>
+        resource.title.toLowerCase().includes(q) ||
+        resource.description?.toLowerCase().includes(q)
+    );
+    const sorted = [...filtered].sort((a, b) => {
+      let diff = 0;
+      if (sortKey === 'createdAt') {
+        diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      } else if (sortKey === 'downloadCount') {
+        diff = (a.downloadCount || 0) - (b.downloadCount || 0);
+      } else {
+        diff = a.title.localeCompare(b.title);
+      }
+      return sortDir === 'asc' ? diff : -diff;
+    });
+    return sorted;
+  }, [resources, searchQuery, sortKey, sortDir]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredResources.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pagedResources = filteredResources.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
   );
 
   const formatFileSize = (bytes: number | null) => {
@@ -159,14 +185,14 @@ export default function ResourcesPage() {
               <Input
                 placeholder="제목이나 설명으로 검색..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
                 className="pl-10"
               />
             </div>
             <select
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm"
+              onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900"
             >
               <option value="all">전체 카테고리</option>
               <option value="marketing">마케팅</option>
@@ -174,6 +200,21 @@ export default function ResourcesPage() {
               <option value="contract">계약서</option>
               <option value="promotional">홍보</option>
               <option value="technical">기술</option>
+            </select>
+            <select
+              value={`${sortKey}:${sortDir}`}
+              onChange={(e) => {
+                const [k, d] = e.target.value.split(':') as [typeof sortKey, typeof sortDir];
+                setSortKey(k);
+                setSortDir(d);
+                setPage(1);
+              }}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm text-gray-900"
+            >
+              <option value="createdAt:desc">최신순</option>
+              <option value="createdAt:asc">오래된순</option>
+              <option value="downloadCount:desc">다운로드 많은순</option>
+              <option value="title:asc">제목 가나다순</option>
             </select>
           </div>
           <Button onClick={() => router.push('/admin/resources/new')}>
@@ -257,7 +298,7 @@ export default function ResourcesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredResources.map((resource) => {
+                    {pagedResources.map((resource) => {
                       const Icon = fileTypeIcons[resource.fileType];
                       return (
                         <TableRow key={resource.id}>
@@ -337,6 +378,36 @@ export default function ResourcesPage() {
                     })}
                   </TableBody>
                 </Table>
+                {pageCount > 1 && (
+                  <div className="flex justify-between items-center mt-4 text-sm">
+                    <span className="text-gray-600">
+                      {(currentPage - 1) * PAGE_SIZE + 1}–
+                      {Math.min(currentPage * PAGE_SIZE, filteredResources.length)} /{' '}
+                      {filteredResources.length}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        이전
+                      </Button>
+                      <span className="flex items-center px-3 text-gray-700">
+                        {currentPage} / {pageCount}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                        disabled={currentPage >= pageCount}
+                      >
+                        다음
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

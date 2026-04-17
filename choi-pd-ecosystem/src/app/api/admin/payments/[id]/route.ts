@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { payments, invoices } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { payments, invoices, distributors, subscriptionPlans } from '@/lib/db/schema';
+import { eq, desc } from 'drizzle-orm';
 
-// GET /api/admin/payments/[id] - 결제 상세 조회
+// GET /api/admin/payments/[id] - 결제 상세 조회 (distributor/plan/invoice 포함)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -32,7 +32,32 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ success: true, payment });
+    const distributor = await db
+      .select()
+      .from(distributors)
+      .where(eq(distributors.id, payment.distributorId))
+      .get();
+
+    const plan = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.id, payment.planId))
+      .get();
+
+    const paymentInvoices = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.paymentId, payment.id))
+      .orderBy(desc(invoices.createdAt))
+      .all();
+
+    return NextResponse.json({
+      success: true,
+      payment,
+      distributor: distributor ?? null,
+      plan: plan ?? null,
+      invoices: paymentInvoices,
+    });
   } catch (error) {
     console.error('Failed to fetch payment:', error);
     return NextResponse.json(

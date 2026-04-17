@@ -5,16 +5,21 @@ import { courses } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { CourseCard } from '@/components/education/CourseCard';
 import { CourseFilter } from '@/components/education/CourseFilter';
+import { CourseSearchSort } from '@/components/education/CourseSearchSort';
 import InquiryForm from '@/components/education/InquiryForm';
 import { getContactInfo } from '@/lib/db/queries/contactInfo';
 import { GraduationCap, Users, Building2 } from 'lucide-react';
 
 interface EducationPageProps {
-  searchParams: Promise<{ type?: 'online' | 'offline' | 'b2b' }>;
+  searchParams: Promise<{
+    type?: 'online' | 'offline' | 'b2b';
+    q?: string;
+    sort?: 'newest' | 'oldest' | 'price_asc' | 'price_desc';
+  }>;
 }
 
 export default async function EducationPage({ searchParams }: EducationPageProps) {
-  const { type } = await searchParams;
+  const { type, q = '', sort = 'newest' } = await searchParams;
 
   // 필터 조건
   const conditions = [eq(courses.published, true)];
@@ -24,9 +29,26 @@ export default async function EducationPage({ searchParams }: EducationPageProps
 
   const contactInfo = await getContactInfo();
 
-  const allCourses = await db.query.courses.findMany({
+  const rawCourses = await db.query.courses.findMany({
     where: conditions.length > 1 ? and(...conditions) : conditions[0],
     orderBy: (courses, { desc }) => [desc(courses.createdAt)],
+  });
+
+  const keyword = q.trim().toLowerCase();
+  const filteredByQuery = keyword
+    ? rawCourses.filter(
+        (c) =>
+          c.title.toLowerCase().includes(keyword) ||
+          (c.description || '').toLowerCase().includes(keyword)
+      )
+    : rawCourses;
+
+  const allCourses = [...filteredByQuery].sort((a, b) => {
+    if (sort === 'price_asc') return (a.price || 0) - (b.price || 0);
+    if (sort === 'price_desc') return (b.price || 0) - (a.price || 0);
+    const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return sort === 'oldest' ? aTime - bTime : bTime - aTime;
   });
 
   const features = [
@@ -99,17 +121,20 @@ export default async function EducationPage({ searchParams }: EducationPageProps
       {/* Courses */}
       <section className="py-16">
         <div className="container">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-3xl font-bold">교육 과정</h2>
-              <p className="mt-2 text-muted-foreground">
-                {type
-                  ? `${type === 'online' ? '온라인' : type === 'offline' ? '오프라인' : '기업/기관'} 과정`
-                  : '전체 과정'}{' '}
-                ({allCourses.length}개)
-              </p>
+          <div className="mb-8 flex flex-col gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-3xl font-bold">교육 과정</h2>
+                <p className="mt-2 text-muted-foreground">
+                  {type
+                    ? `${type === 'online' ? '온라인' : type === 'offline' ? '오프라인' : '기업/기관'} 과정`
+                    : '전체 과정'}{' '}
+                  ({allCourses.length}개)
+                </p>
+              </div>
+              <CourseFilter />
             </div>
-            <CourseFilter />
+            <CourseSearchSort />
           </div>
 
           {allCourses.length === 0 ? (

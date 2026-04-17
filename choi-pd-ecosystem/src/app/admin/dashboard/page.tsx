@@ -7,6 +7,7 @@ import { useSession } from '@/hooks/use-session';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import RecentActivityFeed from '@/components/dashboard/RecentActivityFeed';
 import {
   LogOut,
   Users,
@@ -347,6 +348,15 @@ export default function AdminDistributorDashboard() {
               </Button>
             </CardContent>
           </Card>
+        </div>
+
+        {/* 최근 활동 피드 */}
+        <div className="mt-8">
+          <RecentActivityFeed
+            title="최근 활동"
+            description="수요자 활동 최근 10건"
+            moreHref="/admin/activity-log"
+          />
         </div>
 
         {/* 빠른 작업 */}

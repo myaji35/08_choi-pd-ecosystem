@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -13,7 +15,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Mail, Download, Trash2, UserPlus } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ArrowLeft, Mail, Download, Trash2, UserPlus, Send, CheckCircle, AlertTriangle } from 'lucide-react';
 
 interface Subscriber {
   id: number;
@@ -26,6 +36,16 @@ export default function NewsletterPage() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [subject, setSubject] = useState('');
+  const [previewText, setPreviewText] = useState('');
+  const [content, setContent] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [sendResult, setSendResult] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchSubscribers();
@@ -87,6 +107,44 @@ export default function NewsletterPage() {
     window.URL.revokeObjectURL(url);
   };
 
+  const handleSend = async () => {
+    if (!subject.trim() || !content.trim()) {
+      setSendResult({ type: 'error', message: '제목과 본문은 필수입니다.' });
+      return;
+    }
+    if (!confirm(`전체 구독자 ${subscribers.length}명에게 발송합니다. 계속하시겠습니까?`)) {
+      return;
+    }
+    setIsSending(true);
+    setSendResult(null);
+    try {
+      const res = await fetch('/api/pd/newsletter/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject, content, previewText }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || '발송 실패');
+      }
+      setSendResult({
+        type: 'success',
+        message: `${data.sent || subscribers.length}명에게 발송되었습니다.`,
+      });
+      setSubject('');
+      setPreviewText('');
+      setContent('');
+      setTimeout(() => setComposerOpen(false), 1500);
+    } catch (err) {
+      setSendResult({
+        type: 'error',
+        message: err instanceof Error ? err.message : '발송 실패',
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString('ko-KR', {
       year: 'numeric',
@@ -112,14 +170,20 @@ export default function NewsletterPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold">뉴스레터 구독자 관리</h1>
-              <p className="text-sm text-gray-600">이메일 구독자 목록</p>
+              <h1 className="text-xl font-bold">뉴스레터</h1>
+              <p className="text-sm text-gray-600">작성·발송·구독자 관리</p>
             </div>
           </div>
-          <Button onClick={exportToCSV} disabled={subscribers.length === 0}>
-            <Download className="mr-2 h-4 w-4" />
-            CSV 내보내기
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={exportToCSV} disabled={subscribers.length === 0} variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              CSV
+            </Button>
+            <Button onClick={() => setComposerOpen(true)} disabled={subscribers.length === 0}>
+              <Send className="mr-2 h-4 w-4" />
+              뉴스레터 작성·발송
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -260,6 +324,78 @@ export default function NewsletterPage() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Newsletter Composer Dialog */}
+      <Dialog
+        open={composerOpen}
+        onOpenChange={(open) => {
+          setComposerOpen(open);
+          if (!open) setSendResult(null);
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>뉴스레터 작성·발송</DialogTitle>
+            <DialogDescription>
+              전체 구독자 {subscribers.length}명에게 이메일을 발송합니다. 발송 전 미리보기를 확인하세요.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">제목 *</Label>
+              <Input
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="예: [최PD 뉴스레터 #12] 이번 주의 추천 콘텐츠"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">
+                프리헤더 (미리보기 텍스트)
+              </Label>
+              <Input
+                value={previewText}
+                onChange={(e) => setPreviewText(e.target.value)}
+                placeholder="이메일 목록에서 제목 아래에 보이는 짧은 설명"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">본문 (HTML 또는 마크다운) *</Label>
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={12}
+                placeholder={'안녕하세요, 구독자님.\n\n이번 주 추천 콘텐츠는...'}
+              />
+            </div>
+            {sendResult && (
+              <div
+                className={`flex items-center gap-2 px-3 py-2 rounded border text-sm ${
+                  sendResult.type === 'success'
+                    ? 'bg-green-50 border-green-200 text-green-700'
+                    : 'bg-red-50 border-red-200 text-red-700'
+                }`}
+              >
+                {sendResult.type === 'success' ? (
+                  <CheckCircle className="h-4 w-4" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4" />
+                )}
+                {sendResult.message}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setComposerOpen(false)} disabled={isSending}>
+              취소
+            </Button>
+            <Button onClick={handleSend} disabled={isSending}>
+              <Send className="h-4 w-4 mr-1" />
+              {isSending ? '발송 중...' : `${subscribers.length}명에게 발송`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

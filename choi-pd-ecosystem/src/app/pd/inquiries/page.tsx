@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -28,7 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Mail, Phone, MessageSquare, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MessageSquare, CheckCircle, Clock, XCircle, Download, Search } from 'lucide-react';
 
 interface Inquiry {
   id: number;
@@ -58,8 +60,12 @@ export default function InquiriesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  const PAGE_SIZE = 20;
 
   useEffect(() => {
     fetchInquiries();
@@ -146,12 +152,62 @@ export default function InquiriesPage() {
     });
   };
 
-  // 통계 계산
+  const filteredInquiries = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return inquiries;
+    return inquiries.filter(
+      (i) =>
+        i.name.toLowerCase().includes(q) ||
+        i.email.toLowerCase().includes(q) ||
+        (i.phone || '').toLowerCase().includes(q) ||
+        i.message.toLowerCase().includes(q)
+    );
+  }, [inquiries, searchQuery]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredInquiries.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pagedInquiries = filteredInquiries.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  // 통계 계산 (필터 반영)
   const stats = {
-    total: inquiries.length,
-    pending: inquiries.filter(i => i.status === 'pending').length,
-    contacted: inquiries.filter(i => i.status === 'contacted').length,
-    closed: inquiries.filter(i => i.status === 'closed').length,
+    total: filteredInquiries.length,
+    pending: filteredInquiries.filter(i => i.status === 'pending').length,
+    contacted: filteredInquiries.filter(i => i.status === 'contacted').length,
+    closed: filteredInquiries.filter(i => i.status === 'closed').length,
+  };
+
+  const exportCsv = () => {
+    const esc = (s: string | null | undefined) => {
+      if (s == null) return '';
+      return /[",\n]/.test(s) ? `"${String(s).replace(/"/g, '""')}"` : String(s);
+    };
+    const header = 'id,type,status,name,email,phone,message,createdAt';
+    const body = filteredInquiries
+      .map((i) =>
+        [
+          i.id,
+          i.type,
+          i.status,
+          esc(i.name),
+          esc(i.email),
+          esc(i.phone),
+          esc(i.message),
+          new Date(i.createdAt).toISOString(),
+        ].join(',')
+      )
+      .join('\n');
+    const blob = new Blob([`${header}\n${body}\n`], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pd-inquiries-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -169,8 +225,8 @@ export default function InquiriesPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-32">
+            <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
+              <SelectTrigger className="w-32 bg-white">
                 <SelectValue placeholder="타입 필터" />
               </SelectTrigger>
               <SelectContent>
@@ -179,8 +235,8 @@ export default function InquiriesPage() {
                 <SelectItem value="contact">일반</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-32">
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+              <SelectTrigger className="w-32 bg-white">
                 <SelectValue placeholder="상태 필터" />
               </SelectTrigger>
               <SelectContent>
@@ -190,6 +246,10 @@ export default function InquiriesPage() {
                 <SelectItem value="closed">완료</SelectItem>
               </SelectContent>
             </Select>
+            <Button variant="outline" size="sm" onClick={exportCsv} disabled={filteredInquiries.length === 0}>
+              <Download className="h-4 w-4 mr-1" />
+              CSV
+            </Button>
           </div>
         </div>
       </header>
@@ -243,6 +303,25 @@ export default function InquiriesPage() {
           </Card>
         </div>
 
+        {/* 검색 */}
+        <Card className="border-gray-200 mb-6">
+          <CardContent className="py-4">
+            <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">검색</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                className="pl-9"
+                placeholder="이름, 이메일, 전화, 내용 검색"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Inquiries Table */}
         <Card>
           <CardHeader>
@@ -255,9 +334,9 @@ export default function InquiriesPage() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">문의 로딩 중...</p>
               </div>
-            ) : inquiries.length === 0 ? (
+            ) : filteredInquiries.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500">문의가 없습니다</p>
+                <p className="text-gray-500">조건에 맞는 문의가 없습니다</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -275,7 +354,7 @@ export default function InquiriesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {inquiries.map((inquiry) => {
+                    {pagedInquiries.map((inquiry) => {
                       const statusInfo = statusConfig[inquiry.status];
                       const typeInfo = typeConfig[inquiry.type];
                       const StatusIcon = statusInfo.icon;
@@ -319,6 +398,36 @@ export default function InquiriesPage() {
                     })}
                   </TableBody>
                 </Table>
+                {pageCount > 1 && (
+                  <div className="flex justify-between items-center mt-4 text-sm">
+                    <span className="text-gray-600">
+                      {(currentPage - 1) * PAGE_SIZE + 1}–
+                      {Math.min(currentPage * PAGE_SIZE, filteredInquiries.length)} /{' '}
+                      {filteredInquiries.length}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        이전
+                      </Button>
+                      <span className="flex items-center px-3 text-gray-700">
+                        {currentPage} / {pageCount}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                        disabled={currentPage >= pageCount}
+                      >
+                        다음
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

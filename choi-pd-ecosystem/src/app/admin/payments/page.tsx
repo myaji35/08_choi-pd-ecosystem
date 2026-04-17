@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -20,7 +22,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, DollarSign, CreditCard, CheckCircle, XCircle, Clock } from 'lucide-react';
+import {
+  ArrowLeft,
+  DollarSign,
+  CreditCard,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Download,
+  Search,
+} from 'lucide-react';
 
 interface Payment {
   id: number;
@@ -43,11 +54,17 @@ const statusConfig = {
   refunded: { label: '환불', color: 'bg-gray-100 text-gray-800', icon: DollarSign },
 };
 
+const PAGE_SIZE = 20;
+
 export default function PaymentsPage() {
   const router = useRouter();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     fetchPayments();
@@ -64,12 +81,20 @@ export default function PaymentsPage() {
 
       if (data.success) {
         setPayments(data.payments);
+        setPage(1);
       }
     } catch (error) {
       console.error('Failed to fetch payments:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCsvExport = () => {
+    const params = new URLSearchParams({ type: 'payments' });
+    if (fromDate) params.set('from', new Date(fromDate).toISOString());
+    if (toDate) params.set('to', new Date(toDate).toISOString());
+    window.open(`/api/admin/reports/download?${params.toString()}`, '_blank');
   };
 
   const formatCurrency = (amount: number) => {
@@ -90,12 +115,38 @@ export default function PaymentsPage() {
     });
   };
 
-  // 통계 계산
+  // 검색 + 기간 필터
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const from = fromDate ? new Date(fromDate).getTime() : null;
+    const to = toDate ? new Date(toDate).getTime() + 86400000 : null;
+    return payments.filter((p) => {
+      if (q) {
+        const hit =
+          String(p.id).includes(q) ||
+          String(p.distributorId).includes(q) ||
+          (p.transactionId || '').toLowerCase().includes(q) ||
+          (p.paymentMethod || '').toLowerCase().includes(q);
+        if (!hit) return false;
+      }
+      if (from || to) {
+        const t = new Date(p.createdAt).getTime();
+        if (from && t < from) return false;
+        if (to && t > to) return false;
+      }
+      return true;
+    });
+  }, [payments, searchQuery, fromDate, toDate]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pagedRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  // 통계 계산 (필터 반영)
   const stats = {
-    total: payments.length,
-    completed: payments.filter(p => p.status === 'completed').length,
-    pending: payments.filter(p => p.status === 'pending').length,
-    totalRevenue: payments
+    total: filtered.length,
+    completed: filtered.filter(p => p.status === 'completed').length,
+    pending: filtered.filter(p => p.status === 'pending').length,
+    totalRevenue: filtered
       .filter(p => p.status === 'completed')
       .reduce((sum, p) => sum + p.amount, 0),
   };
@@ -114,18 +165,24 @@ export default function PaymentsPage() {
               <p className="text-sm text-gray-600">분양 수요자 결제 내역</p>
             </div>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="상태 필터" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체</SelectItem>
-              <SelectItem value="pending">대기중</SelectItem>
-              <SelectItem value="completed">완료</SelectItem>
-              <SelectItem value="failed">실패</SelectItem>
-              <SelectItem value="refunded">환불</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2 items-center">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-32 bg-white">
+                <SelectValue placeholder="상태 필터" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">전체</SelectItem>
+                <SelectItem value="pending">대기중</SelectItem>
+                <SelectItem value="completed">완료</SelectItem>
+                <SelectItem value="failed">실패</SelectItem>
+                <SelectItem value="refunded">환불</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" onClick={handleCsvExport}>
+              <Download className="h-4 w-4 mr-1" />
+              CSV
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -180,6 +237,51 @@ export default function PaymentsPage() {
           </Card>
         </div>
 
+        {/* 검색 + 기간 필터 */}
+        <Card className="border-gray-200 mb-6">
+          <CardContent className="py-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              <div>
+                <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">검색</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    className="pl-9"
+                    placeholder="ID, 수요자 ID, 거래 ID, 결제수단"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setPage(1);
+                    }}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">시작일</Label>
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => {
+                    setFromDate(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">종료일</Label>
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => {
+                    setToDate(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Payments Table */}
         <Card>
           <CardHeader>
@@ -192,9 +294,9 @@ export default function PaymentsPage() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">결제 내역 로딩 중...</p>
               </div>
-            ) : payments.length === 0 ? (
+            ) : pagedRows.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500">결제 내역이 없습니다</p>
+                <p className="text-gray-500">조건에 맞는 결제 내역이 없습니다</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -213,7 +315,7 @@ export default function PaymentsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {payments.map((payment) => {
+                    {pagedRows.map((payment) => {
                       const statusInfo = statusConfig[payment.status];
                       const StatusIcon = statusInfo.icon;
 
@@ -256,6 +358,35 @@ export default function PaymentsPage() {
                     })}
                   </TableBody>
                 </Table>
+                {pageCount > 1 && (
+                  <div className="flex justify-between items-center mt-4 text-sm">
+                    <span className="text-gray-600">
+                      {(page - 1) * PAGE_SIZE + 1}–
+                      {Math.min(page * PAGE_SIZE, filtered.length)} / {filtered.length}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                      >
+                        이전
+                      </Button>
+                      <span className="flex items-center px-3 text-gray-700">
+                        {page} / {pageCount}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                        disabled={page >= pageCount}
+                      >
+                        다음
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

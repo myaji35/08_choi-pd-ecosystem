@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import type { Post } from '@/lib/db/schema';
 
@@ -79,6 +80,18 @@ export function AnnouncementsSection({ posts }: AnnouncementsSectionProps) {
               </CardHeader>
             </Card>
           ))}
+        </div>
+
+        <div className="mt-8 flex justify-center">
+          <Link
+            href="/chopd/community/announcements"
+            className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-white px-5 py-2 text-sm font-semibold text-gray-700 hover:border-[#00A1E0] hover:text-[#00A1E0] transition-colors"
+          >
+            전체 공지 보기
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </Link>
         </div>
       </div>
     </section>

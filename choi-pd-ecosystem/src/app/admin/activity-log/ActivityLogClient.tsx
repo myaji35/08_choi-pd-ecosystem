@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,6 +54,10 @@ export default function ActivityLogPage() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(0);
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [fromDate, setFromDate] = useState<string>('');
+  const [toDate, setToDate] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
   const limit = 50;
 
   useEffect(() => {
@@ -79,6 +83,58 @@ export default function ActivityLogPage() {
 
   const formatDate = (dateString: Date) => {
     return new Date(dateString).toLocaleString('ko-KR');
+  };
+
+  const filteredLogs = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const from = fromDate ? new Date(fromDate).getTime() : null;
+    const to = toDate ? new Date(toDate).getTime() + 86400000 : null;
+    return logs.filter((row) => {
+      const log = row.log;
+      if (typeFilter !== 'all' && log.activityType !== typeFilter) return false;
+      if (from || to) {
+        const t = new Date(log.createdAt).getTime();
+        if (from && t < from) return false;
+        if (to && t > to) return false;
+      }
+      if (q) {
+        const hit =
+          (log.description || '').toLowerCase().includes(q) ||
+          (row.distributor?.name || '').toLowerCase().includes(q) ||
+          (row.distributor?.email || '').toLowerCase().includes(q) ||
+          (log.ipAddress || '').includes(q);
+        if (!hit) return false;
+      }
+      return true;
+    });
+  }, [logs, typeFilter, fromDate, toDate, searchQuery]);
+
+  const exportCsv = () => {
+    const esc = (s: string | null | undefined) =>
+      s == null ? '' : /[",\n]/.test(String(s)) ? `"${String(s).replace(/"/g, '""')}"` : String(s);
+    const header = 'id,distributorId,distributorName,activityType,description,ipAddress,createdAt';
+    const body = filteredLogs
+      .map((r) =>
+        [
+          r.log.id,
+          r.log.distributorId,
+          esc(r.distributor?.name || ''),
+          r.log.activityType,
+          esc(r.log.description),
+          esc(r.log.ipAddress),
+          new Date(r.log.createdAt).toISOString(),
+        ].join(',')
+      )
+      .join('\n');
+    const blob = new Blob([`${header}\n${body}\n`], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `activity-log-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const getActivityBadge = (type: ActivityLog['log']['activityType']) => {
@@ -110,6 +166,62 @@ export default function ActivityLogPage() {
 
       {/* Main Content */}
       <main className="container py-8">
+        {/* 필터 바 */}
+        <Card className="mb-4 border-gray-200">
+          <CardContent className="py-4">
+            <div className="grid gap-3 md:grid-cols-5">
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">검색</label>
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="설명/수요자/IP"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00A1E0] focus:ring-1 focus:ring-[#00A1E0]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">활동 유형</label>
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
+                >
+                  <option value="all">전체</option>
+                  <option value="login">로그인</option>
+                  <option value="content_access">콘텐츠 접근</option>
+                  <option value="download">다운로드</option>
+                  <option value="payment">결제</option>
+                  <option value="support_request">문의</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">시작일</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">종료일</label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
+                />
+              </div>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <Button variant="outline" size="sm" onClick={exportCsv} disabled={filteredLogs.length === 0}>
+                CSV 다운로드 ({filteredLogs.length}건)
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -123,7 +235,7 @@ export default function ActivityLogPage() {
           <CardContent>
             {isLoading ? (
               <div className="py-8 text-center text-gray-500">로딩 중...</div>
-            ) : logs.length === 0 ? (
+            ) : filteredLogs.length === 0 ? (
               <div className="py-8 text-center text-gray-500">활동 로그가 없습니다</div>
             ) : (
               <>
@@ -140,7 +252,7 @@ export default function ActivityLogPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {logs.map(({ log, distributor }) => (
+                      {filteredLogs.map(({ log, distributor }) => (
                         <TableRow key={log.id}>
                           <TableCell className="font-mono text-xs">#{log.id}</TableCell>
                           <TableCell>
