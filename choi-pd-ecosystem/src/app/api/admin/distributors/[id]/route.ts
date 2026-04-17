@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { distributors } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
+import { validateSlug } from '@/lib/distributors/slug';
 
 /** id 파라미터: 숫자 → distributors.id / 문자 → distributors.slug */
 async function resolveDistributor(idOrSlug: string, tenantId: number) {
@@ -71,6 +72,7 @@ export async function PUT(
 
     const body = await request.json();
     const {
+      slug,
       name,
       email,
       phone,
@@ -97,11 +99,36 @@ export async function PUT(
       }
     }
 
+    // slug 유효성 + 중복 체크 (자신 제외, 테넌트 내 unique)
+    if (slug !== undefined && slug !== existing.slug) {
+      if (slug) {
+        const vr = validateSlug(slug);
+        if (!vr.ok) {
+          return NextResponse.json(
+            { success: false, error: vr.reason },
+            { status: 400 }
+          );
+        }
+        const slugExists = await db
+          .select()
+          .from(distributors)
+          .where(and(eq(distributors.slug, slug), eq(distributors.tenantId, tenantId)))
+          .get();
+        if (slugExists && slugExists.id !== existing.id) {
+          return NextResponse.json(
+            { success: false, error: '이미 사용 중인 ID입니다' },
+            { status: 409 }
+          );
+        }
+      }
+    }
+
     // 업데이트 데이터 준비
     const updateData: any = {
       updatedAt: sql`CURRENT_TIMESTAMP`,
     };
 
+    if (slug !== undefined) updateData.slug = slug || null;
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
     if (phone !== undefined) updateData.phone = phone;

@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { DistributorIdentityUploader } from '@/components/admin/DistributorIdentityUploader';
 import { IdentityPreviewCard } from '@/components/admin/IdentityPreviewCard';
 import { memberDisplayUrl, memberHref, memberAbsoluteUrl } from '@/lib/public-url';
+import { validateSlug } from '@/lib/distributors/slug';
 import {
   ArrowLeft,
   Save,
@@ -69,6 +70,7 @@ export default function DistributorDetailPage() {
 
   // Form state
   const [formData, setFormData] = useState({
+    slug: '',
     name: '',
     email: '',
     phone: '',
@@ -78,6 +80,7 @@ export default function DistributorDetailPage() {
     subscriptionPlan: '' as '' | 'basic' | 'premium' | 'enterprise',
     notes: '',
   });
+  const [slugError, setSlugError] = useState<string>('');
 
   useEffect(() => {
     fetchDistributor();
@@ -92,6 +95,7 @@ export default function DistributorDetailPage() {
       if (data.success) {
         setDistributor(data.distributor);
         setFormData({
+          slug: data.distributor.slug || '',
           name: data.distributor.name,
           email: data.distributor.email,
           phone: data.distributor.phone || '',
@@ -116,6 +120,11 @@ export default function DistributorDetailPage() {
       setIsSaving(true);
       setError('');
       setSuccessMessage('');
+
+      if (slugError) {
+        setError(`ID(slug)가 유효하지 않습니다: ${slugError}`);
+        return;
+      }
 
       const response = await fetch(`/api/admin/distributors/${id}`, {
         method: 'PUT',
@@ -306,6 +315,45 @@ export default function DistributorDetailPage() {
               <CardDescription>수요자의 기본 정보를 관리합니다</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* ID(slug) — 공개 URL 식별자 */}
+              <div>
+                <Label
+                  htmlFor="slug"
+                  className="block text-xs font-semibold text-gray-600 mb-1.5"
+                >
+                  ID (공개 주소) *
+                </Label>
+                <div className="flex items-stretch rounded-lg border border-gray-300 focus-within:border-[#00A1E0] focus-within:ring-1 focus-within:ring-[#00A1E0]">
+                  <span className="flex items-center bg-gray-50 px-3 text-xs text-gray-600 font-mono border-r border-gray-300">
+                    impd.me/
+                  </span>
+                  <Input
+                    id="slug"
+                    value={formData.slug}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setFormData({ ...formData, slug: v });
+                      if (!v) {
+                        setSlugError('');
+                        return;
+                      }
+                      const vr = validateSlug(v);
+                      setSlugError(vr.ok ? '' : vr.reason);
+                    }}
+                    placeholder="byjreporter"
+                    className="border-0 focus-visible:ring-0 rounded-l-none"
+                  />
+                </div>
+                <div className="mt-1 flex items-center justify-between text-[11px]">
+                  <span className={slugError ? 'text-red-600' : 'text-gray-500'}>
+                    {slugError || '영문 소문자·숫자·하이픈만 (3~30자). 저장 후 공개 주소가 바뀌니 변경은 신중히.'}
+                  </span>
+                  {formData.slug && !slugError && (
+                    <span className="font-mono text-gray-500">→ /{formData.slug}</span>
+                  )}
+                </div>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <Label htmlFor="name" className="block text-xs font-semibold text-gray-600 mb-1.5">이름/기업명 *</Label>
@@ -491,7 +539,7 @@ export default function DistributorDetailPage() {
                     </Button>
                   </div>
                   <p className="text-[10px] text-gray-500">
-                    현재 접속 중인 도메인으로 자동 생성됩니다. 프로덕션(impd.me)에서는 서브디렉토리로, 그 외엔 <span className="font-mono">/member/&lt;slug&gt;</span>로 이동합니다.
+                    현재 접속 중인 도메인을 기준으로 자동 생성됩니다. 모든 환경에서 <span className="font-mono">호스트/&lt;slug&gt;</span> 형식으로 이동합니다.
                   </p>
                 </CardContent>
               </Card>
