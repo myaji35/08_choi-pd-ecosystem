@@ -3,9 +3,11 @@ export const dynamic = 'force-dynamic';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/db';
 import { members } from '@/lib/db/schema';
+import { distributors } from '@/lib/db/schema/distribution';
 import { eq, and } from 'drizzle-orm';
 import Link from 'next/link';
 import { getTemplate, resolveHeroText } from '@/lib/member-templates';
+import { DistributorFallbackPage } from './DistributorFallbackPage';
 
 // SNS 아이콘 매핑 (Feather-style SVG)
 const SNS_ICONS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
@@ -145,6 +147,15 @@ interface MemberPageProps {
   params: Promise<{ slug: string }>;
 }
 
+function safeParse<T = any>(raw: string | null | undefined): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
 export default async function MemberPage({ params }: MemberPageProps) {
   const { slug } = await params;
 
@@ -155,7 +166,31 @@ export default async function MemberPage({ params }: MemberPageProps) {
     .limit(1);
 
   if (result.length === 0) {
-    notFound();
+    // members 에 없으면 distributors 에서 찾아 fallback 페이지 렌더
+    const distRows = await db
+      .select()
+      .from(distributors)
+      .where(eq(distributors.slug, slug))
+      .limit(1);
+
+    if (distRows.length === 0) {
+      notFound();
+    }
+
+    const d = distRows[0];
+    const parsed = d.identityJson ? safeParse(d.identityJson) : null;
+    return (
+      <DistributorFallbackPage
+        slug={d.slug || slug}
+        name={d.name}
+        email={d.email}
+        region={d.region}
+        businessType={d.businessType}
+        identity={parsed}
+        status={d.status}
+        updatedAt={d.updatedAt ?? null}
+      />
+    );
   }
 
   const member = result[0];
