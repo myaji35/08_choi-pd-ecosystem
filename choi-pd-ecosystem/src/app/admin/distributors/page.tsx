@@ -28,6 +28,7 @@ import {
   Eye,
   ExternalLink,
 } from 'lucide-react';
+import { memberDisplayUrl, memberHref } from '@/lib/public-url';
 
 interface Distributor {
   id: number;
@@ -349,10 +350,10 @@ export default function DistributorsListPage() {
                                 onClick={(e) => e.stopPropagation()}
                                 aria-label="홍보페이지 새 탭"
                                 className="text-[#00A1E0] hover:bg-[#E6F6FD]"
-                                title={`impd.me/${distributor.slug}`}
+                                title={memberDisplayUrl(distributor.slug)}
                               >
                                 <a
-                                  href={`/member/${distributor.slug}`}
+                                  href={memberHref(distributor.slug)}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                 >

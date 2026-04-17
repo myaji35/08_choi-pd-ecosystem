@@ -17,6 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { DistributorIdentityUploader } from '@/components/admin/DistributorIdentityUploader';
 import { IdentityPreviewCard } from '@/components/admin/IdentityPreviewCard';
+import { memberDisplayUrl, memberHref, memberAbsoluteUrl } from '@/lib/public-url';
 import {
   ArrowLeft,
   Save,
@@ -60,6 +61,11 @@ export default function DistributorDetailPage() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [identityRefreshKey, setIdentityRefreshKey] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -442,8 +448,17 @@ export default function DistributorDetailPage() {
                   <CardDescription>회원의 공개 페이지로 바로 이동합니다</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-xs text-gray-700">
-                    impd.me/<span className="font-bold text-[#16325C]">{distributor.slug}</span>
+                  <div
+                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-xs text-gray-700 break-all"
+                    suppressHydrationWarning
+                  >
+                    {mounted ? (
+                      memberDisplayUrl(distributor.slug)
+                    ) : (
+                      <>
+                        impd.me/<span className="font-bold text-[#16325C]">{distributor.slug}</span>
+                      </>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -452,7 +467,7 @@ export default function DistributorDetailPage() {
                       className="flex-1 bg-[#00A1E0] text-white hover:bg-[#0082B3]"
                     >
                       <a
-                        href={`/member/${distributor.slug}`}
+                        href={memberHref(distributor.slug)}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -464,16 +479,20 @@ export default function DistributorDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const url = `${window.location.origin}/member/${distributor.slug}`;
+                        const url = memberAbsoluteUrl(distributor.slug!);
                         navigator.clipboard?.writeText(url);
-                        setSuccessMessage('URL이 복사되었습니다');
-                        setTimeout(() => setSuccessMessage(''), 1500);
+                        setSuccessMessage(`URL이 복사되었습니다: ${url}`);
+                        setTimeout(() => setSuccessMessage(''), 2000);
                       }}
                       aria-label="URL 복사"
+                      title="현재 접속 중인 도메인 기준으로 복사됩니다"
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
+                  <p className="text-[10px] text-gray-500">
+                    현재 접속 중인 도메인으로 자동 생성됩니다. 프로덕션(impd.me)에서는 서브디렉토리로, 그 외엔 <span className="font-mono">/member/&lt;slug&gt;</span>로 이동합니다.
+                  </p>
                 </CardContent>
               </Card>
             ) : (
@@ -483,7 +502,7 @@ export default function DistributorDetailPage() {
                     홍보페이지 URL 미설정
                   </p>
                   <p className="mt-1 text-xs text-gray-500">
-                    이 회원은 slug(impd.me 서브디렉토리)가 없어 공개 페이지에 접근할 수 없습니다.
+                    이 회원은 slug(공개 주소 식별자)가 없어 공개 페이지에 접근할 수 없습니다.
                   </p>
                 </CardContent>
               </Card>
