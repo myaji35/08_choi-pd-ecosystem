@@ -9,6 +9,7 @@ import { tenants } from './tenant';
 export const distributors = sqliteTable('distributors', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
+  slug: text('slug'), // impd.me/<slug> URL 식별자 — tenant당 unique
   name: text('name').notNull(), // 수요자 이름/기업명
   email: text('email').notNull(), // unique 제약 → (tenant_id, email) 복합 유니크로 변경
   phone: text('phone'),
@@ -26,6 +27,7 @@ export const distributors = sqliteTable('distributors', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`).notNull()
 }, (table) => [
   uniqueIndex('idx_distributors_tenant_email').on(table.tenantId, table.email),
+  uniqueIndex('idx_distributors_slug').on(table.tenantId, table.slug),
   index('idx_distributors_tenant').on(table.tenantId),
 ]);
 

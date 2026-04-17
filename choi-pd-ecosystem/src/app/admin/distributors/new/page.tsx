@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,9 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, UserPlus, Loader2, XCircle } from 'lucide-react';
+import { ArrowLeft, UserPlus, Loader2, XCircle, CheckCircle2, Sparkles } from 'lucide-react';
+import { validateSlug } from '@/lib/distributors/slug';
 
 const distributorSchema = z.object({
+  slug: z.string().min(3, 'ID는 3자 이상').max(30, '최대 30자'),
   name: z.string().min(1, '이름 또는 기업명을 입력해주세요'),
   email: z.string().min(1, '이메일을 입력해주세요').email('올바른 이메일 형식을 입력해주세요'),
   phone: z.string().optional(),
@@ -31,10 +33,12 @@ type FieldErrors = Partial<Record<string, string>>;
 
 export default function NewDistributorPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState('');
   const [formData, setFormData] = useState({
+    slug: '',
     name: '',
     email: '',
     phone: '',
@@ -43,6 +47,77 @@ export default function NewDistributorPage() {
     subscriptionPlan: '' as '' | 'basic' | 'premium' | 'enterprise',
     notes: '',
   });
+  // slug 전용 실시간 검증 상태
+  const [slugState, setSlugState] = useState<{
+    status: 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
+    reason?: string;
+    suggestion?: string;
+  }>({ status: 'idle' });
+  const slugDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const slugTouchedRef = useRef(false);
+
+  // 쿼리스트링 ?slug=... 로 들어오면 초기 slug 세팅
+  useEffect(() => {
+    const q = searchParams.get('slug');
+    if (q) {
+      slugTouchedRef.current = true;
+      setFormData((prev) => (prev.slug ? prev : { ...prev, slug: q.toLowerCase() }));
+    }
+  }, [searchParams]);
+
+  // slug 디바운스 검증
+  useEffect(() => {
+    if (!formData.slug) {
+      setSlugState({ status: 'idle' });
+      return;
+    }
+    const local = validateSlug(formData.slug);
+    if (!local.ok) {
+      setSlugState({ status: 'invalid', reason: local.reason });
+      return;
+    }
+    setSlugState({ status: 'checking' });
+    if (slugDebounceRef.current) clearTimeout(slugDebounceRef.current);
+    slugDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/admin/distributors/check-id?id=${encodeURIComponent(local.normalized)}`);
+        const data = await res.json();
+        if (data?.success && data.available) {
+          setSlugState({ status: 'available' });
+        } else {
+          setSlugState({ status: 'taken', reason: data?.reason || '사용 불가' });
+        }
+      } catch {
+        setSlugState({ status: 'invalid', reason: '확인 실패' });
+      }
+    }, 350);
+    return () => {
+      if (slugDebounceRef.current) clearTimeout(slugDebounceRef.current);
+    };
+  }, [formData.slug]);
+
+  // 이메일/이름 변경 시 slug 미터치 상태면 자동 추천
+  useEffect(() => {
+    if (slugTouchedRef.current) return;
+    if (!formData.email && !formData.name) return;
+    const params = new URLSearchParams({ suggest: '1' });
+    if (formData.email) params.set('email', formData.email);
+    if (formData.name) params.set('name', formData.name);
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/admin/distributors/check-id?${params.toString()}`);
+        const data = await res.json();
+        if (!cancelled && data?.suggestion) {
+          setFormData((prev) => (prev.slug ? prev : { ...prev, slug: data.suggestion }));
+        }
+      } catch {}
+    }, 500);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [formData.email, formData.name]);
 
   const validateField = (field: string, value: string) => {
     if (field in distributorSchema.shape) {
@@ -70,6 +145,17 @@ export default function NewDistributorPage() {
       return;
     }
 
+    // slug 최종 확인
+    const v = validateSlug(formData.slug);
+    if (!v.ok) {
+      setErrors((prev) => ({ ...prev, slug: v.reason }));
+      return;
+    }
+    if (slugState.status !== 'available') {
+      setErrors((prev) => ({ ...prev, slug: slugState.reason || 'ID를 먼저 확정해주세요' }));
+      return;
+    }
+
     setErrors({});
     setIsSubmitting(true);
 
@@ -79,12 +165,14 @@ export default function NewDistributorPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          slug: v.normalized,
           subscriptionPlan: formData.subscriptionPlan || null,
         }),
       });
 
       if (response.ok) {
-        router.push('/admin/distributors');
+        // 등록 즉시 해당 slug로 관리 페이지 진입
+        router.push(`/admin/distributors/${v.normalized}`);
       } else {
         const error = await response.json();
         setSubmitError(error.error || '등록에 실패했습니다');
@@ -141,6 +229,54 @@ export default function NewDistributorPage() {
                     <p className="text-sm text-red-700">{submitError}</p>
                   </div>
                 )}
+
+                {/* ID (slug) — impd.me/<id> 식별자 */}
+                <div className="space-y-2">
+                  <Label htmlFor="slug">
+                    ID (회원 주소) <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="flex items-stretch rounded-lg border border-gray-300 bg-white focus-within:border-[#00A1E0] focus-within:ring-1 focus-within:ring-[#00A1E0] overflow-hidden">
+                    <span className="inline-flex items-center px-3 text-sm text-gray-500 bg-gray-50 border-r border-gray-200 font-mono">
+                      impd.me/
+                    </span>
+                    <input
+                      id="slug"
+                      value={formData.slug}
+                      onChange={(e) => {
+                        slugTouchedRef.current = true;
+                        const v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                        handleChange('slug', v);
+                      }}
+                      onBlur={(e) => validateField('slug', e.target.value)}
+                      placeholder="choi"
+                      className="flex-1 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none font-mono"
+                      autoComplete="off"
+                    />
+                    <span className="inline-flex items-center px-3">
+                      {slugState.status === 'checking' && <Loader2 className="h-4 w-4 text-gray-400 animate-spin" />}
+                      {slugState.status === 'available' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                      {(slugState.status === 'taken' || slugState.status === 'invalid') && <XCircle className="h-4 w-4 text-red-500" />}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    {slugState.status === 'available' && (
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" />
+                        사용 가능 · <span className="font-mono">impd.me/{formData.slug}</span>
+                      </p>
+                    )}
+                    {(slugState.status === 'taken' || slugState.status === 'invalid') && (
+                      <p className="text-xs text-red-600">{slugState.reason}</p>
+                    )}
+                    {slugState.status === 'idle' && (
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        이메일/이름 입력 시 자동 추천됩니다. 영문 소문자·숫자·하이픈 (3~30자)
+                      </p>
+                    )}
+                    {errors.slug && <p className="text-xs text-red-600">{errors.slug}</p>}
+                  </div>
+                </div>
 
                 {/* 이름 */}
                 <div className="space-y-2">

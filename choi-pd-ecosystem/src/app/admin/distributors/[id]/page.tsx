@@ -181,15 +181,38 @@ export default function DistributorDetailPage() {
   }
 
   if (error && !distributor) {
+    const notFound = /not found|찾을 수 없/i.test(error);
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center">
-        <Card className="max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 flex items-center justify-center p-6">
+        <Card className="max-w-md w-full border-gray-200">
           <CardHeader>
-            <CardTitle className="text-red-600">오류</CardTitle>
+            <CardTitle className="text-gray-900">
+              {notFound ? '아직 등록되지 않은 ID' : '오류'}
+            </CardTitle>
+            <CardDescription>
+              {notFound ? (
+                <>
+                  <span className="font-mono text-gray-700">impd.me/{id}</span> 이(가) 아직 등록되지 않았습니다.
+                </>
+              ) : (
+                error
+              )}
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <Button onClick={() => router.push('/admin/distributors')}>
+          <CardContent className="space-y-2">
+            {notFound && (
+              <Button
+                onClick={() => router.push(`/admin/distributors/new?slug=${id}`)}
+                className="w-full bg-[#00A1E0] hover:bg-[#0082B3]"
+              >
+                이 ID로 신규 등록하기
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => router.push('/admin/distributors')}
+            >
               <ArrowLeft className="mr-2 h-4 w-4" />
               목록으로 돌아가기
             </Button>
@@ -330,16 +353,19 @@ export default function DistributorDetailPage() {
                 <div>
                   <Label htmlFor="subscriptionPlan">구독 플랜</Label>
                   <Select
-                    value={formData.subscriptionPlan}
+                    value={formData.subscriptionPlan || 'none'}
                     onValueChange={(value: any) =>
-                      setFormData({ ...formData, subscriptionPlan: value })
+                      setFormData({
+                        ...formData,
+                        subscriptionPlan: value === 'none' ? '' : value,
+                      })
                     }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="플랜 선택" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">없음</SelectItem>
+                      <SelectItem value="none">없음</SelectItem>
                       <SelectItem value="basic">Basic</SelectItem>
                       <SelectItem value="premium">Premium</SelectItem>
                       <SelectItem value="enterprise">Enterprise</SelectItem>

@@ -4,28 +4,33 @@ import { distributors } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 
-// GET /api/admin/distributors/[id] - 수요자 상세 조회
+/** id 파라미터: 숫자 → distributors.id / 문자 → distributors.slug */
+async function resolveDistributor(idOrSlug: string, tenantId: number) {
+  const n = parseInt(idOrSlug);
+  if (!isNaN(n) && String(n) === idOrSlug) {
+    return db
+      .select()
+      .from(distributors)
+      .where(and(eq(distributors.id, n), eq(distributors.tenantId, tenantId)))
+      .get();
+  }
+  return db
+    .select()
+    .from(distributors)
+    .where(and(eq(distributors.slug, idOrSlug), eq(distributors.tenantId, tenantId)))
+    .get();
+}
+
+// GET /api/admin/distributors/[id] - 수요자 상세 조회 (id 또는 slug)
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: idStr } = await params;
-    const id = parseInt(idStr);
-
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid ID' },
-        { status: 400 }
-      );
-    }
-
+    const { id: idOrSlug } = await params;
     const tenantId = getTenantIdFromRequest(request);
-    const distributor = await db
-      .select()
-      .from(distributors)
-      .where(and(eq(distributors.id, id), eq(distributors.tenantId, tenantId)))
-      .get();
+
+    const distributor = await resolveDistributor(idOrSlug, tenantId);
 
     if (!distributor) {
       return NextResponse.json(
@@ -53,13 +58,14 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: idStr } = await params;
-    const id = parseInt(idStr);
+    const { id: idOrSlug } = await params;
+    const tenantId = getTenantIdFromRequest(request);
+    const existing = await resolveDistributor(idOrSlug, tenantId);
 
-    if (isNaN(id)) {
+    if (!existing) {
       return NextResponse.json(
-        { success: false, error: 'Invalid ID' },
-        { status: 400 }
+        { success: false, error: 'Distributor not found' },
+        { status: 404 }
       );
     }
 
@@ -75,21 +81,6 @@ export async function PUT(
       notes,
     } = body;
 
-    // 수요자 존재 확인 (tenantId 소유권)
-    const tenantIdPut = getTenantIdFromRequest(request);
-    const existing = await db
-      .select()
-      .from(distributors)
-      .where(and(eq(distributors.id, id), eq(distributors.tenantId, tenantIdPut)))
-      .get();
-
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, error: 'Distributor not found' },
-        { status: 404 }
-      );
-    }
-
     // 이메일 중복 체크 (자신 제외)
     if (email && email !== existing.email) {
       const emailExists = await db
@@ -98,7 +89,7 @@ export async function PUT(
         .where(eq(distributors.email, email))
         .get();
 
-      if (emailExists) {
+      if (emailExists && emailExists.id !== existing.id) {
         return NextResponse.json(
           { success: false, error: 'Email already exists' },
           { status: 409 }
@@ -120,17 +111,15 @@ export async function PUT(
     if (subscriptionPlan !== undefined) updateData.subscriptionPlan = subscriptionPlan;
     if (notes !== undefined) updateData.notes = notes;
 
-    // 업데이트 실행
     await db
       .update(distributors)
       .set(updateData)
-      .where(eq(distributors.id, id));
+      .where(eq(distributors.id, existing.id));
 
-    // 업데이트된 데이터 조회
     const updated = await db
       .select()
       .from(distributors)
-      .where(eq(distributors.id, id))
+      .where(eq(distributors.id, existing.id))
       .get();
 
     return NextResponse.json({
@@ -152,23 +141,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: idStr } = await params;
-    const id = parseInt(idStr);
-
-    if (isNaN(id)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid ID' },
-        { status: 400 }
-      );
-    }
-
-    // 수요자 존재 확인 (tenantId 소유권)
-    const tenantIdDel = getTenantIdFromRequest(request);
-    const existing = await db
-      .select()
-      .from(distributors)
-      .where(and(eq(distributors.id, id), eq(distributors.tenantId, tenantIdDel)))
-      .get();
+    const { id: idOrSlug } = await params;
+    const tenantId = getTenantIdFromRequest(request);
+    const existing = await resolveDistributor(idOrSlug, tenantId);
 
     if (!existing) {
       return NextResponse.json(
@@ -177,8 +152,9 @@ export async function DELETE(
       );
     }
 
-    // 삭제 실행 (CASCADE로 activity log도 자동 삭제)
-    await db.delete(distributors).where(and(eq(distributors.id, id), eq(distributors.tenantId, tenantIdDel)));
+    await db
+      .delete(distributors)
+      .where(and(eq(distributors.id, existing.id), eq(distributors.tenantId, tenantId)));
 
     return NextResponse.json({
       success: true,

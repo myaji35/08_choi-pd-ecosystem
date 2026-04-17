@@ -31,8 +31,9 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/distributors - 신규 수요자 등록
 export async function POST(request: NextRequest) {
   try {
+    const { validateSlug } = await import('@/lib/distributors/slug');
     const body = await request.json();
-    const { name, email, phone, businessType, region, subscriptionPlan, notes } = body;
+    const { slug: slugRaw, name, email, phone, businessType, region, subscriptionPlan, notes } = body;
 
     // 필수 필드 검증
     if (!name || !email || !businessType) {
@@ -41,6 +42,26 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // slug 필수 + 유효성 (서버 재검증)
+    let slug: string | null = null;
+    if (slugRaw) {
+      const v = validateSlug(String(slugRaw));
+      if (!v.ok) {
+        return NextResponse.json(
+          { success: false, error: `ID 오류: ${v.reason}` },
+          { status: 400 }
+        );
+      }
+      slug = v.normalized;
+    } else {
+      return NextResponse.json(
+        { success: false, error: 'ID(slug)는 필수입니다' },
+        { status: 400 }
+      );
+    }
+
+    const tenantId = getTenantIdFromRequest(request);
 
     // 이메일 중복 체크
     const existing = await db
@@ -56,10 +77,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 수요자 생성 (tenantId 포함)
-    const tenantId = getTenantIdFromRequest(request);
+    // slug 중복 체크 (distributors + members 교차)
+    const { members } = await import('@/lib/db/schema');
+    const [slugDupDist, slugDupMember] = await Promise.all([
+      db.select({ id: distributors.id }).from(distributors)
+        .where(and(eq(distributors.tenantId, tenantId), eq(distributors.slug, slug))).get(),
+      db.select({ id: members.id }).from(members).where(eq(members.slug, slug)).get(),
+    ]);
+    if (slugDupDist || slugDupMember) {
+      return NextResponse.json(
+        { success: false, error: '이미 사용 중인 ID입니다' },
+        { status: 409 }
+      );
+    }
+
+    // 수요자 생성
     const result = await db.insert(distributors).values({
       tenantId,
+      slug,
       name,
       email,
       phone: phone || null,
