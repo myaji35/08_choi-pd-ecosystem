@@ -114,6 +114,7 @@ export function FeaturedMembersMarquee() {
 }
 
 function MemberCard({ member: m }: { member: FeaturedMember }) {
+  const cover = m.coverImage || coverBySlugOrProfession(m.slug, m.profession);
   return (
     <Link
       href={`/member/${m.slug}`}
@@ -121,23 +122,21 @@ function MemberCard({ member: m }: { member: FeaturedMember }) {
     >
       {/* 상단 커버 이미지(또는 그라디언트) */}
       <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-[#16325C] via-[#1E3A8A] to-[#00A1E0]">
-        {m.coverImage ? (
-          <Image
-            src={m.coverImage}
-            alt={m.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="320px"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Play className="w-7 h-7 text-white fill-white" />
-            </div>
-          </div>
-        )}
+        <Image
+          src={cover}
+          alt={m.name}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          sizes="320px"
+        />
         {/* 오버레이 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+        {/* 재생 버튼 오버레이 */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-90 group-hover:opacity-100 transition-opacity">
+          <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/60">
+            <Play className="w-6 h-6 text-white fill-white" />
+          </div>
+        </div>
         <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/95 text-[10px] font-bold text-gray-900">
           <CheckCircle2 className="w-3 h-3 text-emerald-500" />
           검증
@@ -208,6 +207,35 @@ function MemberCard({ member: m }: { member: FeaturedMember }) {
   );
 }
 
+/**
+ * 커버 이미지가 없을 때 slug/직종 기반으로 SVG 썸네일을 골라준다.
+ * public/images/collage/*.svg 3장을 직종별로 매핑한다.
+ */
+function coverBySlugOrProfession(
+  slug: string,
+  profession: string | null | undefined,
+): string {
+  if (slug === 'choi-pd') return '/images/collage/award.svg';
+  switch (profession) {
+    case 'creator':
+      return '/images/collage/youtube.svg';
+    case 'educator':
+      return '/images/collage/lecture.svg';
+    case 'author':
+      return '/images/collage/lecture.svg';
+    case 'realtor':
+      return '/images/collage/lecture.svg';
+    case 'insurance_agent':
+      return '/images/collage/award.svg';
+    case 'shopowner':
+      return '/images/collage/youtube.svg';
+    case 'freelancer':
+      return '/images/collage/youtube.svg';
+    default:
+      return '/images/collage/lecture.svg';
+  }
+}
+
 function professionLabel(p: string | null | undefined): string {
   if (!p) return '크리에이터';
   const map: Record<string, string> = {
@@ -229,6 +257,7 @@ const SAMPLE_MEMBERS: FeaturedMember[] = [
     slug: 'choi-pd',
     name: '최범희 PD',
     profession: 'creator',
+    coverImage: '/images/collage/award.svg',
     tagline: '50대 스마트폰 창업 전문가 · 15년 경력',
     skills: ['영상편집', '콘텐츠 기획', '50대 교육'],
     revenue: '₩6.2M',
@@ -239,6 +268,7 @@ const SAMPLE_MEMBERS: FeaturedMember[] = [
     slug: 'demo-realtor',
     name: '김민주 중개사',
     profession: 'realtor',
+    coverImage: '/images/collage/lecture.svg',
     tagline: '강남·서초 프리미엄 매물 전문',
     skills: ['매물 분석', '상권 리포트', '투자 컨설팅'],
     revenue: '₩4.8M',
@@ -249,6 +279,7 @@ const SAMPLE_MEMBERS: FeaturedMember[] = [
     slug: 'demo-educator',
     name: '박서영 강사',
     profession: 'educator',
+    coverImage: '/images/collage/lecture.svg',
     tagline: 'AI 리터러시 · 기업 임직원 교육',
     skills: ['커리큘럼', '기업 출강', '온라인 강의'],
     revenue: '₩9.1M',
@@ -259,6 +290,7 @@ const SAMPLE_MEMBERS: FeaturedMember[] = [
     slug: 'demo-insurance',
     name: '이수현 설계사',
     profession: 'insurance_agent',
+    coverImage: '/images/collage/award.svg',
     tagline: '가족 맞춤 보험 · 10년차 FC',
     skills: ['종합 설계', '재무 진단', '세무'],
     revenue: '₩5.4M',
@@ -269,6 +301,7 @@ const SAMPLE_MEMBERS: FeaturedMember[] = [
     slug: 'demo-shopowner',
     name: '정다은 운영자',
     profession: 'shopowner',
+    coverImage: '/images/collage/youtube.svg',
     tagline: '수제 디저트 브랜드 "단단" 대표',
     skills: ['브랜딩', 'SNS 마케팅', 'CX 운영'],
     revenue: '₩3.7M',
@@ -279,6 +312,7 @@ const SAMPLE_MEMBERS: FeaturedMember[] = [
     slug: 'demo-freelancer',
     name: '한지호 디자이너',
     profession: 'freelancer',
+    coverImage: '/images/collage/youtube.svg',
     tagline: '브랜드 아이덴티티 · UI/UX',
     skills: ['BX 디자인', 'Webflow', 'Figma'],
     revenue: '₩4.2M',
