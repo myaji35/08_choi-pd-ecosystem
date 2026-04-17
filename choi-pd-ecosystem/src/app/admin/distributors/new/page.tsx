@@ -194,24 +194,25 @@ export default function NewDistributorPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur">
-        <div className="container flex h-16 items-center gap-4">
+      {/* Main Content */}
+      <main className="container py-8">
+        {/* Page title — notion-header(fixed h-12 z-50) 아래 정상 flow로 배치 */}
+        <div className="mb-6 flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => router.push('/admin/distributors')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-blue-600" />
+            <h1
+              className="text-2xl font-black flex items-center gap-2"
+              style={{ color: '#16325C' }}
+            >
+              <UserPlus className="h-6 w-6 text-[#00A1E0]" />
               신규 수요자 등록
             </h1>
             <p className="text-sm text-gray-600">새로운 분양 수요자를 등록합니다</p>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="container py-8">
         <div className="mx-auto max-w-2xl">
           <form onSubmit={handleSubmit}>
             <Card>
