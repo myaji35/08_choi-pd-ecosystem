@@ -149,7 +149,7 @@ export default function AdminNotificationsPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               대시보드
             </Button>
-            <h1 className="text-xl font-bold">알림 센터</h1>
+            <h1 className="text-xl font-bold" style={{ color: "#16325C" }}>알림 센터</h1>
           </div>
           <Button onClick={handleMarkAllAsRead} disabled={stats.unread === 0}>
             <CheckCheck className="mr-2 h-4 w-4" />

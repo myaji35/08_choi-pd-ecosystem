@@ -80,7 +80,7 @@ export default function NewResourcePage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold">새 리소스 추가</h1>
+            <h1 className="text-xl font-bold" style={{ color: "#16325C" }}>새 리소스 추가</h1>
             <p className="text-sm text-gray-600">분양자용 자료를 등록합니다</p>
           </div>
         </div>

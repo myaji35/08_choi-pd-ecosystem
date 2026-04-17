@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6F00"/>
+      <stop offset="100%" stop-color="#D32F2F"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg2)"/>
+
+  <!-- Playing 플레이 버튼 + 재생 바 -->
+  <g transform="translate(280, 160)">
+    <circle cx="120" cy="120" r="100" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.6)" stroke-width="4"/>
+    <path d="M 100 80 L 100 160 L 170 120 Z" fill="white"/>
+  </g>
+
+  <!-- 타임라인 하단 바 -->
+  <g transform="translate(80, 360)">
+    <rect x="0" y="0" width="640" height="8" rx="4" fill="rgba(255,255,255,0.25)"/>
+    <rect x="0" y="0" width="440" height="8" rx="4" fill="white"/>
+    <circle cx="440" cy="4" r="10" fill="white"/>
+    <text x="0" y="40" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="600" fill="rgba(255,255,255,0.85)">12:48</text>
+    <text x="640" y="40" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="600" fill="rgba(255,255,255,0.85)" text-anchor="end">18:23</text>
+  </g>
+
+  <!-- 상단 태그 -->
+  <rect x="40" y="40" width="140" height="36" rx="18" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)"/>
+  <text x="56" y="64" font-family="'Pretendard', sans-serif" font-size="14" font-weight="700" fill="white">유튜브 제작</text>
+
+  <!-- 하단 텍스트 -->
+  <rect x="0" y="450" width="800" height="150" fill="rgba(0,0,0,0.6)"/>
+  <text x="40" y="510" font-family="'Pretendard', sans-serif" font-size="34" font-weight="800" fill="white">유튜브 촬영 현장</text>
+  <text x="40" y="550" font-family="'Pretendard', sans-serif" font-size="18" font-weight="500" fill="rgba(255,255,255,0.85)">Press Awards 유튜버상 · 50~60대 크리에이터 입문</text>
+  <text x="40" y="580" font-family="'Pretendard', sans-serif" font-size="14" font-weight="600" fill="#B7F5C9">구독자 8.2k · 월 평균 업로드 12편</text>
+</svg>

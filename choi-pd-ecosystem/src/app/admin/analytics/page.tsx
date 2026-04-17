@@ -233,7 +233,7 @@ export default function AnalyticsPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold">통계 및 분석</h1>
+              <h1 className="text-xl font-bold" style={{ color: "#16325C" }}>통계 및 분석</h1>
               <p className="text-sm text-gray-600">비즈니스 인사이트 대시보드</p>
             </div>
           </div>

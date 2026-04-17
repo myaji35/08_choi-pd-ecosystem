@@ -161,7 +161,7 @@ export default function PaymentsPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold">결제 관리</h1>
+              <h1 className="text-xl font-bold" style={{ color: "#16325C" }}>결제 관리</h1>
               <p className="text-sm text-gray-600">분양 수요자 결제 내역</p>
             </div>
           </div>

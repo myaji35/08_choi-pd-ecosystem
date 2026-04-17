@@ -232,7 +232,7 @@ export default function DistributorDetailPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               뒤로가기
             </Button>
-            <h1 className="text-xl font-bold">수요자 상세 정보</h1>
+            <h1 className="text-xl font-bold" style={{ color: "#16325C" }}>수요자 상세 정보</h1>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-600">

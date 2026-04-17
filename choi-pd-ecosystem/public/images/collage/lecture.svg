@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D32F2F"/>
+      <stop offset="100%" stop-color="#1A237E"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg1)"/>
+  <!-- Grid pattern -->
+  <g opacity="0.08">
+    <path d="M0 150 L800 150 M0 300 L800 300 M0 450 L800 450" stroke="white" stroke-width="1"/>
+    <path d="M200 0 L200 600 M400 0 L400 600 M600 0 L600 600" stroke="white" stroke-width="1"/>
+  </g>
+
+  <!-- 연단 아이콘 (Feather 스타일 라인 아트) -->
+  <g transform="translate(260, 140)" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.85">
+    <!-- 마이크 -->
+    <rect x="115" y="20" width="50" height="90" rx="25"/>
+    <path d="M 95 100 Q 95 140 140 140 Q 185 140 185 100"/>
+    <line x1="140" y1="140" x2="140" y2="180"/>
+    <line x1="115" y1="180" x2="165" y2="180"/>
+    <!-- 연단 -->
+    <path d="M 60 230 L 220 230 L 210 290 L 70 290 Z"/>
+    <rect x="90" y="230" width="100" height="6" fill="white"/>
+  </g>
+
+  <!-- 상단 태그 -->
+  <rect x="40" y="40" width="160" height="36" rx="18" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)"/>
+  <text x="56" y="64" font-family="'Pretendard', sans-serif" font-size="14" font-weight="700" fill="white">공공기관 강의</text>
+
+  <!-- 하단 텍스트 -->
+  <rect x="0" y="450" width="800" height="150" fill="rgba(0,0,0,0.55)"/>
+  <text x="40" y="510" font-family="'Pretendard', sans-serif" font-size="36" font-weight="800" fill="white">공공기관 강의 장면</text>
+  <text x="40" y="550" font-family="'Pretendard', sans-serif" font-size="18" font-weight="500" fill="rgba(255,255,255,0.85)">B2G 출강 기록 · 경찰·공무원 대상 디지털 리터러시</text>
+  <text x="40" y="580" font-family="'Pretendard', sans-serif" font-size="14" font-weight="600" fill="#FF6F00">2024년 상반기 정기 출강 편성</text>
+</svg>

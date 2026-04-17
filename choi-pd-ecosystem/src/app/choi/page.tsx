@@ -106,94 +106,27 @@ export default async function ChoiOpsHome() {
               </div>
             </div>
 
-            {/* 우: 활동 하이라이트 카드 — 실 자산 텍스트 (anti_patterns "이모지 사용" 준수) */}
+            {/* 우: 활동 하이라이트 콜라주 — SVG 완성형 이미지 (태그/제목/부제 포함) */}
             {heroCollage.length > 0 && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gridTemplateRows: 'repeat(2, 140px)', gap: 10 }}>
-                {heroCollage.slice(0, 3).map((m, idx) => {
-                  const gradients = [
-                    'linear-gradient(135deg, rgba(211,47,47,0.95) 0%, rgba(183,28,28,0.92) 55%, rgba(26,35,126,0.9) 100%)',
-                    'linear-gradient(135deg, rgba(255,111,0,0.95) 0%, rgba(211,47,47,0.92) 100%)',
-                    'linear-gradient(135deg, rgba(26,35,126,0.95) 0%, rgba(0,137,123,0.9) 100%)',
-                  ];
-                  // 실 데이터 힌트 (caption 기반 추출 + 기본 레이블)
-                  const tagByIdx = ['공공기관 강의', '유튜브 제작', '수상·인증'];
-                  const subByIdx = ['B2G 출강 기록', 'Press Awards 유튜버상', '서울시 청소년지도자 대상'];
-                  return (
-                    <div
-                      key={m.id}
-                      style={{
-                        background: gradients[idx % gradients.length],
-                        borderRadius: 12,
-                        gridColumn: idx === 0 ? '1 / span 2' : undefined,
-                        gridRow: idx === 0 ? '1 / span 2' : undefined,
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        padding: '16px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      {/* 실 이미지 overlay (파일 존재 시만) */}
-                      {m.mediaUrl && !m.mediaUrl.startsWith('/images/') && (
-                        <div
-                          aria-hidden
-                          style={{
-                            position: 'absolute',
-                            inset: 0,
-                            backgroundImage: `url(${m.mediaUrl})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            opacity: 0.55,
-                            mixBlendMode: 'overlay',
-                          }}
-                        />
-                      )}
-                      <div style={{ position: 'relative', zIndex: 2 }}>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '3px 8px',
-                            borderRadius: 999,
-                            background: 'rgba(255,255,255,0.2)',
-                            color: 'white',
-                            fontSize: 10,
-                            fontWeight: 700,
-                            letterSpacing: '0.04em',
-                            border: '1px solid rgba(255,255,255,0.35)',
-                          }}
-                        >
-                          {tagByIdx[idx] || '활동'}
-                        </span>
-                      </div>
-                      <div style={{ position: 'relative', zIndex: 2 }}>
-                        <div
-                          style={{
-                            color: 'white',
-                            fontWeight: 800,
-                            fontSize: idx === 0 ? 18 : 13,
-                            lineHeight: 1.3,
-                            marginBottom: 4,
-                            textShadow: '0 1px 6px rgba(0,0,0,0.35)',
-                          }}
-                        >
-                          {m.caption || subByIdx[idx] || '활동 기록'}
-                        </div>
-                        <div
-                          style={{
-                            color: 'rgba(255,255,255,0.85)',
-                            fontSize: 11,
-                            fontWeight: 500,
-                          }}
-                        >
-                          {subByIdx[idx] || ''}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                {heroCollage.slice(0, 3).map((m, idx) => (
+                  <div
+                    key={m.id}
+                    style={{
+                      borderRadius: 12,
+                      gridColumn: idx === 0 ? '1 / span 2' : undefined,
+                      gridRow: idx === 0 ? '1 / span 2' : undefined,
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+                      overflow: 'hidden',
+                      backgroundImage: `url(${m.mediaUrl})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundColor: '#1A237E',
+                    }}
+                    aria-label={m.caption || ''}
+                  />
+                ))}
               </div>
             )}
           </div>

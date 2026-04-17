@@ -171,7 +171,7 @@ export default function ThemeSettingsPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               분양자 상세
             </Button>
-            <h1 className="text-xl font-bold">테마 설정</h1>
+            <h1 className="text-xl font-bold" style={{ color: "#16325C" }}>테마 설정</h1>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setIsPreview(!isPreview)}>

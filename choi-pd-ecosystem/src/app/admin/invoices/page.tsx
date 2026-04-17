@@ -171,7 +171,7 @@ export default function InvoicesPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold">영수증 관리</h1>
+              <h1 className="text-xl font-bold" style={{ color: "#16325C" }}>영수증 관리</h1>
               <p className="text-sm text-gray-600">분양 수요자 영수증 발행</p>
             </div>
           </div>

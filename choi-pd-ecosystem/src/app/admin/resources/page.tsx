@@ -169,7 +169,7 @@ export default function ResourcesPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold">리소스 관리</h1>
+            <h1 className="text-xl font-bold" style={{ color: "#16325C" }}>리소스 관리</h1>
             <p className="text-sm text-gray-600">분양자용 자료 및 템플릿을 관리합니다</p>
           </div>
         </div>

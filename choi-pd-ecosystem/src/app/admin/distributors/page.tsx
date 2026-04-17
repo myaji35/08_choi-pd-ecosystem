@@ -161,7 +161,7 @@ export default function DistributorsListPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold">전체 수요자 목록</h1>
+            <h1 className="text-xl font-bold" style={{ color: "#16325C" }}>전체 수요자 목록</h1>
             <p className="text-sm text-gray-600">모든 분양 수요자를 관리합니다</p>
           </div>
         </div>
