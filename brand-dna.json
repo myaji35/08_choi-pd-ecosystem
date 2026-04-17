@@ -1,0 +1,237 @@
+{
+  "version": "3.0",
+  "updated_at": "2026-04-17",
+  "_status": "defined",
+  "project": "imPD",
+  "project_full_name": "imPD — 1인 사업가를 위한 올인원 비즈니스 페이지",
+
+  "agenda": "흩어진 내 일, 하나의 주소로.",
+  "agenda_rationale": "실제 Hero H1 카피(2026-04 재작성)이자 랜딩·푸터·After 블록에서 반복되는 단일 문장. 1인칭 주인감(내 일/내 주소)이 핵심이며, '하나의 주소'는 impd.me/<id> 서브디렉토리 약속을 함의한다. 3안 검토: (A) 흩어진 내 일, 하나의 주소로 — 채택, (B) 5개 플랫폼을 imPD 하나로 — 기능 나열형이라 기각, (C) 1인 사업가의 올인원 비즈니스 페이지 — 카테고리 설명이라 기각.",
+
+  "brand_voice": "1인 사업가의 어깨너머에서 함께 일하는 동료의 말투 — 존댓말 유지하되 격식은 줄이고, 숫자·구체 사례·한국 현실(카톡/토스/계좌이체)을 먼저 꺼내는 실용적 목소리.",
+
+  "emotional_tone": ["주인감", "단순함", "신뢰", "조용한 자신감"],
+
+  "design_metaphors": [
+    "흩어진 조각을 하나의 주소로 끌어모으는 중력",
+    "5분이면 켜지는 개인 작업실 불빛",
+    "명함 한 장이 실제 비즈니스 페이지로 펼쳐지는 전개도"
+  ],
+
+  "design_tokens": {
+    "colors": {
+      "hero": "#00A1E0",
+      "hero_dark": "#0f172a",
+      "surface": "#ffffff",
+      "surface_alt": "#F3F2F2",
+      "surface_muted": "#f6faff",
+      "surface_dark": "#0f172a",
+      "text_primary": "#16325C",
+      "text_body": "#171c20",
+      "text_secondary": "#5B6B85",
+      "text_muted": "#6B7280",
+      "text_inverse": "#ffffff",
+      "accent_cyan": "#67e8f9",
+      "accent_cyan_strong": "#22d3ee",
+      "accent_warm": "#F59E0B",
+      "border": "#E5E7EB",
+      "border_input": "#D1D5DB",
+      "semantic": {
+        "success": "#10B981",
+        "warning": "#F59E0B",
+        "error": "#EF4444",
+        "info": "#00A1E0"
+      },
+      "gradients": {
+        "hero_dark": "linear-gradient from #060F1E via #0E2340 #16325C to #0080B8",
+        "hero_headline_accent": "from-cyan-300 via-cyan-400 to-blue-400 (bg-clip-text)",
+        "cta_glow": "bg-cyan-400 + shadow [0_0_30px_rgba(34,211,238,0.35)] hover [0_0_40px_rgba(34,211,238,0.5)]",
+        "mesh_orb_a": "bg-blue-500/25 blur-3xl mix-blend-soft-light",
+        "mesh_orb_b": "bg-cyan-400/30 blur-3xl mix-blend-soft-light",
+        "mesh_orb_c": "bg-purple-500/15 blur-3xl mix-blend-soft-light",
+        "mesh_orb_d": "bg-indigo-500/20 blur-3xl mix-blend-soft-light",
+        "cta_bottom_bg": "bg-[#0f172a] + blue-500/20 + cyan-500/15 orbs"
+      },
+      "overlay_on_dark": {
+        "text_primary": "rgba(255,255,255,1)",
+        "text_body": "rgba(255,255,255,0.9)",
+        "text_meta": "rgba(255,255,255,0.8)",
+        "text_subtle": "rgba(255,255,255,0.72)",
+        "text_disclaimer_min": "rgba(255,255,255,0.6)",
+        "border_faint": "rgba(255,255,255,0.1)",
+        "border_chip": "rgba(255,255,255,0.15)",
+        "border_strong": "rgba(255,255,255,0.5)"
+      }
+    },
+    "typography": {
+      "font_heading": "Inter",
+      "font_body": "Inter",
+      "font_mono": "ui-monospace",
+      "scale": "default",
+      "weights_used": [300, 400, 500, 600, 700, 800, 900],
+      "hero_h1": "text-5xl md:text-6xl lg:text-7xl font-black leading-[1.08] tracking-tight",
+      "section_h2": "text-4xl md:text-5xl font-black",
+      "card_title": "text-xl font-bold",
+      "body": "text-base md:text-lg leading-relaxed",
+      "eyebrow": "text-sm font-semibold uppercase tracking-wider",
+      "meta": "text-xs text-gray-500"
+    },
+    "shape": {
+      "radius": "moderate",
+      "radius_map": {
+        "card": "rounded-xl (default) / rounded-2xl (hero & featured)",
+        "button": "rounded-lg (default) / rounded-xl (hero CTA)",
+        "input": "rounded-lg",
+        "badge": "rounded-full",
+        "logo_mark": "rounded-md",
+        "thumbnail": "rounded-md"
+      },
+      "card_shadow": "sm (카드 기본) / lg (hover) / 2xl (hero mockup)",
+      "card_shadow_hero_mockup": "shadow-2xl + rotate-[-1.5deg] hover:rotate-0 transition duration-500",
+      "cta_shadow_primary": "shadow-[0_0_30px_rgba(34,211,238,0.35)]",
+      "border_width": "1px (border) / 2px (border-2, profession cards)",
+      "border_color_default": "border-gray-200",
+      "border_color_strong": "border-gray-300 (inputs)"
+    },
+    "motion": {
+      "style": "smooth",
+      "page_transition": "fade",
+      "scroll_animation": "stagger",
+      "hover_effect": "lift",
+      "loading_animation": "shimmer",
+      "micro_interaction": "count-up",
+      "entrance_style": "slide-up (Reveal from='up')",
+      "entrance_variants": ["up", "scale"],
+      "durations_ms": {
+        "reveal_stagger_step": 120,
+        "count_up": 1500,
+        "drift_orb_a": 18000,
+        "drift_orb_b": 22000,
+        "drift_orb_c": 26000,
+        "hero_float": 6000,
+        "marquee": 40000,
+        "card_hover": 300,
+        "mockup_rotate_reset": 500
+      },
+      "named_keyframes": [
+        "animate-drift-a (mesh orb drift)",
+        "animate-drift-b",
+        "animate-drift-c",
+        "animate-hero-float (브라우저 목업 부드러운 상하)",
+        "Reveal fade-in-up",
+        "CountUp 숫자 카운트",
+        "marquee (우수 회원 섬네일 가로 스크롤)"
+      ]
+    },
+    "layout": {
+      "density": "default",
+      "max_width": "max-w-7xl (1280px) — 랜딩/공개 페이지",
+      "admin_max_width": "full (auth/admin/pd 대시보드는 풀폭)",
+      "grid": "centered",
+      "hero_grid": "lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-16",
+      "section_padding": "py-20 md:py-28 (기본), py-24 md:py-32 (bottom CTA)",
+      "horizontal_padding": "px-6 (랜딩), px-8 (footer)"
+    },
+    "personality": {
+      "mood": "professional + trustworthy + 1인 사업가 친화",
+      "icon_style": "lucide (line icons, currentColor, stroke-width 2)",
+      "illustration_style": "none — 실제 자산(회원 페이지 미리보기, 스크린샷) 우선",
+      "emoji_usage": "한국 특화 뱃지 스트립 내에서만 최소 사용 (🇰🇷 카카오톡, 💳 토스, 🧾 세금계산서, 🏦 계좌이체). 시그니처 비주얼로 사용 금지."
+    }
+  },
+
+  "hero_color": "#00A1E0",
+  "hero_palette": {
+    "background": "#0f172a",
+    "headline": "#ffffff",
+    "headline_accent_gradient": "cyan-300 → cyan-400 → blue-400",
+    "cta_primary": "bg-cyan-400 text-[#0f172a] with cyan glow",
+    "cta_secondary": "border-2 border-white/50 bg-white/5 text-white"
+  },
+
+  "primary_cta_per_route": {
+    "/": "내 페이지 만들기",
+    "/onboarding": "다음 단계 (스텝별)",
+    "/login": "로그인",
+    "/admin/dashboard": "수요자 등록하기",
+    "/admin/distributors": "새 유통사 추가",
+    "/admin/distributors/new": "등록하기",
+    "/admin/members": "회원 조회",
+    "/admin/members/[slug]": "승인 / 정지",
+    "/admin/resources": "자료 업로드",
+    "/admin/analytics": "리포트 내보내기",
+    "/pd/dashboard": "콘텐츠 작성",
+    "/pd/kanban": "새 작업 추가",
+    "/pd/sns": "SNS 연결",
+    "/pd/profile": "저장",
+    "/p/[slug]": "팔로우 + 문의하기",
+    "/chopd": "팔로우",
+    "/choi": "B2G 문의하기"
+  },
+
+  "brand_differentiators": [
+    "한국 특화: 카카오톡 채널·토스 결제·세금계산서·계좌이체 기본 제공",
+    "impd.me/<id> 서브디렉토리 주소 제공 (ex. impd.me/choi)",
+    "1인 사업가 직종별 6개 템플릿 (PD·쇼핑몰·부동산·강사·보험·프리랜서)",
+    "5분 페이지 개설 + ₩0 시작 비용 + 신용카드 없이 시작",
+    "AI 콘텐츠 자동화(SNS·뉴스레터 초안) + 실시간 비즈니스 인사이트(방문자·문의·매출) 통합"
+  ],
+
+  "anti_patterns": [
+    "imPD 플랫폼 랜딩/로그인/온보딩에 최범희 PD 개인 사진·로고 노출 금지 — choi 브랜드는 /choi 서브페이지에만 존재. 플랫폼과 회원 브랜드를 섞으면 정체성 혼란",
+    "'엔터프라이즈 / 대기업 / ERP / 솔루션' 뉘앙스 카피 금지 — 타깃은 1인 사업가·프리랜서. Pro/Enterprise 플랜명을 제외한 본문에서 엔터프라이즈 언어 사용 금지",
+    "영어 first 단어 금지 (solopreneur, indie hacker, all-in-one 등 본문 헤드라인 영어 단독). 한국 50~60대 베이비부머 이탈. 한국어 우선 + 필요 시 영문 보조(BEFORE/AFTER, Free/Pro)",
+    "제품 기능 나열 중심 카피(블로그/SNS/예약/결제...) 금지 — 고객 정체성 중심('내 일', '내 주소', '흩어진 당신')으로 표현",
+    "스톡 사진 오피스/비즈니스맨 배경 금지 — 실제 회원 자산(featured members marquee, 직종 demo 카드, 브라우저 목업) 우선",
+    "이모지를 헤드라인·버튼·카드 타이틀에 사용 금지 — SVG 라인 아이콘(lucide) 통일. 한국 특화 뱃지 스트립 내에서만 결제/계좌이체 등 실체 아이콘으로 최소 사용",
+    "인라인 style 덩어리 금지 — Tailwind 토큰 우선. /choi 페이지 현재 인라인 style 86곳 위반 중. 점진적 리팩토링 필요 (TECH_DEBT 등록 대상)",
+    "투명도 배지(bg-blue-100 text-blue-700) 금지 — solid 배경 + white 텍스트 (기존 v2 규칙 유지)",
+    "border-gray-100 카드 / border-gray-200 input 금지 — border-gray-200 카드 최소 / border-gray-300 input 필수",
+    "다크 배경(#0f172a, #16325C) 위 text-white/50 이하 금지 — /60 이상 유지. 현재 disclaimer(신용카드 없이...)가 /55로 위반 중, /60으로 상향 필요",
+    "무료/할인을 의심스럽게 강조 금지 — '평생 무료 시작', '신용카드 없이'처럼 조건을 즉시 병기하여 신뢰 확보"
+  ],
+
+  "primary_action_per_screen": "MUST_EXIST — primary_cta_per_route 참조. 모든 화면은 1차 CTA 1개(cyan glow 또는 navy solid) + 선택적 2차 outline 1개. 동등 무게 2개 이상 금지.",
+
+  "user_decision_clarity": "0.5초 룰 — Hero CTA는 항상 1개 cyan glow primary('내 페이지 만들기') + 1개 outline secondary('내 직종 데모 보기'). 두 CTA가 시각적으로 동등 무게를 갖지 못하도록 shadow-[0_0_30px_rgba(34,211,238,0.35)]를 primary에만 적용.",
+
+  "character_identity": {
+    "name": "imPD",
+    "name_meaning": "I'm PD (나는 프로듀서/크리에이터) + imPD (플랫폼 브랜드). 개인 크리에이터·사업자를 '자기 일의 PD'로 포지셔닝",
+    "role_metaphor": "1인 사업가의 페이지 운영 OS — 관리자가 아닌 동료",
+    "target": ["1인 사업가", "프리랜서", "크리에이터", "강사", "보험 설계사", "부동산 중개사", "쇼핑몰 운영자", "방송 PD"],
+    "age_range": "30~60대 (5060 베이비부머 2차 커리어 포함)",
+    "korean_specific": true,
+    "geography": "South Korea (ko_KR)",
+    "pain_points": [
+      "매일 5개 플랫폼 로그인 + 콘텐츠 복사·붙여넣기",
+      "콘텐츠 제작 시간 부족",
+      "디지털 마케팅 기술 부족",
+      "흩어진 채널 관리의 비효율",
+      "이메일로 문의받고 카톡으로 예약받고 계좌로 입금받는 파편화된 매출 회로"
+    ]
+  },
+
+  "brand_layer_policy": {
+    "platform_brand": "imPD 플랫폼 자체 — 이 brand-dna.json이 정의. hero #00A1E0 + navy #16325C + cyan glow + Inter",
+    "member_brand": "회원별 개인 페이지(/p/<slug>, /choi 등) — members 테이블의 themeConfig JSON으로 개별 정의. 예: choi-brand.json은 #D32F2F 레드 + #1A237E 네이비로 choi 전용",
+    "separation_rule": "랜딩 / 로그인 / 온보딩 / /admin / /pd 대시보드 = 플랫폼 brand-dna 전용. /p/<slug>, /choi = 해당 회원 themeConfig 적용. 교차 오염 금지.",
+    "fallback": "회원 themeConfig 미설정 시 플랫폼 brand-dna의 neutral 토큰으로 fallback"
+  },
+
+  "migration_notes": {
+    "from_v2": "design_tokens 객체 신설 (colors/typography/shape/motion/layout/personality 중첩 구조). primary_cta_per_route 명시. anti_patterns를 imPD 특화 항목 11개로 재작성 (SLDS 전역 규칙은 CLAUDE.md에 위임). brand_layer_policy 추가로 플랫폼 vs 회원 브랜드 경계 명문화. character_identity에 pain_points 포함.",
+    "breaking_changes": "없음 — v2 필드는 design_tokens 하위로 편입되거나 그대로 유지. 기존 consumer는 brand.tagline_primary 등 경로가 바뀌지 않음 (v2 원본은 .claude/brand-dna.json에 유지).",
+    "consumers": [
+      "harness-ui-trends-2026 스킬 (루트 brand-dna.json 우선 탐색)",
+      "brand-guardian 에이전트 (anti_patterns, primary_cta_per_route 체크)",
+      "ux-harness (design_tokens.colors, shape, motion 참조)",
+      "design-critic (agenda, hero_color, brand_differentiators 기준 심미 평가)"
+    ],
+    "next_refinements": [
+      "/choi 인라인 style 86곳 → Tailwind 토큰 리팩토링 (TECH_DEBT)",
+      "Hero disclaimer rgba(255,255,255,0.55) → /60 이상으로 상향",
+      "members.themeConfig 스키마를 choi-brand.json 필드 세트(primary/primaryDark/accent/trust/surface/ink/border)로 표준화"
+    ]
+  }
+}
