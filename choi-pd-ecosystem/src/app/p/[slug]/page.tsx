@@ -1,4 +1,5 @@
-export const revalidate = 86400;
+// distributors fallback 반영을 위해 항상 동적 렌더. 필요 시 fetch 레벨 캐시로 전환.
+export const dynamic = 'force-dynamic';
 
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
