@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { DistributorIdentityUploader } from '@/components/admin/DistributorIdentityUploader';
 import {
   ArrowLeft,
   Save,
@@ -224,31 +225,37 @@ export default function DistributorDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="border-b bg-white/80 backdrop-blur">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
+      {/* 메인 콘텐츠 */}
+      <main className="container py-8">
+        {/* Page header — notion-header(h-12, z-50) 아래 정상 flow로 배치 */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => router.push('/admin/distributors')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-1 h-4 w-4" />
               뒤로가기
             </Button>
-            <h1 className="text-xl font-bold" style={{ color: "#16325C" }}>수요자 상세 정보</h1>
+            <div>
+              <h1 className="text-2xl font-black" style={{ color: '#16325C' }}>
+                수요자 상세 정보
+              </h1>
+              <p className="text-sm text-gray-600">
+                {distributor?.name}
+                {distributor?.email ? <> · <span className="font-mono">{distributor.email}</span></> : null}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleDelete} className="text-red-600">
               <Trash2 className="mr-2 h-4 w-4" />
               삭제
             </Button>
-            <Button size="sm" onClick={handleSave} disabled={isSaving}>
+            <Button size="sm" onClick={handleSave} disabled={isSaving} className="bg-[#00A1E0] hover:bg-[#0082B3] text-white">
               <Save className="mr-2 h-4 w-4" />
               {isSaving ? '저장 중...' : '저장'}
             </Button>
           </div>
         </div>
-      </header>
 
-      {/* 메인 콘텐츠 */}
-      <main className="container py-8">
         {/* 알림 메시지 */}
         {successMessage && (
           <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-4">
@@ -386,6 +393,11 @@ export default function DistributorDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* 아이덴티티 업로더 — 기본 정보와 동일한 좌측 2열 영역에 이어 배치 */}
+          <div className="md:col-span-2">
+            <DistributorIdentityUploader distributorId={id} />
+          </div>
 
           {/* 사이드 정보 */}
           <div className="space-y-6">

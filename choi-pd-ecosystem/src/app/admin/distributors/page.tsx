@@ -154,21 +154,23 @@ export default function DistributorsListPage() {
 
   return (
     <div className="min-h-screen bg-[#F3F2F2]">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur">
-        <div className="container flex h-16 items-center gap-4">
+      {/* Main Content */}
+      <main className="container py-8">
+        {/* Page title — notion-header(h-12, z-50) 아래에 안전하게 배치 */}
+        <div className="mb-6 flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={() => router.push('/admin/dashboard')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold" style={{ color: "#16325C" }}>전체 수요자 목록</h1>
-            <p className="text-sm text-gray-600">모든 분양 수요자를 관리합니다</p>
+            <h1 className="text-2xl font-black" style={{ color: "#16325C" }}>
+              전체 수요자 목록
+            </h1>
+            <p className="text-sm text-gray-600">
+              모든 분양 수요자를 관리합니다 · 행을 클릭하면 상세/아이덴티티 관리로 이동합니다
+            </p>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="container py-8">
         {/* Actions Bar */}
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-1 gap-2">
@@ -295,7 +297,13 @@ export default function DistributorsListPage() {
                   </TableHeader>
                   <TableBody>
                     {pagedDistributors.map((distributor) => (
-                      <TableRow key={distributor.id}>
+                      <TableRow
+                        key={distributor.id}
+                        className="cursor-pointer transition-colors hover:bg-[#F3F2F2]"
+                        onClick={() =>
+                          router.push(`/admin/distributors/${distributor.id}`)
+                        }
+                      >
                         <TableCell className="font-mono text-xs">
                           #{distributor.id}
                         </TableCell>
@@ -333,9 +341,11 @@ export default function DistributorsListPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() =>
-                              router.push(`/admin/distributors/${distributor.id}`)
-                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/admin/distributors/${distributor.id}`);
+                            }}
+                            aria-label="상세 보기"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
