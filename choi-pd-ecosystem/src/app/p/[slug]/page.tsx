@@ -4,9 +4,9 @@ export const dynamic = 'force-dynamic';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { db } from '@/lib/db';
-import { tenants, courses, snsAccounts, personalDna, members, posts, works } from '@/lib/db/schema';
+import { tenants, courses, snsAccounts, personalDna, members, posts, works, memberReviews } from '@/lib/db/schema';
 import { distributors } from '@/lib/db/schema/distribution';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, or, inArray } from 'drizzle-orm';
 import { DistributorFallbackPage } from '@/app/member/[slug]/DistributorFallbackPage';
 import { OwnerBar } from './OwnerBar';
 import { ViewTracker } from './ViewTracker';
@@ -23,6 +23,8 @@ import { CalendarSection } from './sections/CalendarSection';
 import { BusinessTrustSection, type BusinessInfo } from './sections/BusinessTrustSection';
 import { ContactSection } from './sections/ContactSection';
 import { FooterSection } from './sections/FooterSection';
+import { OtherProjectsSection } from './sections/OtherProjectsSection';
+import { ReviewsSection, type PublicReviewItem } from './sections/ReviewsSection';
 
 // ---- 직업군 한글 라벨 + 배지 색상 ----
 const PROFESSION_LABELS: Record<string, { label: string; color: string }> = {
@@ -208,6 +210,48 @@ export default async function BrandPage({ params }: BrandPageProps) {
   const tenantBooks = tenantWorks.filter((w) => w.category === 'gallery').slice(0, 6);
   const tenantPress = tenantWorks.filter((w) => w.category === 'press').slice(0, 6);
 
+  // ISS-067: 승인된 리뷰만 조회 (status triaged/responded 또는 isApproved=1)
+  //   member 페이지당 첫 번째 member를 기준으로 표시
+  const primaryMember = tenantMembers[0] ?? null;
+  let publicReviews: PublicReviewItem[] = [];
+  if (primaryMember) {
+    const reviewRows = await db
+      .select({
+        id: memberReviews.id,
+        reviewerName: memberReviews.reviewerName,
+        rating: memberReviews.rating,
+        content: memberReviews.content,
+        status: memberReviews.status,
+        isApproved: memberReviews.isApproved,
+        createdAt: memberReviews.createdAt,
+      })
+      .from(memberReviews)
+      .where(
+        and(
+          eq(memberReviews.memberId, primaryMember.id),
+          or(
+            inArray(memberReviews.status, ['triaged', 'responded']),
+            eq(memberReviews.isApproved, 1)
+          )
+        )
+      )
+      .orderBy(desc(memberReviews.createdAt))
+      .limit(20);
+
+    publicReviews = reviewRows.map((r) => ({
+      id: r.id,
+      reviewerName: r.reviewerName,
+      rating: r.rating,
+      content: r.content,
+      createdAt:
+        r.createdAt instanceof Date
+          ? r.createdAt.toISOString()
+          : r.createdAt
+          ? new Date(r.createdAt as unknown as string | number).toISOString()
+          : null,
+    }));
+  }
+
   // Personal DNA — 핵심 가치 추출
   let coreValues: string[] = [];
   if (tenantMembers.length > 0) {
@@ -296,6 +340,15 @@ export default async function BrandPage({ params }: BrandPageProps) {
         <PressSection pressItems={tenantPress} />
         <CalendarSection />
         <BusinessTrustSection businessInfo={businessInfo} awards={awards} />
+        {primaryMember && (
+          <ReviewsSection
+            memberSlug={slug}
+            memberId={primaryMember.id}
+            reviews={publicReviews}
+            primaryColor={primaryColor}
+          />
+        )}
+        <OtherProjectsSection slug={slug} currentProjectId="impd" primaryColor={primaryColor} />
         <ContactSection tenantId={tenant.id} primaryColor={primaryColor} />
         <FooterSection tenantName={tenant.name} primaryColor={primaryColor} />
       </main>

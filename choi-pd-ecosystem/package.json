@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev -p 3011",
+    "dev": "next dev -p 3011 --webpack",
     "build": "next build --webpack",
     "analyze": "ANALYZE=true next build --webpack",
     "build:prod": "NEXT_TYPESCRIPT_TSLINT_IGNORE=true next build --webpack",
