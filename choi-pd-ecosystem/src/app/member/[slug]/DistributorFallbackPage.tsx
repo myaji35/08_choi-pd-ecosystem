@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { IntegrationProjectsSection } from '@/app/p/[slug]/sections/IntegrationProjectsSection';
+import type { PublicIntegrationEntry } from '@/lib/integrations/public-snapshots';
 
 /**
  * distributors 테이블에 등록된 회원을 /choi 레이아웃으로 공개 렌더.
@@ -29,6 +31,7 @@ interface Props {
   identity: ParsedIdentity | null;
   status: string;
   updatedAt: Date | null;
+  integrations?: PublicIntegrationEntry[];
 }
 
 // /choi/layout.tsx에서 주입되는 brand 토큰과 동일 값
@@ -71,6 +74,7 @@ export function DistributorFallbackPage({
   identity,
   status,
   updatedAt,
+  integrations = [],
 }: Props) {
   const st = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
   const agenda = identity?.agenda?.trim() || null;
@@ -570,6 +574,11 @@ export function DistributorFallbackPage({
               </div>
             </div>
           </section>
+        )}
+
+        {/* Integration Projects — 연결된 플랫폼의 실시간 활동 */}
+        {integrations.length > 0 && (
+          <IntegrationProjectsSection integrations={integrations} />
         )}
 
         {/* Contact */}

@@ -24,7 +24,9 @@ import { BusinessTrustSection, type BusinessInfo } from './sections/BusinessTrus
 import { ContactSection } from './sections/ContactSection';
 import { FooterSection } from './sections/FooterSection';
 import { OtherProjectsSection } from './sections/OtherProjectsSection';
+import { IntegrationProjectsSection } from './sections/IntegrationProjectsSection';
 import { ReviewsSection, type PublicReviewItem } from './sections/ReviewsSection';
+import { loadPublicIntegrations } from '@/lib/integrations/public-snapshots';
 
 // ---- 직업군 한글 라벨 + 배지 색상 ----
 const PROFESSION_LABELS: Record<string, { label: string; color: string }> = {
@@ -163,6 +165,15 @@ export default async function BrandPage({ params }: BrandPageProps) {
 
     const d = distRows[0];
     const parsed = d.identityJson ? safeParseJson(d.identityJson) : null;
+
+    // 통합 연동 스냅샷 (graceful degrade)
+    let fallbackIntegrations: Awaited<ReturnType<typeof loadPublicIntegrations>> = [];
+    try {
+      fallbackIntegrations = await loadPublicIntegrations(d.slug || slug);
+    } catch (err) {
+      console.error('[p/[slug] fallback] loadPublicIntegrations error:', err);
+    }
+
     return (
       <DistributorFallbackPage
         slug={d.slug || slug}
@@ -173,6 +184,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
         identity={parsed}
         status={d.status}
         updatedAt={d.updatedAt ?? null}
+        integrations={fallbackIntegrations}
       />
     );
   }
@@ -250,6 +262,14 @@ export default async function BrandPage({ params }: BrandPageProps) {
           ? new Date(r.createdAt as unknown as string | number).toISOString()
           : null,
     }));
+  }
+
+  // 통합 연동 프로젝트 스냅샷 (HUB P2) — 실패 시 빈 배열로 graceful degrade
+  let publicIntegrations: Awaited<ReturnType<typeof loadPublicIntegrations>> = [];
+  try {
+    publicIntegrations = await loadPublicIntegrations(slug);
+  } catch (err) {
+    console.error('[p/[slug]] loadPublicIntegrations error:', err);
   }
 
   // Personal DNA — 핵심 가치 추출
@@ -349,6 +369,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
           />
         )}
         <OtherProjectsSection slug={slug} currentProjectId="impd" primaryColor={primaryColor} />
+        <IntegrationProjectsSection integrations={publicIntegrations} primaryColor={primaryColor} />
         <ContactSection tenantId={tenant.id} primaryColor={primaryColor} />
         <FooterSection tenantName={tenant.name} primaryColor={primaryColor} />
       </main>
