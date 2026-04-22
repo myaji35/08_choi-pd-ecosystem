@@ -119,17 +119,33 @@ export const memberInquiries = sqliteTable('member_inquiries', {
 ]);
 
 // Member Reviews Table (후기)
+// ISS-067: 고객 리뷰 수집 확장
+//   - reviewerEmail: 선택 이메일 (원문 또는 SHA-256 해시 저장)
+//   - status: 'new'|'triaged'|'responded'|'archived' — 어드민 트리아지 상태머신
+//   - source: 'public_form'|'admin_submitted' — 수집 경로
+//   - updatedAt: 상태 변경 추적
+//   - isApproved는 하위 호환 유지. status in ('triaged','responded')이면 승인 간주 (쿼리 계층에서 판단).
 export const memberReviews = sqliteTable('member_reviews', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   tenantId: integer('tenant_id').default(1).references(() => tenants.id), // SaaS 멀티테넌시
   memberId: integer('member_id').notNull().references(() => members.id, { onDelete: 'cascade' }),
   reviewerName: text('reviewer_name').notNull(),
+  reviewerEmail: text('reviewer_email'), // ISS-067: 선택. 원문 또는 sha256 해시
   rating: integer('rating').notNull(), // 1-5
   content: text('content'),
-  isApproved: integer('is_approved').default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
+  isApproved: integer('is_approved').default(0), // 하위 호환 (legacy)
+  status: text('status', {
+    enum: ['new', 'triaged', 'responded', 'archived']
+  }).notNull().default('new'), // ISS-067: 어드민 트리아지 상태
+  source: text('source', {
+    enum: ['public_form', 'admin_submitted']
+  }).default('public_form'), // ISS-067: 수집 경로
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`)
 }, (table) => [
   index('idx_member_reviews_tenant').on(table.tenantId),
+  index('idx_member_reviews_status').on(table.status),
+  index('idx_member_reviews_member').on(table.memberId),
 ]);
 
 // Member Bookings Table (예약 설정)

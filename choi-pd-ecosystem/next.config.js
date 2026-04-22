@@ -48,6 +48,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production'
+      ? { exclude: ['error', 'warn'] }
+      : false,
+  },
   // 환경변수를 런타임에 사용 가능하게 (서버사이드)
   serverRuntimeConfig: {
     BASE_DOMAIN: process.env.BASE_DOMAIN || 'impd.158.247.235.31.nip.io',

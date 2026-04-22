@@ -2,9 +2,17 @@
 .claude/
 .specify/memory/
 
+# Tool-local memory/session files (auto-updated, not source-of-truth)
+docs/.bkit-memory.json
+.bkit/
+.pdca.json
+
 # macOS
 .DS_Store
 .vscode-upload.json
+._*
+.AppleDouble
+.LSOverride
 
 # Editor
 .vscode/
