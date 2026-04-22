@@ -34,3 +34,4 @@ export * from './chat';
 export * from './pomelli';
 export * from './talent';
 export * from './follower';
+export * from './integration-projects';

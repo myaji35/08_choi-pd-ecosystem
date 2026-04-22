@@ -23,6 +23,8 @@ import {
   AlertTriangle,
   RefreshCw,
   Inbox,
+  Link2,
+  Plus,
 } from 'lucide-react';
 
 interface DistributorStats {
@@ -326,6 +328,34 @@ export default function AdminDistributorDashboard() {
                 <Link href="/admin/distributors/new">
                   <UserPlus className="mr-2 h-3.5 w-3.5" />
                   신규 수요자 등록
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* 통합 연동 프로젝트 */}
+          <Card className="group border-gray-200 hover:border-indigo-300 hover:shadow-lg hover:-translate-y-0.5 transition-all overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-indigo-500 to-blue-400" />
+            <CardHeader className="pb-3">
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-400 flex items-center justify-center shadow-sm shadow-indigo-200 group-hover:scale-110 transition-transform">
+                <Link2 className="h-5 w-5 text-white" strokeWidth={2.2} />
+              </div>
+              <CardTitle className="text-base mt-3">통합 연동</CardTitle>
+              <CardDescription className="text-xs">
+                Townin · CertiGraph 등 외부 프로젝트 연동 관리
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-1.5 pt-0">
+              <Button variant="ghost" size="sm" className="w-full justify-start h-8 text-gray-700 hover:bg-indigo-50" asChild>
+                <Link href="/admin/integration-projects">
+                  <Link2 className="mr-2 h-3.5 w-3.5" />
+                  프로젝트 목록
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" className="w-full justify-start h-8 text-gray-700 hover:bg-indigo-50" asChild>
+                <Link href="/admin/integration-projects/new">
+                  <Plus className="mr-2 h-3.5 w-3.5" />
+                  새 프로젝트 등록
                 </Link>
               </Button>
             </CardContent>
