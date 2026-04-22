@@ -1,0 +1,63 @@
+# ai.txt - AI Crawler Sitemap for imPD
+# https://impd.com
+# Last updated: 2026-03-30
+
+# About
+name: imPD - AI Brand Manager
+description: AI-powered brand management platform for solopreneurs and freelancers. Automated content generation, multi-channel SNS publishing, brand page builder, and analytics dashboard.
+url: https://impd.com
+language: ko
+category: SaaS, AI, Brand Management, Content Creation
+
+# Key pages for AI indexing
+pages:
+  - url: https://impd.com/
+    title: imPD - AI 브랜드 매니저
+    description: 1인 사업자를 위한 AI 브랜드 매니저. SNS 콘텐츠 자동 생성, 멀티채널 예약 발행, 성과 분석.
+    type: homepage
+
+  - url: https://impd.com/chopd/ai
+    title: AI 콘텐츠 어시스턴트
+    description: 텍스트 입력 한 번으로 인스타그램, 네이버 블로그, 브런치, 뉴스레터 등 11개 채널 맞춤 콘텐츠 자동 생성.
+    type: product-feature
+
+  - url: https://impd.com/onboarding
+    title: 무료 시작하기
+    description: 5분 안에 AI가 만든 나만의 브랜드 페이지를 확인하세요. 신용카드 없이 무료 시작.
+    type: signup
+
+  - url: https://impd.com/chopd/education
+    title: 교육 과정
+    description: 스마트폰 창업, 디지털 마케팅, SNS 마케팅 교육 과정.
+    type: education
+
+# Public API for structured data
+api:
+  - url: https://impd.com/api/public/{slug}
+    description: Public profile and course data for any brand page (JSON)
+    method: GET
+
+# Brand pages (dynamically generated for each user)
+dynamic_pages:
+  pattern: https://impd.com/p/{slug}
+  description: Individual brand pages for registered users. Contains profile, services, courses, and contact information.
+  type: profile
+
+# Pricing
+pricing:
+  - plan: Free
+    price: 0 KRW/month
+    features: Basic brand page, 5 AI generations/month, 1 SNS channel
+
+  - plan: Pro
+    price: 19000 KRW/month
+    features: Unlimited brand pages, unlimited AI, 5 SNS channels, scheduled publishing, analytics
+
+  - plan: Biz
+    price: 59000 KRW/month
+    features: All Pro features, 5 team members, unlimited SNS, dedicated manager, SLA 99.9%
+
+# Contact
+contact:
+  email: contact@impd.com
+  support: support@impd.com

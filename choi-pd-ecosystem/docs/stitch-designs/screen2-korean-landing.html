@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;family=Inter:wght@400;500;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#673d00",
+                        "surface-bright": "#f6faff",
+                        "on-primary-fixed": "#001e2e",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#00334a",
+                        "inverse-on-surface": "#edf1f7",
+                        "inverse-primary": "#84cfff",
+                        "tertiary-container": "#d5850b",
+                        "background": "#f6faff",
+                        "tertiary": "#885200",
+                        "surface-variant": "#dee3e8",
+                        "error": "#ba1a1a",
+                        "primary-container": "#00a1e0",
+                        "on-tertiary-fixed": "#2b1700",
+                        "primary-fixed-dim": "#84cfff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed": "#d7e3ff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb867",
+                        "outline-variant": "#bdc8d1",
+                        "surface-dim": "#d6dae0",
+                        "primary-fixed": "#c7e7ff",
+                        "outline": "#6e7881",
+                        "on-secondary-container": "#3b5480",
+                        "surface-container": "#eaeef4",
+                        "secondary-container": "#b0cafd",
+                        "secondary-fixed-dim": "#aec7fa",
+                        "on-error": "#ffffff",
+                        "surface": "#f6faff",
+                        "on-primary-fixed-variant": "#004c6c",
+                        "on-surface": "#171c20",
+                        "on-background": "#171c20",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#455f8b",
+                        "on-tertiary": "#ffffff",
+                        "surface-tint": "#00658e",
+                        "on-tertiary-container": "#472900",
+                        "on-secondary-fixed-variant": "#2d4772",
+                        "tertiary-fixed": "#ffddbb",
+                        "primary": "#00658e",
+                        "surface-container-high": "#e4e9ee",
+                        "inverse-surface": "#2c3135",
+                        "surface-container-highest": "#dee3e8",
+                        "surface-container-low": "#f0f4f9",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#001b3f",
+                        "on-surface-variant": "#3e4850"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .electric-gradient {
+            background: linear-gradient(135deg, #00658e 0%, #00A1E0 100%);
+        }
+        .hero-mesh {
+            background-color: #001b3f;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(197,100%,44%,0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(218,34%,27%,0.2) 0px, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 bg-white/70 dark:bg-slate-950/70 backdrop-blur-md shadow-[0_20px_40px_rgba(22,50,92,0.06)]">
+<nav class="flex justify-between items-center max-w-7xl mx-auto px-8 h-20">
+<div class="text-2xl font-black tracking-tighter text-slate-900 dark:text-slate-100 font-['Manrope']">imPD</div>
+<div class="hidden md:flex items-center space-x-8">
+<a class="text-[#00A1E0] font-bold border-b-2 border-[#00A1E0] pb-1 font-['Manrope'] text-lg" href="#">주요 기능</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium hover:text-[#00A1E0] transition-colors font-['Manrope'] text-lg" href="#">커뮤니티</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium hover:text-[#00A1E0] transition-colors font-['Manrope'] text-lg" href="#">교육</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium hover:text-[#00A1E0] transition-colors font-['Manrope'] text-lg" href="#">가격</a>
+</div>
+<button class="bg-[#00A1E0] text-white px-6 py-2.5 rounded-lg font-bold hover:opacity-90 active:scale-95 duration-200 ease-in-out transition-all">
+                시작하기
+            </button>
+</nav>
+</header>
+<!-- Hero Section -->
+<section class="hero-mesh pt-40 pb-32 px-8">
+<div class="max-w-7xl mx-auto flex flex-col items-center text-center">
+<h1 class="font-headline font-extrabold text-5xl md:text-7xl text-white tracking-tight mb-8 leading-[1.1]">
+                당신의 브랜드를 빛나게,<br/>프리랜서를 위한 올인원 플랫폼
+            </h1>
+<p class="text-secondary-fixed text-lg md:text-xl max-w-2xl mb-12 leading-relaxed opacity-90">
+                imPD는 프리랜서와 1인 기업가가 브랜드 가치를 높이고, 콘텐츠 관리부터 교육 수익화, 전문 네트워크 유통까지 한 번에 해결할 수 있도록 돕습니다.
+            </p>
+<div class="flex flex-col sm:flex-row gap-4">
+<button class="electric-gradient text-on-primary px-10 py-5 rounded-xl font-bold text-lg shadow-2xl hover:scale-[1.02] active:scale-95 transition-all">
+                    무료로 시작하기
+                </button>
+<button class="bg-white/10 backdrop-blur-md text-white border border-white/20 px-10 py-5 rounded-xl font-bold text-lg hover:bg-white/20 transition-all">
+                    서비스 둘러보기
+                </button>
+</div>
+</div>
+</section>
+<!-- Trust Section -->
+<section class="py-12 bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-8">
+<p class="text-center text-on-surface-variant font-label text-xs uppercase tracking-[0.2em] mb-10">함께하는 파트너 및 신뢰 지표</p>
+<div class="flex flex-wrap justify-center items-center gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+<img class="h-8" data-alt="minimalist corporate logo of a global tech company in monochrome blue-grey tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNMwNG_ekbXdD-v6cPOzKOvaqNR8WJpMfh6blyaV7o1GUC8FbCBPnm-XnH1yUN-9nwsHuQky_3R84Ew29V72xRB4TN3mxnXsfaJ54JuFA0CykP28mX2mAfZ_VmVtH2RHq8KKQ0jbWFcy4x8mEZxVnwpgs5l7QN4AC1iRQXhGX0J4GOJolKRIh5bzwM8eFWU0KwvdEDPyM5kFOAhWqw1tIAPTMYqepuhUCKtnfKIDTI7CGJKbY0VvtjFIxg291MZzVUCs8KVsxdu_m4"/>
+<img class="h-8" data-alt="modern software venture capital firm logo simplified for high-end UI design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKjrP_Ugqd1RwwPGVxTlBOw_8-XcsH7r1weHaLucDJj1swb0qqcaZaQbubUPKsbEYGcjYU79vFpdkduayGRqTkjeA3Qa9NVYgaGdXIQ_PS5Uag6bdI6DbSl25qJAFRMdS_jU2nGWvtIUrbQqyDc0I63Pq3T6sTt2IHL53o_QbN16fGyyVmDG-jmLa5eqfQZs-4OGQtD-UPa1LGqQX_WgJAPRUVuz6cPEGhaEYYSnTkVaC3lCeuk-NZG9aAhVUUtQimo01at5uTEh_5"/>
+<img class="h-8" data-alt="professional education platform logo with clean geometric shapes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_-auK9Q5oq1Qyz6SysKkP_aoLL9IPQ7hZ_odWSMgIXDmHFabJiZSxzWOP7LpZxMiQrRSmddOwR5C8Wr4Sqr-xDMfkIA_UUbDu5N70zxJ-g0lUPdMo7KhpfmYy8NOxoB8_4WUvkPdl66UninBkvpWaey8GnKQw0c2NQUZLh786Q8Jrsym5hc6qxqMyaf9ei06Hhy5o58Mi7vJgLL4Q_AWfQzYTvx_Wj4J7CuFlBv-gDzMejI0dX26wJhmNqtWUySnXuSePJ2uPWaiW"/>
+<img class="h-8" data-alt="creative agency logo featuring sleek sans-serif typography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZWiVvWTTIQOnqunAtP1zxIfoB3mNBUlVJQMqZ0YaX99P84TKHtOuoHBCUscmoeEUeB3WQ8cM-Xjk9CrH6fi78LNRw5qWAfDpXrCQniy25CIJIkX5AJ0sMHcMmngZU3N1L07dMdMk3XBLB5VNIzx0pwKRxXpcn9R5Um98L13NMkiZCNa6R38qjeuGVCxM1lVXnZJGJDtTjagPSD_i7XFsgW1QnaUXRVzatyZluJHdXR1FHtywkNozLYZNxTv78qrLBNDRxuKCBOvVF"/>
+<img class="h-8" data-alt="fintech startup logo with a focus on trust and minimalist aesthetics" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYIeP23X7pgd7VaAMz9TPYhqpu3KCZvjDjsvzT2oKf_s2ftEbmrOjnZLtHjx5dabplO152UOyvAi41Ev3oeW05oTb3ciTDNkYI1bVhzRKdz9bLwxIAbGhxu6LKStfVf_Ql-E9EfY_6nebpA-PQfpz2z7Y_u64b7QRarpE1LCkfTcCvZ18hf57DyZqpYP4gT9j21I6I0CIGQ95LyPN3VreCN7-8J45KmzrGKSoZgVuE4_w-ZOGQl-TZkLljST9mUobwNpnBOP49tE4U"/>
+</div>
+</div>
+</section>
+<!-- Featured Members Section -->
+<section class="py-32 px-8 bg-surface overflow-hidden">
+<div class="max-w-7xl mx-auto">
+<div class="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h2 class="font-headline font-extrabold text-4xl text-on-surface mb-4">이달의 우수 멤버</h2>
+<p class="text-on-surface-variant text-lg">imPD 플랫폼을 통해 성장하고 있는 최고의 전문가들을 만나보세요.</p>
+</div>
+<button class="text-primary font-bold flex items-center gap-2 hover:translate-x-1 transition-transform">
+                    전체 멤버 보기 <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+<!-- Member 1 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_20px_40px_rgba(22,50,92,0.06)] relative group">
+<div class="absolute top-6 right-6">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span> Verified
+                        </span>
+</div>
+<div class="mb-6 overflow-hidden rounded-full w-20 h-20">
+<img class="w-full h-full object-cover" data-alt="professional headshot of a female UX designer with a friendly smile, soft natural studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0DhY14CbvT2ZWnYBLuQwEk_w7T8XYxIsnFqFVXP_PdD79W7d5lleALV7opAFRrrxxSdiVRWZKB9ZtWpSuH37bbIbEwP1hgoHFcasgy5Tk94VBsTJdAqThiH4SJGZ8wcq1xGsUqJ3aVeACJAp1fLU7cxzL-6hGf8m7LG4Ctiy-kc6VgLKMsSuO278-9v15ABCiBSCiZMae_GhGqjzaJu-seWvR_Xe6_dTf3AAc_XC_k26R9O1DhqxVqj0OZ5XYapDT-2Omiezl5OPH"/>
+</div>
+<h3 class="font-headline font-bold text-xl mb-1">김지우</h3>
+<p class="text-primary font-medium text-sm mb-4">UX Designer</p>
+<p class="text-on-surface-variant text-sm leading-relaxed italic">"imPD의 네트워크 덕분에 대기업 프로젝트를 수주하고 브랜드 가치를 2배 높였습니다."</p>
+</div>
+<!-- Member 2 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_20px_40px_rgba(22,50,92,0.06)] relative group">
+<div class="absolute top-6 right-6">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span> Verified
+                        </span>
+</div>
+<div class="mb-6 overflow-hidden rounded-full w-20 h-20">
+<img class="w-full h-full object-cover" data-alt="close up portrait of a male content creator in a modern office space, shallow depth of field" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7qzEq_jBaXBq8vEjm3mPn48JwTZj_mBe0GbWI_uAxYnvysFrFZZjrUgAEo2vJIjjY-LBtbH-qwNM_ax7IArVHV6CnEzjStIoOEfgpf2Wx3KZbjKhhU0yGbpsP-lpzcUQg2KW0w5V3MofpbtwVFs9h5C5tWM7DJP0W8OD1Tut0huy16-JUrVPCqySyMjVqDhSiAcjzYQYOv7Text2i67W5l_J6lKofqLldmdkBxaJ3pfNtafuYOd7VALwTaUCboE-zx34raAh7SMk9"/>
+</div>
+<h3 class="font-headline font-bold text-xl mb-1">박선호</h3>
+<p class="text-primary font-medium text-sm mb-4">Content Creator</p>
+<p class="text-on-surface-variant text-sm leading-relaxed italic">"AI 브랜딩 툴로 주 10시간 이상의 작업 시간을 단축했습니다. 정말 놀라운 효율입니다."</p>
+</div>
+<!-- Member 3 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_20px_40px_rgba(22,50,92,0.06)] relative group">
+<div class="absolute top-6 right-6">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span> Verified
+                        </span>
+</div>
+<div class="mb-6 overflow-hidden rounded-full w-20 h-20">
+<img class="w-full h-full object-cover" data-alt="professional woman in business casual attire sitting in a bright sunlit cafe, warm cinematic tone" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB6lzvHTGsoh6N5UPodn3MepIK5hdyjAbp1Ifl7Ye515E7blW0-Ait_ssSrEJKQCmP7elDUB8oCEFAzvyxV8tPrn1bK9FhCDKwGc0-ilkW1hfTWs6hWuw33qcJLn5H3-jQBfmN7htGNTBugNwbAn9rsuDM-8riOyYaUw_sjrACxj5A42Hl1JWlLy4w_zpljrZI_sDo2r-uUnqNpZOX2hidr1bkvgmHccSclwk5oPzFoBWBrVekegjO8V7gkmBNLSpMXxqKyPkWg8My"/>
+</div>
+<h3 class="font-headline font-bold text-xl mb-1">이서현</h3>
+<p class="text-primary font-medium text-sm mb-4">Marketing Specialist</p>
+<p class="text-on-surface-variant text-sm leading-relaxed italic">"강의 수익화 기능을 통해 저만의 노하우를 안정적인 수입원으로 전환할 수 있었습니다."</p>
+</div>
+<!-- Member 4 -->
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_20px_40px_rgba(22,50,92,0.06)] relative group">
+<div class="absolute top-6 right-6">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">verified</span> Verified
+                        </span>
+</div>
+<div class="mb-6 overflow-hidden rounded-full w-20 h-20">
+<img class="w-full h-full object-cover" data-alt="creative professional male with glasses in a minimalist art studio, cool professional lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuC1ap_Qp30vPgZH4BdvXcBTtgIQdzRkP5ZkrKwyKQktFzLC07g1emGv7s2W-F0iqrt8I06x8qgJqP7vFqEGQO4U0P_F3-k_O_2IBPGbzFHIFm7ox7igvMERlr_b-gxdG41zDnj9Wj9ThBYs3fs53nlGxJuJKoW-DwTeQI73VoX0BTaf9a_Ba1Bm3ioqEEUqmAsvf58ckhY91n0eTbeQ3SWMx1-b2ocztvLpvsBEeHiW-ko-kle_C6wO6QONryhZHRbZUajA8LP28N"/>
+</div>
+<h3 class="font-headline font-bold text-xl mb-1">최민준</h3>
+<p class="text-primary font-medium text-sm mb-4">Brand Strategist</p>
+<p class="text-on-surface-variant text-sm leading-relaxed italic">"전문가 커뮤니티에서 얻는 인사이트는 제 비즈니스의 방향성을 잡는 데 필수적입니다."</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Platform Features Grid -->
+<section class="py-32 px-8 bg-surface-container-low relative">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-20">
+<h2 class="font-headline font-extrabold text-4xl text-on-surface mb-6">비즈니스를 가속화하는 핵심 기능</h2>
+<div class="w-20 h-1.5 electric-gradient mx-auto rounded-full"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+<!-- Feature 1 -->
+<div class="bg-surface-container-lowest p-10 rounded-xl flex items-start gap-8 border border-outline-variant/10 hover:shadow-xl transition-shadow">
+<div class="w-16 h-16 rounded-xl electric-gradient flex items-center justify-center flex-shrink-0 text-white shadow-lg">
+<span class="material-symbols-outlined text-3xl">auto_awesome</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-2xl mb-3">AI 콘텐츠 생성</h3>
+<p class="text-on-surface-variant leading-relaxed">
+                            당신의 브랜드 보이스를 학습한 AI가 블로그, 뉴스레터, 상세페이지를 몇 초 만에 완성합니다. "AI로 브랜딩 콘텐츠를 빠르게 제작하세요"
+                        </p>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="bg-surface-container-lowest p-10 rounded-xl flex items-start gap-8 border border-outline-variant/10 hover:shadow-xl transition-shadow">
+<div class="w-16 h-16 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0 text-white shadow-lg">
+<span class="material-symbols-outlined text-3xl">share</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-2xl mb-3">SNS 통합 관리</h3>
+<p class="text-on-surface-variant leading-relaxed">
+                            분산된 채널을 하나의 대시보드에서 효율적으로 운영하세요. "링크드인, X 등 여러 채널을 한곳에서 관리하세요"
+                        </p>
+</div>
+</div>
+<!-- Feature 3 -->
+<div class="bg-surface-container-lowest p-10 rounded-xl flex items-start gap-8 border border-outline-variant/10 hover:shadow-xl transition-shadow">
+<div class="w-16 h-16 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 text-white shadow-lg">
+<span class="material-symbols-outlined text-3xl">school</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-2xl mb-3">교육 콘텐츠 판매</h3>
+<p class="text-on-surface-variant leading-relaxed">
+                            전문성을 자산화하는 가장 빠른 방법입니다. "자신만의 노하우를 강의로 수익화하세요"를 위한 강력한 LMS 도구를 제공합니다.
+                        </p>
+</div>
+</div>
+<!-- Feature 4 -->
+<div class="bg-surface-container-lowest p-10 rounded-xl flex items-start gap-8 border border-outline-variant/10 hover:shadow-xl transition-shadow">
+<div class="w-16 h-16 rounded-xl bg-on-primary-fixed-variant flex items-center justify-center flex-shrink-0 text-white shadow-lg">
+<span class="material-symbols-outlined text-3xl">hub</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-2xl mb-3">유통 네트워크</h3>
+<p class="text-on-surface-variant leading-relaxed">
+                            "1.9만 전문가 네트워크로 비즈니스를 확장하세요". 혼자서는 닿을 수 없던 새로운 시장과 기회를 연결해 드립니다.
+                        </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-slate-50 dark:bg-slate-900 border-t border-transparent">
+<div class="max-w-7xl mx-auto px-8 py-12 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div class="flex flex-col gap-4">
+<div class="text-xl font-bold text-slate-900 dark:text-slate-100 font-headline">imPD</div>
+<p class="text-slate-500 dark:text-slate-400 font-body text-sm leading-relaxed">
+                    © 2024 imPD Platform for Solopreneurs. All rights reserved.
+                </p>
+</div>
+<div class="flex flex-wrap md:justify-end gap-x-8 gap-y-4">
+<a class="text-slate-500 dark:text-slate-400 text-sm hover:text-[#00A1E0] transition-colors" href="#">이용약관</a>
+<a class="text-slate-500 dark:text-slate-400 text-sm hover:text-[#00A1E0] transition-colors" href="#">개인정보처리방침</a>
+<a class="text-slate-500 dark:text-slate-400 text-sm hover:text-[#00A1E0] transition-colors" href="#">인재채용</a>
+<a class="text-slate-500 dark:text-slate-400 text-sm hover:text-[#00A1E0] transition-colors" href="#">고객센터</a>
+</div>
+</div>
+</footer>
+</body></html>

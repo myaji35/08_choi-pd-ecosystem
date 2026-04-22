@@ -1,0 +1,331 @@
+{
+  "metadata": {
+    "generated_at": "2026-04-14",
+    "project": "imPD (I'm PD) — 최PD 브랜드 허브 + 유통 플랫폼",
+    "version": "domain-analysis-v2",
+    "issue": "ISS-062",
+    "schema_tables_count": 68,
+    "api_routes_count": 140,
+    "page_routes_count": 58,
+    "roles": ["admin", "distributor", "user", "guest"]
+  },
+
+  "rules": [
+    {
+      "id": "R-001",
+      "area": "auth",
+      "rule": "보호 경로(/admin, /pd, /dashboard, /api/admin/*, /api/pd/*)는 impd_session 쿠키 또는 x-clerk-user-id 헤더 존재 시에만 통과",
+      "severity": "critical",
+      "enforced": true,
+      "evidence": "src/middleware.ts:152-178"
+    },
+    {
+      "id": "R-002",
+      "area": "auth",
+      "rule": "DEV_MODE=true 이면 모든 인증 우회 — 프로덕션에 전파되면 전면 노출",
+      "severity": "critical",
+      "enforced": false,
+      "evidence": "src/middleware.ts:98,122,162,192 (4곳 반복)"
+    },
+    {
+      "id": "R-003",
+      "area": "auth",
+      "rule": "Edge 미들웨어는 쿠키 '존재'만 확인 — JWT 서명/만료 검증은 각 API가 개별 수행해야 함",
+      "severity": "critical",
+      "enforced": false,
+      "evidence": "src/middleware.ts:46 주석 'JWT 검증은 API 레벨'; admin/distributors/route.ts는 재검증 없음"
+    },
+    {
+      "id": "R-004",
+      "area": "authorization",
+      "rule": "관리자 역할은 'admin' | 'superadmin' 두 단계이나, /api/admin/* 내부에서 role 체크 누락",
+      "severity": "critical",
+      "enforced": false,
+      "evidence": "src/app/api/admin/distributors/route.ts 전체 — requireAdmin/getSession 호출 0건"
+    },
+    {
+      "id": "R-005",
+      "area": "tenancy",
+      "rule": "모든 비즈니스 데이터는 tenantId로 격리 (getTenantIdFromRequest)",
+      "severity": "critical",
+      "enforced": true,
+      "evidence": "src/app/api/admin/distributors/route.ts:12, admin/payments/route.ts:11"
+    },
+    {
+      "id": "R-006",
+      "area": "tenancy",
+      "rule": "tenantId는 x-tenant-slug 헤더(서브도메인 유래)에서 파생 — 헤더 위조 시 다른 테넌트 자원 접근 가능성",
+      "severity": "critical",
+      "enforced": false,
+      "evidence": "src/middleware.ts:57 requestHeaders.set('x-tenant-slug', ...); 클라이언트가 같은 헤더를 직접 주입하면 차단 로직 없음"
+    },
+    {
+      "id": "R-007",
+      "area": "public_api",
+      "rule": "신규 /api/choi/brand POST는 인증 없이 브랜드 JSON을 덮어씀",
+      "severity": "critical",
+      "enforced": false,
+      "evidence": "src/app/api/choi/brand/route.ts:12-19 (auth check 전무, 또한 middleware PUBLIC_API 기본 정책상 /api/admin 외 경로는 인증 가드 적용 안 됨)"
+    },
+    {
+      "id": "R-008",
+      "area": "privacy",
+      "rule": "문의(Inquiries)는 개인정보(이름/이메일/전화)를 담으므로 목록/상세 조회는 관리자 전용",
+      "severity": "critical",
+      "enforced": "partial",
+      "evidence": "POST /api/inquiries 는 공개(정상). GET은 /api/admin/inquiries 경로 하위에 있음 — 단 R-004로 role 가드는 미비"
+    },
+    {
+      "id": "R-009",
+      "area": "sns_secrets",
+      "rule": "SnsAccounts.accessToken/refreshToken은 암호화 저장되어야 함",
+      "severity": "critical",
+      "enforced": false,
+      "evidence": "src/lib/db/schema/sns.ts:14-15 — text 컬럼 평문. ENCRYPTION_KEY 환경변수는 존재하나 스키마 저장 시 사용 증거 없음"
+    },
+    {
+      "id": "R-010",
+      "area": "payment",
+      "rule": "Stripe webhook은 서명 검증으로 위변조 차단",
+      "severity": "critical",
+      "enforced": true,
+      "evidence": "src/app/api/webhooks/stripe/route.ts:27,35 stripe.webhooks.constructEvent 호출"
+    },
+    {
+      "id": "R-011",
+      "area": "payment",
+      "rule": "결제 상태는 pending|completed|failed|refunded 4단계. 환불은 원결제 존재 + 금액 ≤ 원금 검증 필요",
+      "severity": "major",
+      "enforced": "unknown",
+      "evidence": "src/app/api/admin/payments/route.ts — GET만 확인. POST/환불 경로 별도 검증 필요"
+    },
+    {
+      "id": "R-012",
+      "area": "payment",
+      "rule": "VOD 강의 결제는 외부(Stripe/TossPayments)에서 처리, courses.externalLink로 이동. 내부 payments 테이블은 distributor 구독료 전용",
+      "severity": "major",
+      "enforced": "assumed",
+      "evidence": "prd.md + schema: payments.distributorId FK 존재, userId FK 없음"
+    },
+    {
+      "id": "R-013",
+      "area": "auth",
+      "rule": "로그인 실패 5회/분 초과 시 차단 (in-memory rate limit)",
+      "severity": "major",
+      "enforced": "partial",
+      "evidence": "in-memory 스토어는 다중 인스턴스에서 무효. 분산 환경에서 우회 가능"
+    },
+    {
+      "id": "R-014",
+      "area": "audit",
+      "rule": "모든 관리자 변경 액션(distributor 상태 변경, 결제 생성/환불, 리소스 업로드)은 auditLogs에 기록",
+      "severity": "major",
+      "enforced": "unknown",
+      "evidence": "distributors/route.ts POST 경로에 auditLogs 삽입 로직 미확인. schema에 auditLogs 테이블은 존재"
+    },
+    {
+      "id": "R-015",
+      "area": "distributor",
+      "rule": "distributor 자신은 자기 자원만 조회. 타 distributor 자원 접근 불가",
+      "severity": "critical",
+      "enforced": "not_implemented",
+      "evidence": "distributor 전용 API가 아직 없음(/api/admin/distributors만 존재). 리셀러 포털 미구현 → 미래 결함 가능성"
+    },
+    {
+      "id": "R-016",
+      "area": "subscription",
+      "rule": "distributor의 subscriptionPlan 변경은 결제 성공 이벤트 후에만 반영",
+      "severity": "major",
+      "enforced": "unknown",
+      "evidence": "schema.distributors.subscriptionPlan 직접 수정 가능한 PATCH 경로 — Stripe webhook 연동 증거 필요"
+    },
+    {
+      "id": "R-017",
+      "area": "sns",
+      "rule": "SNS 예약 발행 실패 시 SnsPostHistory에 에러 기록 + 재시도 큐 등록",
+      "severity": "major",
+      "enforced": "partial",
+      "evidence": "src/app/api/sns/retry 경로 존재. 실패 기록 정합성은 스캔 필요"
+    },
+    {
+      "id": "R-018",
+      "area": "input_validation",
+      "rule": "모든 외부 입력은 zod 검증 통과 후 DB 저장",
+      "severity": "major",
+      "enforced": "partial",
+      "evidence": "inquiries/route.ts zod 사용 ✓, admin/distributors POST는 수동 if(!name) 체크만 — 스키마 검증 미적용"
+    },
+    {
+      "id": "R-019",
+      "area": "brand",
+      "rule": "/choi 페이지 브랜드 데이터는 파일 기반(choi-brand.json) 단일 소스. 쓰기는 관리자만",
+      "severity": "critical",
+      "enforced": false,
+      "evidence": "R-007과 동일 — /api/choi/brand POST 인증 부재"
+    },
+    {
+      "id": "R-020",
+      "area": "privacy",
+      "rule": "개인정보 삭제 요청(dataDeletionRequests)은 GDPR/KISA 법적 기한 내 처리",
+      "severity": "major",
+      "enforced": "schema_only",
+      "evidence": "schema/security.ts 테이블 존재. 워크플로 구현 여부 미확인"
+    }
+  ],
+
+  "scenarios": [
+    {
+      "id": "S-001",
+      "role": "guest",
+      "goal": "교육 과정 목록을 보고 B2B 문의 제출",
+      "steps": ["/education 접속", "과정 카드 클릭(externalLink 확인)", "/inquiries 폼 작성", "POST /api/inquiries (type=b2b)"],
+      "expected": "201, 이메일 확인 안내. Inquiries 테이블에 tenantId와 함께 저장. 게스트는 접수 후 자기 문의 조회 불가."
+    },
+    {
+      "id": "S-002",
+      "role": "guest",
+      "goal": "악의적으로 /api/choi/brand POST로 브랜드 덮어쓰기",
+      "steps": ["curl -X POST /api/choi/brand -d '{...}'"],
+      "expected": "401 반환되어야 함. 실제는 200 — R-007 결함."
+    },
+    {
+      "id": "S-003",
+      "role": "guest",
+      "goal": "관리자 페이지 직접 접근",
+      "steps": ["/admin/dashboard GET"],
+      "expected": "/login 으로 302 리디렉션 (DEV_MODE=false 전제)"
+    },
+    {
+      "id": "S-004",
+      "role": "user",
+      "goal": "학생이 구매한 VOD 시청",
+      "steps": ["/login", "/dashboard", "courses 리스트", "external payment 완료 후 watch"],
+      "expected": "외부 결제 성공 → courses.externalLink 접근 허용. 내부 payments에는 기록 안 됨 (R-012)."
+    },
+    {
+      "id": "S-005",
+      "role": "user",
+      "goal": "자기 프로필 조회/수정",
+      "steps": ["/api/profile GET", "PATCH"],
+      "expected": "자기 userId의 데이터만 반환. 타 userId 쿼리스트링 주입 시 403."
+    },
+    {
+      "id": "S-006",
+      "role": "distributor",
+      "goal": "파트너 포털에서 자기 매출/인보이스 조회",
+      "steps": ["/p/{slug}/dashboard 접근"],
+      "expected": "distributor 전용 포털. 현재 미구현 — R-015 미래 결함."
+    },
+    {
+      "id": "S-007",
+      "role": "distributor",
+      "goal": "타 distributor 데이터 API 직접 호출",
+      "steps": ["GET /api/admin/distributors/999 (본인 id=1)"],
+      "expected": "403 또는 404. 현재는 세션만 있으면 admin 권한 검사 없이 접근 가능 — R-004 결함."
+    },
+    {
+      "id": "S-008",
+      "role": "admin",
+      "goal": "신규 distributor 승인 + 구독 플랜 설정",
+      "steps": ["POST /api/admin/distributors", "PATCH 상태=approved", "subscriptionPlan 설정"],
+      "expected": "auditLogs 기록 + 환영 이메일 + Stripe customer 생성"
+    },
+    {
+      "id": "S-009",
+      "role": "admin",
+      "goal": "결제 환불 처리",
+      "steps": ["POST /api/admin/payments/{id}/refund"],
+      "expected": "원결제 status=completed 확인 → Stripe refund 호출 → status=refunded 갱신 → invoice 발행 → auditLog. 중복 환불 차단."
+    },
+    {
+      "id": "S-010",
+      "role": "admin",
+      "goal": "SNS 계정 토큰 추가",
+      "steps": ["POST /api/sns/channels { accessToken }"],
+      "expected": "DB 저장 시 AES-256-GCM 암호화. 현재 평문 — R-009 결함."
+    },
+    {
+      "id": "S-011",
+      "role": "admin",
+      "goal": "B2B 문의 목록 조회 + 처리 상태 변경",
+      "steps": ["GET /api/admin/inquiries", "PATCH status=contacted"],
+      "expected": "개인정보 마스킹 옵션 또는 접근 로그 기록. 현재는 role 체크 없어 일반 로그인 세션으로도 조회 위험."
+    },
+    {
+      "id": "S-012",
+      "role": "admin",
+      "goal": "Stripe webhook 수신으로 구독 갱신",
+      "steps": ["Stripe → POST /api/webhooks/stripe"],
+      "expected": "서명 검증 통과 → event.type 분기 → distributors.subscriptionPlan 갱신 + payments 삽입."
+    },
+    {
+      "id": "S-013",
+      "role": "admin",
+      "goal": "최PD 브랜드 페이지(/choi) 편집",
+      "steps": ["/choi/admin 진입", "브랜드 섹션 편집", "POST /api/choi/brand"],
+      "expected": "인증된 admin만 저장 가능. 현재 무인증 — R-007/R-019 결함."
+    },
+    {
+      "id": "S-014",
+      "role": "admin",
+      "goal": "2FA 활성화",
+      "steps": ["/admin/security/2fa 활성화"],
+      "expected": "TOTP secret 암호화 저장. 로그인 시 2차 검증 필수."
+    },
+    {
+      "id": "S-015",
+      "role": "guest",
+      "goal": "로그인 무차별 대입",
+      "steps": ["POST /api/auth/login x 100회"],
+      "expected": "5회 실패 후 429. 다중 인스턴스에서도 유효(Redis 등 분산 스토어) — 현재 in-memory, R-013 결함."
+    }
+  ],
+
+  "role_matrix": {
+    "admin": [
+      "S-008 distributor 관리", "S-009 환불", "S-010 SNS 토큰", "S-011 문의 관리",
+      "S-012 webhook 수신", "S-013 브랜드 편집", "S-014 2FA"
+    ],
+    "distributor": [
+      "S-006 자기 포털(미구현)", "S-007 타 distributor 접근 시도(차단 기대)"
+    ],
+    "user": [
+      "S-004 VOD 시청", "S-005 프로필"
+    ],
+    "guest": [
+      "S-001 문의 제출", "S-002 브랜드 덮어쓰기 시도", "S-003 관리자 접근 차단", "S-015 로그인 공격"
+    ]
+  },
+
+  "top_3_suspected_defects": [
+    {
+      "area": "public_write_without_auth",
+      "why": "POST /api/choi/brand 가 인증 체크 없이 브랜드 JSON 전체를 덮어쓸 수 있음. 게스트가 홈페이지 데이터 변조 가능. 오늘 추가된 신규 코드로 가드 누락 확정.",
+      "check_how": "curl -X POST http://localhost:3011/api/choi/brand -H 'Content-Type: application/json' -d '{\"hero\":{\"title\":\"hacked\"}}' 로 200 응답 확인. 수정안: middleware PUBLIC_API_PATHS에서 제거 + route.ts 에서 requireAdmin() 호출.",
+      "evidence": "src/app/api/choi/brand/route.ts:12-19, src/middleware.ts:144-150"
+    },
+    {
+      "area": "authz_role_missing_in_admin_api",
+      "why": "/api/admin/* 는 middleware에서 '쿠키 존재'만 확인. 일반 user로 로그인해도 impd_session 이 발급되면 distributor/payments/inquiries 관리 API 전부 호출 가능. role=='admin'|'superadmin' 검사 코드가 API 핸들러에 없음.",
+      "check_how": "일반 user 세션으로 GET /api/admin/distributors 호출 → 200 확인. 수정안: getServerSession() → role 체크 유틸 추가 후 모든 /api/admin/* POST/PATCH/DELETE에 적용.",
+      "evidence": "src/app/api/admin/distributors/route.ts (전체), src/app/api/admin/payments/route.ts (전체), src/middleware.ts:164-175 (쿠키 존재만 확인)"
+    },
+    {
+      "area": "sns_token_plaintext",
+      "why": "snsAccounts.accessToken/refreshToken이 text 평문 컬럼. DB 유출 또는 auditLogs 덤프 시 SNS 계정 전면 탈취. 개인정보보호법 안전조치 의무 위반 소지.",
+      "check_how": "sqlite3 data/database.db 'SELECT access_token FROM sns_accounts LIMIT 1' 로 평문 확인. 수정안: ENCRYPTION_KEY로 AES-256-GCM 암호화 래퍼(lib/crypto) 도입 후 insert/select 시 자동 복호화.",
+      "evidence": "src/lib/db/schema/sns.ts:14-15"
+    }
+  ],
+
+  "summary_stats": {
+    "rules_total": 20,
+    "rules_critical": 10,
+    "rules_major": 9,
+    "rules_minor": 0,
+    "enforced_true": 4,
+    "enforced_false_or_partial": 16,
+    "scenarios_total": 15,
+    "scenarios_by_role": {"admin": 7, "distributor": 2, "user": 2, "guest": 4}
+  }
+}
