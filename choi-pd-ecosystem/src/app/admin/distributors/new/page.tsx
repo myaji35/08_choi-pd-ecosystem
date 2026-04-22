@@ -111,7 +111,9 @@ export default function NewDistributorPage() {
         if (!cancelled && data?.suggestion) {
           setFormData((prev) => (prev.slug ? prev : { ...prev, slug: data.suggestion }));
         }
-      } catch {}
+      } catch (err) {
+        if (!cancelled) console.debug('[distributors/new] slug suggestion skipped:', err);
+      }
     }, 500);
     return () => {
       cancelled = true;

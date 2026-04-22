@@ -152,7 +152,10 @@ async function addAlias(skillId: number, surface: string) {
   let arr: string[] = [];
   try {
     arr = JSON.parse(row.aliases || '[]');
-  } catch {}
+  } catch (err) {
+    console.warn(`[skills/resolver] aliases JSON 파싱 실패 (skillId=${skillId}) — 빈 배열로 복구:`, err);
+    arr = [];
+  }
   if (!arr.map(normalize).includes(normalize(surface))) {
     arr.push(surface);
     await db.update(skills).set({ aliases: JSON.stringify(arr) }).where(eq(skills.id, skillId));

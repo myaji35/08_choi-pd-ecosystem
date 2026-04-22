@@ -28,7 +28,9 @@ export function FollowButton({
           setIsFollowing(!!data.isFollowing);
           setCount(data.followerCount ?? initialCount);
         }
-      } catch {}
+      } catch (err) {
+        if (!cancelled) console.debug('[FollowButton] initial fetch failed:', err);
+      }
     })();
     return () => {
       cancelled = true;
