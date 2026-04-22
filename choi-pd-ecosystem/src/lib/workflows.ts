@@ -600,7 +600,7 @@ export async function createWorkflowFromTemplate(params: {
 // Utility Functions
 // ============================================================
 
-function encryptData(data: string): string {
+export function encryptData(data: string): string {
   const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY ?? (() => {
     if (process.env.NODE_ENV === 'production') throw new Error('ENCRYPTION_KEY must be set in production');
     return 'dev-only-encryption-key-not-for-prod';
@@ -616,7 +616,7 @@ function encryptData(data: string): string {
   return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
 }
 
-function decryptData(encryptedData: string): string {
+export function decryptData(encryptedData: string): string {
   const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY ?? (() => {
     if (process.env.NODE_ENV === 'production') throw new Error('ENCRYPTION_KEY must be set in production');
     return 'dev-only-encryption-key-not-for-prod';

@@ -4,6 +4,7 @@ import { integrationProjects } from '@/lib/db/schema';
 import { and, asc, desc, eq, type SQL } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter } from '@/lib/tenant/query-helpers';
+import { encryptData } from '@/lib/workflows';
 
 /**
  * GET /api/admin/integration-projects
@@ -72,16 +73,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const normalizedKey = String(key).trim().toLowerCase();
-    if (!/^[a-z0-9-]{2,32}$/.test(normalizedKey)) {
+    const rawKey = String(key).trim();
+    if (!/^[a-z0-9-]{2,32}$/.test(rawKey)) {
       return NextResponse.json(
         { success: false, error: 'key는 영소문자/숫자/하이픈 2~32자여야 합니다.' },
         { status: 400 },
       );
     }
+    const normalizedKey = rawKey;
 
     const validAuthTypes = ['none', 'api_key', 'bearer', 'oauth2'];
     const finalAuthType = authType && validAuthTypes.includes(authType) ? authType : 'none';
+
+    const encryptedCred =
+      authCredential && finalAuthType !== 'none' ? encryptData(String(authCredential)) : null;
 
     const [created] = await db
       .insert(integrationProjects)
@@ -94,7 +99,7 @@ export async function POST(request: NextRequest) {
         apiBaseUrl: apiBaseUrl ?? null,
         endpointTemplate: endpointTemplate ?? '/api/integrations/public/{external_id}',
         authType: finalAuthType as 'none' | 'api_key' | 'bearer' | 'oauth2',
-        authCredential: authCredential ?? null,
+        authCredential: encryptedCred,
         adapterKey: adapterKey ?? null,
         brandColor: brandColor ?? null,
         logoUrl: logoUrl ?? null,

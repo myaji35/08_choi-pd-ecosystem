@@ -4,6 +4,7 @@ import { integrationProjects } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { getTenantIdFromRequest } from '@/lib/tenant/context';
 import { tenantFilter } from '@/lib/tenant/query-helpers';
+import { encryptData } from '@/lib/workflows';
 
 type RouteCtx = { params: Promise<{ id: string }> };
 
@@ -74,6 +75,16 @@ export async function PATCH(request: NextRequest, { params }: RouteCtx) {
         { success: false, error: 'key는 변경할 수 없습니다. 새 프로젝트로 등록하세요.' },
         { status: 400 },
       );
+    }
+
+    // authCredential이 들어오면 암호화. 빈 문자열이나 마스킹 센티넬은 무시(기존 값 유지).
+    if ('authCredential' in updates) {
+      const raw = updates.authCredential;
+      if (raw === null || raw === '' || raw === '***encrypted***') {
+        delete updates.authCredential;
+      } else if (typeof raw === 'string') {
+        updates.authCredential = encryptData(raw);
+      }
     }
 
     if (Object.keys(updates).length === 0) {
