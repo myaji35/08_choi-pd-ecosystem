@@ -17,6 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { DistributorIdentityUploader } from '@/components/admin/DistributorIdentityUploader';
 import { IdentityPreviewCard } from '@/components/admin/IdentityPreviewCard';
+import { DistributorIntegrationsPanel } from '@/components/admin/DistributorIntegrationsPanel';
 import { memberDisplayUrl, memberHref, memberAbsoluteUrl } from '@/lib/public-url';
 import { validateSlug } from '@/lib/distributors/slug';
 import {
@@ -481,6 +482,9 @@ export default function DistributorDetailPage() {
               distributorId={id}
               onSaved={() => setIdentityRefreshKey((k) => k + 1)}
             />
+            {distributor?.id && (
+              <DistributorIntegrationsPanel distributorId={distributor.id} />
+            )}
           </div>
 
           {/* 사이드 정보 */}
