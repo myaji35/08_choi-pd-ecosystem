@@ -59,3 +59,7 @@ gcs-key.json
 .cache/
 choi-pd-ecosystem/deploy.tar.gz
 .gstack/
+.claude/worktrees
+worktrees/
+.harness-worktree-meta
+.claude/worktrees.json
